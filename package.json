@@ -1,0 +1,37 @@
+{
+  "name": "lays_champions_league",
+  "description": "THREE.js rollup project",
+  "engines": {
+    "node": ">=6.9.0"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "serve": "rollup -c -w"
+  },
+  "devDependencies": {
+    "@babel/plugin-external-helpers": "^7.2.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-es2015-loose-rollup": "^7.0.0",
+    "fs": "0.0.1-security",
+    "glslify": "^7.0.0",
+    "rollup": "^1.12.0",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-copy": "^3.1.0",
+    "rollup-plugin-delete": "^1.1.0",
+    "rollup-plugin-generate-html-template": "^1.5.0",
+    "rollup-plugin-glslify": "^1.1.2",
+    "rollup-plugin-livereload": "^1.0.4",
+    "rollup-plugin-node-resolve": "^2.1.1",
+    "rollup-plugin-sass": "^1.2.2",
+    "rollup-plugin-serve": "^1.0.1",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-watch": "^4.3.1",
+    "three": "github:mrdoob/three.js#dev"
+  },
+  "dependencies": {
+    "rollup-plugin-scss": "^1.0.2"
+  }
+}
