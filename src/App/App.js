@@ -1,9 +1,14 @@
-import Globals from "./Globals"
-import {Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight} from 'three'
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
-import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
+// import Globals from "./Globals"
+import {Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping} from 'three'
+// import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
+// import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 import GPGPU from "../GPGPU/GPGPU"
 import SimulationShader from "../GPGPU/SimulationShader"
+
+import FBOHelper from '../libs/THREE.FBOHelper'
+
+console.log(FBOHelper)
+
 
 export default class App {
 
@@ -24,10 +29,35 @@ export default class App {
         this.clock =  new Clock()
 
         this.gpgpu = new GPGPU({renderer: this.renderer})
+        console.log(this.gpgpu)
 
         this.simulationShader = new GPGPU.SimulationShader()
-
         console.log(this.simulationShader)
+
+        this.fboWidth = 512
+        this.fboHeight = 512        
+
+        this.rtTexturePos = new WebGLRenderTarget( this.fboWidth, this.fboHeight, {
+            wrapS: ClampToEdgeWrapping,
+            wrapT: ClampToEdgeWrapping,
+            minFilter: NearestFilter,
+            magFilter: NearestFilter,
+            format: RGBAFormat,
+            type: FloatType,
+            depthBuffer: false,
+            stencilBuffer: false
+        })
+
+        this.rtTexturePos.texture.generateMipmaps = false
+
+        this.rtTexturePos2 = this.rtTexturePos.clone()
+
+
+        this.fbohelper = new FBOHelper(this.renderer)
+        this.fbohelper.setSize(this.fboWidth, this.fboHeight)
+        this.fbohelper.attach(this.rtTexturePos, 'Positions 1')
+
+        // console.log(this.simulationShader)
 
         // console.log(this.gpgpu)
 
@@ -36,8 +66,6 @@ export default class App {
     }
 
     init() {
-
-        Globals.camera = this.camera
 
         this._setupScene()
         requestAnimationFrame(this.render.bind(this))
@@ -69,9 +97,15 @@ export default class App {
 
     render(now) {
 
-        Globals.deltaTime = this.clock.getDelta()
-        Globals.elapsedTime = this.clock.getElapsedTime()
+        // this.gpgpu.pass( this.simulationShader.setPositionTexture( this.rtTexturePos ), this.rtTexturePos2 )
+        // this.gpgpu.render( this.scene, this.camera, this.rtTexturePos )
+
+        // Globals.deltaTime = this.clock.getDelta()
+        // Globals.elapsedTime = this.clock.getElapsedTime()
         requestAnimationFrame(this.render.bind(this))
+
+
+        this.fbohelper.update()
 
     }
 }

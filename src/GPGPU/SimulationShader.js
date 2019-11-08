@@ -4,8 +4,6 @@ import { ShaderMaterial } from "three"
 import vertexShader from '../shaders/simulationVert.glsl'
 import fragmentShader from '../shaders/simulationFrag.glsl'
 
-console.log(vertexShader)
-
 export default class SimulationShader {
 
     constructor() {
@@ -16,8 +14,11 @@ export default class SimulationShader {
                 tOrigins: { type: "t", value: null },
                 opacity: { type: "f", value: 0 },
                 timer: { type: "f", value: 0 }
-            }
+            },
+            vertexShader,
+            fragmentShader
         })
+        
     }
 
     setPositionTexture(positions) {

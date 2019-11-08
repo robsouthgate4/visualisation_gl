@@ -32,6 +32,6 @@ void main() {,
 
     },
 
-    gl_FragColor = pos;
+    gl_FragColor = vec4(1.0);
 
 }
