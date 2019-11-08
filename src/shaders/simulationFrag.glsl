@@ -4,20 +4,20 @@ uniform sampler2D tOrigins;
 uniform float timer;
 varying vec2 vUv;
 
-float rand(vec2 co){,
+float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-},
+}
 
-void main() {,
+void main() {
 
     vec4 pos = texture2D( tPositions, vUv );
 
-    if ( rand( vUv + timer ) > 0.99 || pos.w <= 0.0 ) {,
+    if ( rand( vUv + timer ) > 0.99 || pos.w <= 0.0 ) {
 
         pos.xyz = texture2D( tOrigins, vUv ).xyz;
         pos.w = opacity;
 
-    } else {,
+    } else {
 
         if ( pos.w <= 0.0 ) discard;
 
@@ -30,7 +30,7 @@ void main() {,
         pos.z += sin( x * 0.037 ) * cos( y * 0.033 ) * 0.4;
         pos.w -= 0.00001;
 
-    },
+    }
 
     gl_FragColor = vec4(1.0);
 
