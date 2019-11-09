@@ -1,13 +1,17 @@
 // import Globals from "./Globals"
-import {Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping} from 'three'
+import {Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping,  SphereBufferGeometry, RepeatWrapping} from 'three'
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
-import GPGPU from "../GPGPU/GPGPU"
-import SimulationShader from "../GPGPU/SimulationShader"
 
+import {GPUComputationRenderer} from 'three/examples/jsm/misc/GPUComputationRenderer'
+
+import {GeometryUtils} from 'three/examples/jsm/utils/GeometryUtils'
 import FBOHelper from '../libs/THREE.FBOHelper'
 
-console.log(FBOHelper)
+import fragShaderPosition from '../shaders/positionFrag.glsl'
+import fragShaderVelocity from '../shaders/velocityFrag.glsl'
+
+
 
 
 export default class App {
@@ -18,48 +22,94 @@ export default class App {
         this.canvas = document.getElementById('canvas')
         this.camera = new PerspectiveCamera(( 75, window.innerWidth / window.innerHeight, 0.1, 1000 ) )
 
-        this.renderer = new WebGLRenderer()
+        this.renderer = new WebGLRenderer({ antialias: true, alpha: false })
+        this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight )
         document.body.appendChild( this.renderer.domElement )
 
-        this.then = 0
+        this.bounds = 400
+        this.boundsHalf = this.bounds / 2
+
         this.tapPosition = new Vector2()
         this.raycaster = new Raycaster()
         this.loadingManager = new LoadingManager()
         this.clock =  new Clock()
 
-        this.gpgpu = new GPGPU({renderer: this.renderer})
-        console.log(this.gpgpu)
+        this.size = 256
 
-        this.simulationShader = new GPGPU.SimulationShader()
-        console.log(this.simulationShader)
+        this.gpuCompute = new GPUComputationRenderer(this.size, this.size, this.renderer)        
 
-        this.fboWidth = 512
-        this.fboHeight = 512        
+        this.dtPosition = this.gpuCompute.createTexture()
+        const posArray = this.dtPosition.image.data
 
-        this.rtTexturePos = new WebGLRenderTarget( this.fboWidth, this.fboHeight, {
-            wrapS: ClampToEdgeWrapping,
-            wrapT: ClampToEdgeWrapping,
-            minFilter: NearestFilter,
-            magFilter: NearestFilter,
-            format: RGBAFormat,
-            type: FloatType,
-            depthBuffer: false,
-            stencilBuffer: false
-        })
+        for (let i = 0, l = posArray.length; i < l; i += 4) {
+            const x = Math.random()
+            const y = Math.random()
+            const z = Math.random()
+            posArray[i + 0] = x
+            posArray[i + 1] = y
+            posArray[i + 2] = z
+            posArray[i + 3] = 1
+        }
 
-        this.rtTexturePos.texture.generateMipmaps = false
+        console.log(posArray)
 
-        this.rtTexturePos2 = this.rtTexturePos.clone()
+        this.positionVariable = this.gpuCompute.addVariable("texturePosition", fragShaderPosition, this.dtPosition )
 
+        
+        this.dtVelocity = this.gpuCompute.createTexture()
+        const velArray = this.dtVelocity.image.data
+
+        for (let i = 0, l = velArray.length; i < l; i += 4) {
+            const x = Math.random() - 0.5
+            const y = Math.random() - 0.5
+            const z = Math.random() - 0.5
+            velArray[i + 0] = x
+            velArray[i + 1] = y
+            velArray[i + 2] = z
+            velArray[i + 3] = 1
+        }
+
+        this.velocityVariable = this.gpuCompute.addVariable("textureVelocity", fragShaderVelocity, this.dtVelocity)
+        
+        this.gpuCompute.setVariableDependencies(this.velocityVariable, [this.positionVariable, this.velocityVariable])
+        this.gpuCompute.setVariableDependencies(this.positionVariable, [this.positionVariable, this.velocityVariable])
+
+        this.positionUniforms = this.positionVariable.material.uniforms;
+        this.velocityUniforms = this.velocityVariable.material.uniforms;
+
+        this.positionUniforms["time"] = { value: 0.0 }
+        this.positionUniforms["delta"] = { value: 0.0 }
+
+        this.velocityUniforms["time"] = { value: 0.0 }
+        this.velocityUniforms["delta"] = { value: 0.0 }
+        this.velocityVariable.material.defines.BOUNDS = this.bounds.toFixed(2)
+
+
+        this.positionVariable.wrapS = ClampToEdgeWrapping
+        this.positionVariable.wrapT = ClampToEdgeWrapping
+
+        this.velocityVariable.wrapS = ClampToEdgeWrapping
+        this.velocityVariable.wrapT = ClampToEdgeWrapping
+
+        const error = this.gpuCompute.init()
+        if( error != null ) {
+            console.log(error)
+        }
+
+        const initQuads = () => {
+
+        }
 
         this.fbohelper = new FBOHelper(this.renderer)
-        this.fbohelper.setSize(this.fboWidth, this.fboHeight)
-        this.fbohelper.attach(this.rtTexturePos, 'Positions 1')
+        this.fbohelper.setSize(window.innerWidth, window.innerHeight)
 
-        // console.log(this.simulationShader)
+        const posRT = this.gpuCompute.getCurrentRenderTarget( this.positionVariable )
+        const velRT = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable )
 
-        // console.log(this.gpgpu)
+        this.fbohelper.attach(posRT, 'Positions')
+        this.fbohelper.attach(velRT, 'Velocity')
+
 
         this.init()       
         
@@ -70,6 +120,14 @@ export default class App {
         this._setupScene()
         requestAnimationFrame(this.render.bind(this))
 
+    }
+
+    _onWindowResize() {
+
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix()
+
+        this.renderer.setSize(window.innerWidth. window.innerHeight)
     }
 
     _setupScene() {
@@ -97,15 +155,25 @@ export default class App {
 
     render(now) {
 
-        // this.gpgpu.pass( this.simulationShader.setPositionTexture( this.rtTexturePos ), this.rtTexturePos2 )
-        // this.gpgpu.render( this.scene, this.camera, this.rtTexturePos )
+        const delta = this.clock.getDelta()
+        const time = this.clock.getElapsedTime()
 
-        // Globals.deltaTime = this.clock.getDelta()
-        // Globals.elapsedTime = this.clock.getElapsedTime()
-        requestAnimationFrame(this.render.bind(this))
+        this.positionUniforms[ "time" ].value = now;
+        this.positionUniforms[ "delta" ].value = delta;
+        this.velocityUniforms[ "time" ].value = now;
+        this.velocityUniforms[ "delta" ].value = delta;
 
+        this.gpuCompute.compute()
+
+        const texturePos = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
+        const textureVel = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture;
+
+        this.renderer.render(this.scene, this.camera)
 
         this.fbohelper.update()
+
+        requestAnimationFrame(this.render.bind(this))
+
 
     }
 }
