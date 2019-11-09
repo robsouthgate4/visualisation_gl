@@ -1,5 +1,5 @@
 // import Globals from "./Globals"
-import {Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping,  SphereBufferGeometry, RepeatWrapping} from 'three'
+import {Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping,  SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath} from 'three'
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
@@ -43,15 +43,15 @@ export default class App {
         const posArray = this.dtPosition.image.data
 
         for (let i = 0, l = posArray.length; i < l; i += 4) {
-            const x = Math.random()
-            const y = Math.random()
-            const z = Math.random()
+            const x = ThreeMath.randFloat(-1, 1) * 50
+            const y = ThreeMath.randFloat(-1, 1) * 50
+            const z = -200
             posArray[i + 0] = x
             posArray[i + 1] = y
             posArray[i + 2] = z
             posArray[i + 3] = 1
         }
-
+    
         console.log(posArray)
 
         this.positionVariable = this.gpuCompute.addVariable("texturePosition", fragShaderPosition, this.dtPosition )
@@ -97,9 +97,17 @@ export default class App {
             console.log(error)
         }
 
-        const initQuads = () => {
+        const initPoints = () => {
+            this.geo = new BufferGeometry()
+            this.geo.setAttribute( 'position', new BufferAttribute( posArray, 4 ) )
 
+            const material = new PointsMaterial( { size: posArray.length } )
+            this.particles = new Points(this.geo)
+
+            this.scene.add(this.particles)
         }
+
+        initPoints()
 
         this.fbohelper = new FBOHelper(this.renderer)
         this.fbohelper.setSize(window.innerWidth, window.innerHeight)
@@ -158,9 +166,9 @@ export default class App {
         const delta = this.clock.getDelta()
         const time = this.clock.getElapsedTime()
 
-        this.positionUniforms[ "time" ].value = now;
+        this.positionUniforms[ "time" ].value = time;
         this.positionUniforms[ "delta" ].value = delta;
-        this.velocityUniforms[ "time" ].value = now;
+        this.velocityUniforms[ "time" ].value = time;
         this.velocityUniforms[ "delta" ].value = delta;
 
         this.gpuCompute.compute()
