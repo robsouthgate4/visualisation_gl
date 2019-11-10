@@ -1,17 +1,18 @@
 // import Globals from "./Globals"
-import {Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping,  SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath} from 'three'
+import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry } from 'three'
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
-import {GPUComputationRenderer} from 'three/examples/jsm/misc/GPUComputationRenderer'
+import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer'
 
-import {GeometryUtils} from 'three/examples/jsm/utils/GeometryUtils'
+import { GeometryUtils } from 'three/examples/jsm/utils/GeometryUtils'
 import FBOHelper from '../libs/THREE.FBOHelper'
 
 import fragShaderPosition from '../shaders/positionFrag.glsl'
 import fragShaderVelocity from '../shaders/velocityFrag.glsl'
 
-
+import particleFrag from '../shaders/particleFrag.glsl'
+import particleVert from '../shaders/particleVert.glsl'
 
 
 export default class App {
@@ -20,12 +21,13 @@ export default class App {
 
         this.scene = new Scene()
         this.canvas = document.getElementById('canvas')
-        this.camera = new PerspectiveCamera(( 75, window.innerWidth / window.innerHeight, 0.1, 1000 ) )
+        this.camera = new PerspectiveCamera((75, window.innerWidth / window.innerHeight, 0.1, 1000))
+
 
         this.renderer = new WebGLRenderer({ antialias: true, alpha: false })
-        this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize( window.innerWidth, window.innerHeight )
-        document.body.appendChild( this.renderer.domElement )
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(window.innerWidth, window.innerHeight)
+        document.body.appendChild(this.renderer.domElement)
 
         this.bounds = 400
         this.boundsHalf = this.bounds / 2
@@ -33,30 +35,30 @@ export default class App {
         this.tapPosition = new Vector2()
         this.raycaster = new Raycaster()
         this.loadingManager = new LoadingManager()
-        this.clock =  new Clock()
+        this.clock = new Clock()
 
-        this.size = 256
+        this.size = 512
 
-        this.gpuCompute = new GPUComputationRenderer(this.size, this.size, this.renderer)        
+        this.gpuCompute = new GPUComputationRenderer(this.size, this.size, this.renderer)
 
         this.dtPosition = this.gpuCompute.createTexture()
         const posArray = this.dtPosition.image.data
 
+        const spherePos = GeometryUtils.randomPointsInGeometry(new SphereGeometry(1), posArray.length)
+        console.log(spherePos)
+
         for (let i = 0, l = posArray.length; i < l; i += 4) {
-            const x = ThreeMath.randFloat(-1, 1) * 50
-            const y = ThreeMath.randFloat(-1, 1) * 50
-            const z = -200
+            const x = spherePos[i].x
+            const y = spherePos[i].y
+            const z = spherePos[i].z
             posArray[i + 0] = x
             posArray[i + 1] = y
             posArray[i + 2] = z
             posArray[i + 3] = 1
         }
-    
-        console.log(posArray)
 
-        this.positionVariable = this.gpuCompute.addVariable("texturePosition", fragShaderPosition, this.dtPosition )
+        this.positionVariable = this.gpuCompute.addVariable("texturePosition", fragShaderPosition, this.dtPosition)
 
-        
         this.dtVelocity = this.gpuCompute.createTexture()
         const velArray = this.dtVelocity.image.data
 
@@ -71,7 +73,7 @@ export default class App {
         }
 
         this.velocityVariable = this.gpuCompute.addVariable("textureVelocity", fragShaderVelocity, this.dtVelocity)
-        
+
         this.gpuCompute.setVariableDependencies(this.velocityVariable, [this.positionVariable, this.velocityVariable])
         this.gpuCompute.setVariableDependencies(this.positionVariable, [this.positionVariable, this.velocityVariable])
 
@@ -93,34 +95,56 @@ export default class App {
         this.velocityVariable.wrapT = ClampToEdgeWrapping
 
         const error = this.gpuCompute.init()
-        if( error != null ) {
+        if (error != null) {
             console.log(error)
         }
 
-        const initPoints = () => {
-            this.geo = new BufferGeometry()
-            this.geo.setAttribute( 'position', new BufferAttribute( posArray, 4 ) )
+        const initParticles = () => {
 
-            const material = new PointsMaterial( { size: posArray.length } )
-            this.particles = new Points(this.geo)
+            const particleGeo = new BufferGeometry()
+            const positions = new Float32Array(this.size * this.size * 3)
+            
+            for (var i = 0, j = 0, l = positions.length / 3; i < l; i++, j += 3) {
+                positions[j] = (i % this.size) / this.size;
+                positions[j + 1] = ~~(i / this.size) / this.size;
+            }
 
-            this.scene.add(this.particles)
+            const pos = new BufferAttribute(new Float32Array(positions), 3)
+
+            particleGeo.setAttribute('position', pos)
+
+            const particleUniforms = {
+                'texturePosition': {type: 't', value: null},
+                'textureVelocity': {type: 't', value: null}
+            }
+
+            this.particleMaterial = new ShaderMaterial({
+                uniforms: particleUniforms,
+                vertexShader: particleVert,
+                fragmentShader: particleFrag,
+                side: DoubleSide
+            })
+
+            const particles = new Points(particleGeo, this.particleMaterial)
+            particles.frustumCulled = false
+            this.scene.add(particles)
+
         }
 
-        initPoints()
+        initParticles()
 
         this.fbohelper = new FBOHelper(this.renderer)
         this.fbohelper.setSize(window.innerWidth, window.innerHeight)
 
-        const posRT = this.gpuCompute.getCurrentRenderTarget( this.positionVariable )
-        const velRT = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable )
+        const posRT = this.gpuCompute.getCurrentRenderTarget(this.positionVariable)
+        const velRT = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable)
 
         this.fbohelper.attach(posRT, 'Positions')
         this.fbohelper.attach(velRT, 'Velocity')
 
 
-        this.init()       
-        
+        this.init()
+
     }
 
     init() {
@@ -135,7 +159,7 @@ export default class App {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix()
 
-        this.renderer.setSize(window.innerWidth. window.innerHeight)
+        this.renderer.setSize(window.innerWidth.window.innerHeight)
     }
 
     _setupScene() {
@@ -157,7 +181,7 @@ export default class App {
         this.scene.add(new AmbientLight(0x404040, 5))
         this.scene.add(new DirectionalLight(0xffffff, 1))
 
-        this.camera.position.set(0, 3, 10)
+        this.camera.position.set(0, 0, 2)
 
     }
 
@@ -166,15 +190,15 @@ export default class App {
         const delta = this.clock.getDelta()
         const time = this.clock.getElapsedTime()
 
-        this.positionUniforms[ "time" ].value = time;
-        this.positionUniforms[ "delta" ].value = delta;
-        this.velocityUniforms[ "time" ].value = time;
-        this.velocityUniforms[ "delta" ].value = delta;
+        this.positionUniforms["time"].value = time;
+        this.positionUniforms["delta"].value = delta;
+        this.velocityUniforms["time"].value = time;
+        this.velocityUniforms["delta"].value = delta;
 
         this.gpuCompute.compute()
 
-        const texturePos = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
-        const textureVel = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture;
+        this.particleMaterial.uniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget(this.positionVariable).texture;
+        this.particleMaterial.uniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture;
 
         this.renderer.render(this.scene, this.camera)
 
