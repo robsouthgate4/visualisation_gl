@@ -1,5 +1,5 @@
 // import Globals from "./Globals"
-import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry } from 'three'
+import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry } from 'three'
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
@@ -14,20 +14,28 @@ import fragShaderVelocity from '../shaders/velocityFrag.glsl'
 import particleFrag from '../shaders/particleFrag.glsl'
 import particleVert from '../shaders/particleVert.glsl'
 
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 
 export default class App {
 
     constructor() {
 
+        
+
         this.scene = new Scene()
         this.canvas = document.getElementById('canvas')
         this.camera = new PerspectiveCamera((75, window.innerWidth / window.innerHeight, 0.1, 1000))
+
+        
 
 
         this.renderer = new WebGLRenderer({ antialias: true, alpha: false })
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight)
+        this.renderer.setClearColor(new Color(1.0, 1.0, 1.0), 1.0)
         document.body.appendChild(this.renderer.domElement)
+
+        this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 
         this.bounds = 400
         this.boundsHalf = this.bounds / 2
@@ -44,7 +52,7 @@ export default class App {
         this.dtPosition = this.gpuCompute.createTexture()
         const posArray = this.dtPosition.image.data
 
-        const spherePos = GeometryUtils.randomPointsInGeometry(new SphereGeometry(1), posArray.length)
+        const spherePos = GeometryUtils.randomPointsInGeometry(new IcosahedronGeometry(1), posArray.length)
         console.log(spherePos)
 
         for (let i = 0, l = posArray.length; i < l; i += 4) {
@@ -113,9 +121,14 @@ export default class App {
 
             particleGeo.setAttribute('position', pos)
 
+            var loader = new THREE.TextureLoader()
+
             const particleUniforms = {
                 'texturePosition': {type: 't', value: null},
-                'textureVelocity': {type: 't', value: null}
+                'textureVelocity': {type: 't', value: null},
+                'map': {type:'t', value: loader.load('./assets/images/overpass.jpg')},
+                'time': {type: 'f', value: 0},
+                'delta': {type: 'f', value: 0}
             }
 
             this.particleMaterial = new ShaderMaterial({
@@ -176,12 +189,14 @@ export default class App {
 
         this.surface.rotateX(-Math.PI / 2)
         this.surface.position.set(0, 0, 0)
-        this.scene.add(this.surface)
+        //this.scene.add(this.surface)
 
         this.scene.add(new AmbientLight(0x404040, 5))
         this.scene.add(new DirectionalLight(0xffffff, 1))
 
-        this.camera.position.set(0, 0, 2)
+        this.camera.position.set(0, 0, 5)
+
+        this.controls.update();
 
     }
 
@@ -200,9 +215,18 @@ export default class App {
         this.particleMaterial.uniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget(this.positionVariable).texture;
         this.particleMaterial.uniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture;
 
+        this.particleMaterial.uniforms.time.value = time
+        this.particleMaterial.uniforms.delta.value = delta
+
+        // this.camera.position.x = Math.sin(time * 0.1) * 50.0 * delta;
+        // this.camera.position.z = Math.cos(time * 0.1) * 50.0 * delta;
+        this.camera.lookAt(0,0,0)
+
         this.renderer.render(this.scene, this.camera)
 
         this.fbohelper.update()
+
+        this.controls.update()
 
         requestAnimationFrame(this.render.bind(this))
 
