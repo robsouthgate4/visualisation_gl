@@ -1,5 +1,5 @@
 // import Globals from "./Globals"
-import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry } from 'three'
+import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture } from 'three'
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
@@ -14,28 +14,29 @@ import fragShaderVelocity from '../shaders/velocityFrag.glsl'
 import particleFrag from '../shaders/particleFrag.glsl'
 import particleVert from '../shaders/particleVert.glsl'
 
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 
 export default class App {
 
     constructor() {
 
-        
-
         this.scene = new Scene()
         this.canvas = document.getElementById('canvas')
-        this.camera = new PerspectiveCamera((75, window.innerWidth / window.innerHeight, 0.1, 1000))
+        this.camera = new PerspectiveCamera((45, window.innerWidth / window.innerHeight, 0.1, 1000))
 
-        
+        this.rtScene = new Scene()
+        this.rtCamera = new PerspectiveCamera((45, window.innerWidth / window.innerHeight, 0.1, 1000))
 
 
         this.renderer = new WebGLRenderer({ antialias: true, alpha: false })
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.renderer.setClearColor(new Color(1.0, 1.0, 1.0), 1.0)
+        this.renderer.setClearColor(new Color('rgb(131,	157, 194)'), 1.0)
         document.body.appendChild(this.renderer.domElement)
 
-        this.controls = new OrbitControls( this.camera, this.renderer.domElement );
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
         this.bounds = 400
         this.boundsHalf = this.bounds / 2
@@ -49,114 +50,140 @@ export default class App {
 
         this.gpuCompute = new GPUComputationRenderer(this.size, this.size, this.renderer)
 
+        this.depthTarget = new WebGLRenderTarget(512, 512)
+        this.depthTarget.texture.format = THREE.RGBFormat
+        this.depthTarget.texture.minFilter = THREE.NearestFilter
+        this.depthTarget.texture.magFilter = THREE.NearestFilter
+        this.depthTarget.texture.generateMipmaps = false
+        this.depthTarget.stencilBuffer = false
+        this.depthTarget.depthTexture = new DepthTexture()
+
         this.dtPosition = this.gpuCompute.createTexture()
         const posArray = this.dtPosition.image.data
+        const loader = new OBJLoader()
 
-        const spherePos = GeometryUtils.randomPointsInGeometry(new IcosahedronGeometry(1), posArray.length)
-        console.log(spherePos)
+        const onOBJLoaded = (object) => {
 
-        for (let i = 0, l = posArray.length; i < l; i += 4) {
-            const x = spherePos[i].x
-            const y = spherePos[i].y
-            const z = spherePos[i].z
-            posArray[i + 0] = x
-            posArray[i + 1] = y
-            posArray[i + 2] = z
-            posArray[i + 3] = 1
-        }
+            const suz = object
+            suz.rotation.x = 180
+            const suzGeo = suz.children[0].geometry
+            console.log(new IcosahedronGeometry(1))
 
-        this.positionVariable = this.gpuCompute.addVariable("texturePosition", fragShaderPosition, this.dtPosition)
+            const spherePos = GeometryUtils.randomPointsInBufferGeometry(new IcosahedronBufferGeometry(1), posArray.length)
 
-        this.dtVelocity = this.gpuCompute.createTexture()
-        const velArray = this.dtVelocity.image.data
-
-        for (let i = 0, l = velArray.length; i < l; i += 4) {
-            const x = Math.random() - 0.5
-            const y = Math.random() - 0.5
-            const z = Math.random() - 0.5
-            velArray[i + 0] = x
-            velArray[i + 1] = y
-            velArray[i + 2] = z
-            velArray[i + 3] = 1
-        }
-
-        this.velocityVariable = this.gpuCompute.addVariable("textureVelocity", fragShaderVelocity, this.dtVelocity)
-
-        this.gpuCompute.setVariableDependencies(this.velocityVariable, [this.positionVariable, this.velocityVariable])
-        this.gpuCompute.setVariableDependencies(this.positionVariable, [this.positionVariable, this.velocityVariable])
-
-        this.positionUniforms = this.positionVariable.material.uniforms;
-        this.velocityUniforms = this.velocityVariable.material.uniforms;
-
-        this.positionUniforms["time"] = { value: 0.0 }
-        this.positionUniforms["delta"] = { value: 0.0 }
-
-        this.velocityUniforms["time"] = { value: 0.0 }
-        this.velocityUniforms["delta"] = { value: 0.0 }
-        this.velocityVariable.material.defines.BOUNDS = this.bounds.toFixed(2)
-
-
-        this.positionVariable.wrapS = ClampToEdgeWrapping
-        this.positionVariable.wrapT = ClampToEdgeWrapping
-
-        this.velocityVariable.wrapS = ClampToEdgeWrapping
-        this.velocityVariable.wrapT = ClampToEdgeWrapping
-
-        const error = this.gpuCompute.init()
-        if (error != null) {
-            console.log(error)
-        }
-
-        const initParticles = () => {
-
-            const particleGeo = new BufferGeometry()
-            const positions = new Float32Array(this.size * this.size * 3)
-            
-            for (var i = 0, j = 0, l = positions.length / 3; i < l; i++, j += 3) {
-                positions[j] = (i % this.size) / this.size;
-                positions[j + 1] = ~~(i / this.size) / this.size;
+            for (let i = 0, l = posArray.length; i < l; i += 4) {
+                const x = spherePos[i].x
+                const y = -spherePos[i].y
+                const z = spherePos[i].z
+                posArray[i + 0] = x
+                posArray[i + 1] = y
+                posArray[i + 2] = z
+                posArray[i + 3] = 1
             }
 
-            const pos = new BufferAttribute(new Float32Array(positions), 3)
+            this.positionVariable = this.gpuCompute.addVariable("texturePosition", fragShaderPosition, this.dtPosition)
 
-            particleGeo.setAttribute('position', pos)
+            this.dtVelocity = this.gpuCompute.createTexture()
+            const velArray = this.dtVelocity.image.data
 
-            var loader = new THREE.TextureLoader()
-
-            const particleUniforms = {
-                'texturePosition': {type: 't', value: null},
-                'textureVelocity': {type: 't', value: null},
-                'map': {type:'t', value: loader.load('./assets/images/overpass.jpg')},
-                'time': {type: 'f', value: 0},
-                'delta': {type: 'f', value: 0}
+            for (let i = 0, l = velArray.length; i < l; i += 4) {
+                const x = Math.random() - 0.5
+                const y = Math.random() - 0.5
+                const z = Math.random() - 0.5
+                velArray[i + 0] = x
+                velArray[i + 1] = y
+                velArray[i + 2] = z
+                velArray[i + 3] = 1
             }
 
-            this.particleMaterial = new ShaderMaterial({
-                uniforms: particleUniforms,
-                vertexShader: particleVert,
-                fragmentShader: particleFrag,
-                side: DoubleSide
-            })
+            this.velocityVariable = this.gpuCompute.addVariable("textureVelocity", fragShaderVelocity, this.dtVelocity)
 
-            const particles = new Points(particleGeo, this.particleMaterial)
-            particles.frustumCulled = false
-            this.scene.add(particles)
+            this.gpuCompute.setVariableDependencies(this.velocityVariable, [this.positionVariable, this.velocityVariable])
+            this.gpuCompute.setVariableDependencies(this.positionVariable, [this.positionVariable, this.velocityVariable])
 
+            this.positionUniforms = this.positionVariable.material.uniforms;
+            this.velocityUniforms = this.velocityVariable.material.uniforms;
+
+            this.positionUniforms["time"] = { value: 0.0 }
+            this.positionUniforms["delta"] = { value: 0.0 }
+
+            this.velocityUniforms["time"] = { value: 0.0 }
+            this.velocityUniforms["delta"] = { value: 0.0 }
+            this.velocityVariable.material.defines.BOUNDS = this.bounds.toFixed(2)
+
+
+            this.positionVariable.wrapS = ClampToEdgeWrapping
+            this.positionVariable.wrapT = ClampToEdgeWrapping
+
+            this.velocityVariable.wrapS = ClampToEdgeWrapping
+            this.velocityVariable.wrapT = ClampToEdgeWrapping
+
+            const error = this.gpuCompute.init()
+            if (error != null) {
+                console.log(error)
+            }
+
+            const initParticles = () => {
+
+                const particleGeo = new BufferGeometry()
+                const positions = new Float32Array(this.size * this.size * 3)
+
+                for (var i = 0, j = 0, l = positions.length / 3; i < l; i++ , j += 3) {
+                    positions[j] = (i % this.size) / this.size;
+                    positions[j + 1] = ~~(i / this.size) / this.size;
+                }
+
+                const pos = new BufferAttribute(new Float32Array(positions), 3)
+
+                particleGeo.setAttribute('position', pos)
+
+                var loader = new THREE.TextureLoader()
+
+                const particleUniforms = {
+                    'texturePosition': { type: 't', value: null },
+                    'textureVelocity': { type: 't', value: null },
+                    'map': { type: 't', value: loader.load('./assets/images/studio.jpg') },
+                    'time': { type: 'f', value: 0 },
+                    'delta': { type: 'f', value: 0 }
+                }
+
+                this.particleMaterial = new ShaderMaterial({
+                    uniforms: particleUniforms,
+                    vertexShader: particleVert,
+                    fragmentShader: particleFrag,
+                    side: DoubleSide
+                })
+
+                const particles = new Points(particleGeo, this.particleMaterial)
+                particles.frustumCulled = false
+
+
+                this.scene.add(particles)
+
+                this.rtScene.add(particles.clone())
+                
+                
+            }   
+
+            initParticles()
+
+            this.fbohelper = new FBOHelper(this.renderer)
+            this.fbohelper.setSize(window.innerWidth, window.innerHeight)
+
+            const posRT = this.gpuCompute.getCurrentRenderTarget(this.positionVariable)
+            const velRT = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable)
+
+            this.fbohelper.attach(posRT, 'Positions')
+            this.fbohelper.attach(velRT, 'Velocity')
+            this.fbohelper.attach(this.depthTarget, 'Depth')
+
+            this.init()
         }
 
-        initParticles()
+        loader.load('./assets/models/suzanne.obj', (object) => {
+            onOBJLoaded(object)
+        })       
 
-        this.fbohelper = new FBOHelper(this.renderer)
-        this.fbohelper.setSize(window.innerWidth, window.innerHeight)
-
-        const posRT = this.gpuCompute.getCurrentRenderTarget(this.positionVariable)
-        const velRT = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable)
-
-        this.fbohelper.attach(posRT, 'Positions')
-        this.fbohelper.attach(velRT, 'Velocity')
-
-
-        this.init()
 
     }
 
@@ -164,6 +191,7 @@ export default class App {
 
         this._setupScene()
         requestAnimationFrame(this.render.bind(this))
+        this._onWindowResize()
 
     }
 
@@ -171,8 +199,7 @@ export default class App {
 
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix()
-
-        this.renderer.setSize(window.innerWidth.window.innerHeight)
+        this.renderer.setSize(window.innerWidth, window.innerHeight)
     }
 
     _setupScene() {
@@ -194,9 +221,10 @@ export default class App {
         this.scene.add(new AmbientLight(0x404040, 5))
         this.scene.add(new DirectionalLight(0xffffff, 1))
 
-        this.camera.position.set(0, 0, 5)
+        this.camera.position.set(0, 0, 2)
+        this.rtCamera.position.set(0, 0, 2)
 
-        this.controls.update();
+        //this.controls.update();
 
     }
 
@@ -220,12 +248,16 @@ export default class App {
 
         // this.camera.position.x = Math.sin(time * 0.1) * 50.0 * delta;
         // this.camera.position.z = Math.cos(time * 0.1) * 50.0 * delta;
-        this.camera.lookAt(0,0,0)
+        this.camera.lookAt(0, 0, 0)
+        this.rtCamera.lookAt(0, 0, 0)
+        
+        this.renderer.setRenderTarget(this.depthTarget)
+        this.renderer.render(this.rtScene, this.rtCamera)
+        this.renderer.setRenderTarget(null)
 
         this.renderer.render(this.scene, this.camera)
 
         this.fbohelper.update()
-
         this.controls.update()
 
         requestAnimationFrame(this.render.bind(this))
