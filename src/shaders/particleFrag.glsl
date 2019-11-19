@@ -14,7 +14,7 @@ uniform sampler2D map;
 
 vec3 lightDir = vec3(10.0, 10.0, 10.0);
 
-const float Ns = 128.0;
+const float Ns = 32.0;
 
 #define PI 3.14
 
@@ -52,5 +52,5 @@ void main() {
     vec3 halfVector = normalize( eye + lightVector);
     float spec = max( pow(dot(N,halfVector), Ns), 0.); 
     
-    gl_FragColor = vec4( vec3(1.0) * (diffuse + 0.8) + spec ,1.0);
+    gl_FragColor = vec4( vec3(0.8) * env * diffuse + spec ,1.0);
 }

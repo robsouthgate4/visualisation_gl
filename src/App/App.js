@@ -1,5 +1,5 @@
 // import Globals from "./Globals"
-import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture, OrthographicCamera, UniformsUtils, RGBFormat } from 'three'
+import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture, OrthographicCamera, UniformsUtils, RGBFormat, LinearFilter } from 'three'
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
@@ -19,35 +19,13 @@ import { VerticalBlurShader } from "three/examples/jsm/shaders/VerticalBlurShade
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import PP from '../PostProcessing/PP'
+import CopyShader from '../PostProcessing/CopyShader'
+import BlurShader from '../PostProcessing/BlurShader'
 
 export default class App {
 
     constructor() {
-
-        this.scene = new Scene()
-        this.canvas = document.getElementById('canvas')
-        this.camera = new PerspectiveCamera((45, window.innerWidth / window.innerHeight, 0.1, 1000))
-
-        /**
-         * Postprocessing
-         */
-        this.fxScene = new Scene()
-        this.fxCamera = new OrthographicCamera()
-
-        this.materialFX = new ShaderMaterial({
-            uniforms: UniformsUtils.clone(HorizontalBlurShader.uniforms),
-            vertexShader: HorizontalBlurShader.vertexShader,
-            fragmentShader: HorizontalBlurShader.fragmentShader
-        })
-
-        this.hBlurRenderTarget = new WebGLRenderTarget(1024, 1024, {
-            format: RGBFormat,
-            depthBuffer: true,
-            stencilBuffer: false,
-        })
-
-        this.materialFX.uniforms.tDiffuse.value = this.hBlurRenderTarget.texture
-
 
         /**
          * Core Renderer
@@ -58,7 +36,32 @@ export default class App {
         this.renderer.setClearColor(new Color('rgb(34,34,51)'), 1.0)
         document.body.appendChild(this.renderer.domElement)
 
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+        this.scene = new Scene()
+        this.canvas = document.getElementById('canvas')
+        this.camera = new PerspectiveCamera((45, window.innerWidth / window.innerHeight, 0.1, 1000))
+
+        /**
+         * Postprocessing
+         */
+        this.pp = new PP(this.renderer)
+
+        this.rtPost1 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: LinearFilter})
+        this.rtPost1.texture.generateMipmaps = false
+
+        
+
+        this.rtPost2 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: LinearFilter})
+        this.rtPost2.texture.generateMipmaps = false
+
+        this.rtPost3 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: LinearFilter})
+        this.rtPost3.texture.generateMipmaps = false
+
+        this.copyShader = new PP.CopyShader()
+        this.blurShader = new PP.BlurShader()
+
+        
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement)
 
         this.bounds = 400
         this.boundsHalf = this.bounds / 2
@@ -68,10 +71,10 @@ export default class App {
         this.loadingManager = new LoadingManager()
         this.clock = new Clock()
 
-        /**
+        /**.
          * GPGPU
          */
-        this.size = 256
+        this.size = 1024
         this.gpuCompute = new GPUComputationRenderer(this.size, this.size, this.renderer)
 
         this.dtPosition = this.gpuCompute.createTexture()
@@ -85,7 +88,7 @@ export default class App {
             const suzGeo = suz.children[0].geometry
             console.log(new IcosahedronGeometry(1))
 
-            const shapePointCloud = GeometryUtils.randomPointsInBufferGeometry(new IcosahedronBufferGeometry(1, 1), posArray.length)
+            const shapePointCloud = GeometryUtils.randomPointsInBufferGeometry(suzGeo, posArray.length)
 
             for (let i = 0, l = posArray.length; i < l; i += 4) {
                 const x = shapePointCloud[i].x
@@ -189,13 +192,8 @@ export default class App {
 
             this.fbohelper.attach(posRT, 'Positions')
             this.fbohelper.attach(velRT, 'Velocity')
-            this.fbohelper.attach(this.hBlurRenderTarget, 'Effects')
-
-
-            this.quad = new Mesh(new PlaneBufferGeometry(2, 2), this.materialFX)
-            this.quad.frustumCulled = false
-
-            this.fxScene.add(this.quad)
+            this.fbohelper.attach(this.rtPost1, 'Post 1')
+            this.fbohelper.attach(this.rtPost2, 'Post 2')
 
             this.init()
         }
@@ -217,9 +215,10 @@ export default class App {
 
     _onWindowResize() {
 
-        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.aspect = window.innerWidth / window.innerHeight
         this.camera.updateProjectionMatrix()
         this.renderer.setSize(window.innerWidth, window.innerHeight)
+
     }
 
     _setupScene() {
@@ -240,7 +239,6 @@ export default class App {
         this.scene.add(new DirectionalLight(0xffffff, 1))
 
         this.camera.position.set(0, 0, 2)
-        this.fxCamera.position.set(0, 0, 2)
 
     }
 
@@ -266,14 +264,23 @@ export default class App {
         // this.camera.position.z = Math.cos(time * 0.1) * 50.0 * delta;
         this.camera.lookAt(0, 0, 0)
 
-        this.renderer.setRenderTarget(this.hBlurRenderTarget)
+        this.pp.render(this.scene, this.camera, this.rtPost1)
+
+        this.copyShader.setTexture(this.rtPost1)
+        this.pp.pass( this.copyShader, this.rtPost2 )
+
+        // for (const i = 0; i < 8; i++) {
+
+        //     /* Blur on the X */
+        //     this.blurShader.setTexture(this.rtPost2)
+        //     this.blurShader.setDelta(1 / this.rtPost2.width, 0)
+
+
+
+        //     this.pp.pass(this.blu)
+        // }
+
         this.renderer.render(this.scene, this.camera)
-        this.renderer.setRenderTarget(null)
-
-
-
-
-        this.renderer.render(this.fxScene, this.fxCamera)
 
         this.fbohelper.update()
         this.controls.update()
