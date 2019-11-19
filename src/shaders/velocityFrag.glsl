@@ -126,7 +126,7 @@ void main() {
     
     vec3 velocity = selfVelocity;
 
-    velocity = curlNoise(selfPosition.xyz) * 1. * delta;
+    velocity = curlNoise(selfPosition.xyz) * 10. * delta;
 
     gl_FragColor = vec4(velocity, 1.0);
 }

@@ -20,8 +20,10 @@ import { VerticalBlurShader } from "three/examples/jsm/shaders/VerticalBlurShade
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import PP from '../PostProcessing/PP'
+
 import CopyShader from '../PostProcessing/CopyShader'
 import BlurShader from '../PostProcessing/BlurShader'
+import MixShader from '../PostProcessing/MixShader'
 
 export default class App {
 
@@ -49,8 +51,6 @@ export default class App {
         this.rtPost1 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: LinearFilter})
         this.rtPost1.texture.generateMipmaps = false
 
-        
-
         this.rtPost2 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: LinearFilter})
         this.rtPost2.texture.generateMipmaps = false
 
@@ -59,6 +59,7 @@ export default class App {
 
         this.copyShader = new PP.CopyShader()
         this.blurShader = new PP.BlurShader()
+        this.mixShader = new PP.MixShader()
 
         
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
@@ -88,7 +89,7 @@ export default class App {
             const suzGeo = suz.children[0].geometry
             console.log(new IcosahedronGeometry(1))
 
-            const shapePointCloud = GeometryUtils.randomPointsInBufferGeometry(suzGeo, posArray.length)
+            const shapePointCloud = GeometryUtils.randomPointsInBufferGeometry(new IcosahedronBufferGeometry(1, 4), posArray.length)
 
             for (let i = 0, l = posArray.length; i < l; i += 4) {
                 const x = shapePointCloud[i].x
@@ -269,18 +270,24 @@ export default class App {
         this.copyShader.setTexture(this.rtPost1)
         this.pp.pass( this.copyShader, this.rtPost2 )
 
-        // for (const i = 0; i < 8; i++) {
+        for (let i = 0; i < 16; i++) {
 
-        //     /* Blur on the X */
-        //     this.blurShader.setTexture(this.rtPost2)
-        //     this.blurShader.setDelta(1 / this.rtPost2.width, 0)
+            /* Blur on the X */
+            this.blurShader.setTexture(this.rtPost2)
+            this.blurShader.setDelta(1 / this.rtPost2.width, 0)
+            this.pp.pass(this.blurShader, this.rtPost3)
 
+            /* Blur on the Y */
+            this.blurShader.setTexture(this.rtPost3)
+            this.blurShader.setDelta(0, 1 / this.rtPost2.height)
+            this.pp.pass(this.blurShader, this.rtPost2)
 
+        }
 
-        //     this.pp.pass(this.blu)
-        // }
+        this.mixShader.setTextures(this.rtPost1, this.rtPost2)
+        this.pp.out(this.mixShader)
 
-        this.renderer.render(this.scene, this.camera)
+        //this.renderer.render(this.scene, this.camera)
 
         this.fbohelper.update()
         this.controls.update()

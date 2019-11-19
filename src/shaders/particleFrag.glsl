@@ -52,5 +52,5 @@ void main() {
     vec3 halfVector = normalize( eye + lightVector);
     float spec = max( pow(dot(N,halfVector), Ns), 0.); 
     
-    gl_FragColor = vec4( vec3(0.8) * env * diffuse + spec ,1.0);
+    gl_FragColor = vec4( env * diffuse + spec ,1.0);
 }
