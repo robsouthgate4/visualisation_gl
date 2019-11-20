@@ -1,5 +1,5 @@
 // import Globals from "./Globals"
-import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture, OrthographicCamera, UniformsUtils, RGBFormat, LinearFilter } from 'three'
+import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture, OrthographicCamera, UniformsUtils, RGBFormat, LinearFilter, UnsignedShortType } from 'three'
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
@@ -35,13 +35,15 @@ export default class App {
         this.renderer = new WebGLRenderer()
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.renderer.setClearColor(new Color('rgb(34,34,51)'), 1.0)
+        this.renderer.setClearColor(new Color('rgb(0,0,0)'), 1.0)
         document.body.appendChild(this.renderer.domElement)
 
 
         this.scene = new Scene()
         this.canvas = document.getElementById('canvas')
-        this.camera = new PerspectiveCamera((45, window.innerWidth / window.innerHeight, 0.1, 1000))
+        this.camera = new PerspectiveCamera((70, window.innerWidth / window.innerHeight, 0.01, 50))
+        this.camera.near = 0.01
+        this.camera.far = 10
 
         /**
          * Postprocessing
@@ -57,12 +59,26 @@ export default class App {
         this.rtPost3 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: LinearFilter})
         this.rtPost3.texture.generateMipmaps = false
 
+        this.rtPost4 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: NearestFilter, magFilter: NearestFilter})
+        this.rtPost4.texture.generateMipmaps = false
+        this.rtPost4.texture.format = RGBFormat
+        this.rtPost4.stencilBuffer = false
+        this.rtPost4.depthBuffer = true
+        this.rtPost4.depthTexture =  new DepthTexture()
+        this.rtPost4.depthTexture.type = UnsignedShortType
+
         this.copyShader = new PP.CopyShader()
         this.blurShader = new PP.BlurShader()
         this.mixShader = new PP.MixShader()
 
+        this.mixShader.material.uniforms.cameraNear.value = this.camera.near
+        this.mixShader.material.uniforms.cameraFar.value = this.camera.far
+        this.mixShader.material.uniforms.tDepth.value = this.rtPost4.depthTexture
+
         
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+        this.controls.enableDamping = true
+        this.controls.dampingFactor = 0.1
 
         this.bounds = 400
         this.boundsHalf = this.bounds / 2
@@ -75,7 +91,7 @@ export default class App {
         /**.
          * GPGPU
          */
-        this.size = 1024
+        this.size = 256
         this.gpuCompute = new GPUComputationRenderer(this.size, this.size, this.renderer)
 
         this.dtPosition = this.gpuCompute.createTexture()
@@ -195,6 +211,8 @@ export default class App {
             this.fbohelper.attach(velRT, 'Velocity')
             this.fbohelper.attach(this.rtPost1, 'Post 1')
             this.fbohelper.attach(this.rtPost2, 'Post 2')
+            this.fbohelper.attach(this.rtPost3, 'Post 3')
+            //this.fbohelper.attach(this.rtPost4, 'Depth')
 
             this.init()
         }
@@ -225,19 +243,21 @@ export default class App {
     _setupScene() {
 
         this.surface = new Mesh(
-            new PlaneGeometry(100, 100, 1, 1),
+            new PlaneGeometry(1, 1, 1, 1),
             new MeshBasicMaterial({
-                color: 0x000000,
+                //map: this.rtPost4.depthTexture,
+                color: 0xffffff,
                 transparent: true,
                 opacity: 1.0,
                 side: DoubleSide
             })
         )
-        this.surface.rotateX(-Math.PI / 2)
+        this.surface.rotateX(-Math.PI)
         this.surface.position.set(0, 0, 0)
 
         this.scene.add(new AmbientLight(0x404040, 5))
         this.scene.add(new DirectionalLight(0xffffff, 1))
+        //this.scene.add(this.surface)
 
         this.camera.position.set(0, 0, 2)
 
@@ -265,7 +285,12 @@ export default class App {
         // this.camera.position.z = Math.cos(time * 0.1) * 50.0 * delta;
         this.camera.lookAt(0, 0, 0)
 
+        
+
+        this.pp.render(this.scene, this.camera, this.rtPost4)              
+
         this.pp.render(this.scene, this.camera, this.rtPost1)
+        
 
         this.copyShader.setTexture(this.rtPost1)
         this.pp.pass( this.copyShader, this.rtPost2 )

@@ -1,10 +1,11 @@
 import PP from "./PP"
+import { ShaderMaterial } from "three"
 
 export default class CopyShader {
 
     constructor() {
 
-        this.material = new THREE.ShaderMaterial({
+        this.material = new ShaderMaterial({
 
             uniforms: {
                 texture: { type: 't', value: null }

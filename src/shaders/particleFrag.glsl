@@ -36,6 +36,7 @@ void main() {
     N.z = sqrt(1.0-mag);
 
     vec4 pos = texture2D(texturePosition, vUv);
+    vec4 velocity = texture2D(textureVelocity, vUv);
 
     vec3 lightVector = normalize(lightDir - vWorldPosition.xyx);
 
@@ -50,7 +51,19 @@ void main() {
 
     vec3 eye = vec3 (0.0, 0.0, 1.0);
     vec3 halfVector = normalize( eye + lightVector);
-    float spec = max( pow(dot(N,halfVector), Ns), 0.); 
+    float spec = max( pow(dot(N,halfVector), Ns), 0.);
+
+    vec3 col1 = vec3(50. / 255., 119. / 255., 255. / 255.);
+    vec3 col2 = vec3(255. / 255., 119. / 255., 155. / 255.);
+    vec3 col3 = vec3(50. / 255., 119. / 255., 255. / 255.);
+
+    vec3 col = col1;
+
+    // if(velocity.x > 0.5) {
+    //   col = col1;
+    // } else {
+    //   col = col2;
+    // }
     
-    gl_FragColor = vec4( env * diffuse + spec ,1.0);
+    gl_FragColor = vec4( col, 1.0);
 }
