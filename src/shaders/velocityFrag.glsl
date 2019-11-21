@@ -1,3 +1,6 @@
+#pragma glslify: cnoise3 = require(glsl-noise/classic/3d)
+
+
 uniform float time;
 uniform float delta;
 
@@ -119,6 +122,7 @@ vec3 curlNoise( vec3 p ){
 }
 
 void main() {
+
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
     vec3 selfPosition = texture2D(texturePosition, uv).xyz;
@@ -126,7 +130,9 @@ void main() {
     
     vec3 velocity = selfVelocity;
 
-    velocity = vec3(0.0);// curlNoise(selfPosition.xyz) * 10. * delta;
+    float p1 = cnoise3(selfPosition.xyz) * 100.0;
+
+    velocity = vec3(0.0); //curlNoise(vec3(p1)) * 5.0 * delta;
 
     gl_FragColor = vec4(velocity, 1.0);
 }

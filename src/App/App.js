@@ -59,13 +59,14 @@ export default class App {
         this.rtPost3 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: LinearFilter})
         this.rtPost3.texture.generateMipmaps = false
 
-        this.rtPost4 = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: NearestFilter, magFilter: NearestFilter})
-        this.rtPost4.texture.generateMipmaps = false
-        this.rtPost4.texture.format = RGBFormat
-        this.rtPost4.stencilBuffer = false
-        this.rtPost4.depthBuffer = true
-        this.rtPost4.depthTexture =  new DepthTexture()
-        this.rtPost4.depthTexture.type = UnsignedShortType
+        this.rtDepth = new WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: NearestFilter, magFilter: NearestFilter})
+        this.rtDepth.texture.generateMipmaps = false
+        this.rtDepth.texture.format = RGBFormat
+        this.rtDepth.stencilBuffer = false
+        this.rtDepth.depthBuffer = true
+        this.rtDepth.depthTexture =  new DepthTexture()
+        this.rtDepth.depthTexture.type = UnsignedShortType
+
 
         this.copyShader = new PP.CopyShader()
         this.blurShader = new PP.BlurShader()
@@ -73,7 +74,7 @@ export default class App {
 
         this.mixShader.material.uniforms.cameraNear.value = this.camera.near
         this.mixShader.material.uniforms.cameraFar.value = this.camera.far
-        this.mixShader.material.uniforms.tDepth.value = this.rtPost4.depthTexture
+        this.mixShader.material.uniforms.tDepth.value = this.rtDepth.depthTexture
 
         
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
@@ -91,7 +92,7 @@ export default class App {
         /**.
          * GPGPU
          */
-        this.size = 256
+        this.size = 512
         this.gpuCompute = new GPUComputationRenderer(this.size, this.size, this.renderer)
 
         this.dtPosition = this.gpuCompute.createTexture()
@@ -105,11 +106,11 @@ export default class App {
             const suzGeo = suz.children[0].geometry
             console.log(new IcosahedronGeometry(1))
 
-            const shapePointCloud = GeometryUtils.randomPointsInBufferGeometry(new IcosahedronBufferGeometry(1, 4), posArray.length)
+            const shapePointCloud = GeometryUtils.randomPointsInGeometry(new IcosahedronGeometry(1, 4), posArray.length)
 
             for (let i = 0, l = posArray.length; i < l; i += 4) {
                 const x = shapePointCloud[i].x
-                const y = -shapePointCloud[i].y
+                const y = shapePointCloud[i].y
                 const z = shapePointCloud[i].z
                 posArray[i + 0] = x
                 posArray[i + 1] = y
@@ -178,16 +179,20 @@ export default class App {
                 const particleUniforms = {
                     'texturePosition': { type: 't', value: null },
                     'textureVelocity': { type: 't', value: null },
+                    'textureDepth': { type: 't', value: null },
                     'map': { type: 't', value: loader.load('./assets/images/studio.jpg') },
                     'time': { type: 'f', value: 0 },
-                    'delta': { type: 'f', value: 0 }
+                    'delta': { type: 'f', value: 0 },
+                    'cameraNear': { type: 'f', value: 0 },
+                    'cameraFar': { type: 'f', value: 0 }
                 }
 
                 this.particleMaterial = new ShaderMaterial({
                     uniforms: particleUniforms,
                     vertexShader: particleVert,
                     fragmentShader: particleFrag,
-                    side: DoubleSide
+                    side: DoubleSide,
+                    depthTest: true
                 })
 
                 const particles = new Points(particleGeo, this.particleMaterial)
@@ -212,7 +217,9 @@ export default class App {
             this.fbohelper.attach(this.rtPost1, 'Post 1')
             this.fbohelper.attach(this.rtPost2, 'Post 2')
             this.fbohelper.attach(this.rtPost3, 'Post 3')
-            //this.fbohelper.attach(this.rtPost4, 'Depth')
+
+            
+            this.fbohelper.attach(this.rtDepth, 'Depth')
 
             this.init()
         }
@@ -275,11 +282,11 @@ export default class App {
 
         this.gpuCompute.compute()
 
-        this.particleMaterial.uniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget(this.positionVariable).texture;
-        this.particleMaterial.uniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture;
-
+        this.particleMaterial.uniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget(this.positionVariable).texture
+        this.particleMaterial.uniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture
         this.particleMaterial.uniforms.time.value = time
         this.particleMaterial.uniforms.delta.value = delta
+        
 
         // this.camera.position.x = Math.sin(time * 0.1) * 50.0 * delta;
         // this.camera.position.z = Math.cos(time * 0.1) * 50.0 * delta;
@@ -287,32 +294,33 @@ export default class App {
 
         
 
-        this.pp.render(this.scene, this.camera, this.rtPost4)              
+        this.pp.render(this.scene, this.camera, this.rtDepth)
 
-        this.pp.render(this.scene, this.camera, this.rtPost1)
+
+        //this.pp.render(this.scene, this.camera, this.rtPost1)
         
 
-        this.copyShader.setTexture(this.rtPost1)
-        this.pp.pass( this.copyShader, this.rtPost2 )
+        //this.copyShader.setTexture(this.rtPost1)
+        //this.pp.pass( this.copyShader, this.rtPost2 )
 
-        for (let i = 0; i < 16; i++) {
+        // for (let i = 0; i < 8; i++) {
 
-            /* Blur on the X */
-            this.blurShader.setTexture(this.rtPost2)
-            this.blurShader.setDelta(1 / this.rtPost2.width, 0)
-            this.pp.pass(this.blurShader, this.rtPost3)
+        //     /* Blur on the X */
+        //     this.blurShader.setTexture(this.rtPost2)
+        //     this.blurShader.setDelta(1 / this.rtPost2.width, 0)
+        //     this.pp.pass(this.blurShader, this.rtPost3)
 
-            /* Blur on the Y */
-            this.blurShader.setTexture(this.rtPost3)
-            this.blurShader.setDelta(0, 1 / this.rtPost2.height)
-            this.pp.pass(this.blurShader, this.rtPost2)
+        //     /* Blur on the Y */
+        //     this.blurShader.setTexture(this.rtPost3)
+        //     this.blurShader.setDelta(0, 1 / this.rtPost2.height)
+        //     this.pp.pass(this.blurShader, this.rtPost2)
 
-        }
+        // }
 
-        this.mixShader.setTextures(this.rtPost1, this.rtPost2)
-        this.pp.out(this.mixShader)
+        //this.mixShader.setTextures(this.rtPost1, this.rtPost2)
+        //this.pp.out(this.mixShader)
 
-        //this.renderer.render(this.scene, this.camera)
+        this.renderer.render(this.scene, this.camera)
 
         this.fbohelper.update()
         this.controls.update()
