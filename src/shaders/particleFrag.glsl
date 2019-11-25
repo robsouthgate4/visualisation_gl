@@ -1,7 +1,5 @@
 
 
-#include <packing>
-
 varying vec2 vUv;
 varying mat4 vMMatrix;
 varying vec4 vWorldPosition;
@@ -57,9 +55,6 @@ void main() {
     vec4 velocity = texture2D(textureVelocity, vUv);
     vec3 lightVector = normalize(lightDir - vWorldPosition.xyx);
 
-    // lightDir.x = sin(time * 0.5) * 50.0;
-    // lightDir.z = cos(time * 0.5) * 50.0;
-
     float diffuse = max(0.0, dot(lightVector, N));
     vec3 worldNormal = vec4(vMMatrix * vec4( N, 0.0 )).xyz;
     vec3 env = texture2D(map, envMapEquirect(worldNormal)).rgb;    
@@ -68,11 +63,11 @@ void main() {
     vec3 halfVector = normalize( eye + lightVector);
     float spec = max( pow(dot(N,halfVector), Ns), 0.);
 
-    vec3 col1 = vec3(50. / 255., 119. / 255., 255. / 255.);
+    vec3 col1 = vec3(155. / 255., 155. / 255., 155. / 255.);
     vec3 col2 = vec3(255. / 255., 119. / 255., 155. / 255.);
     vec3 col3 = vec3(50. / 255., 119. / 255., 255. / 255.);
 
-    vec3 col = col1;
+    vec3 col = col1 * 0.8;
 
     // if(velocity.x > 0.5) {
     //   col = col1;
@@ -80,8 +75,8 @@ void main() {
     //   col = col2;
     // }
     
-    //gl_FragColor = vec4(vec3(0.2) * (diffuse) + (spec * 0.2), 1.0);
+    gl_FragColor = vec4(col * diffuse, 1.0);
 
-    gl_FragColor = pack1K(vDepth);
+    //gl_FragColor = pack1K(vDepth);
 
 }

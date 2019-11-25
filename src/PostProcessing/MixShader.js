@@ -45,8 +45,8 @@ class MixShader {
                 '   float depth = readDepth( tDepth, vUv );',
                 '	vec3 color1 = texture2D( texture1, vUv ).xyz;',
                 '	vec3 color2 = texture2D( texture2, vUv ).xyz;',
-                '	gl_FragColor = vec4( color1 + color2 * 1.0, 1.0 );',
-                '   //gl_FragColor.rgb = 1.0 - vec3( depth * 1.0 );',
+                '	gl_FragColor = vec4( color1 + color2 * 2.0, 1.0 );',
+                '   //gl_FragColor.rgb *= 1.5 - vec3( depth * 1.0 );',
 			    '   gl_FragColor.a = 1.0;',
                 '}'
     

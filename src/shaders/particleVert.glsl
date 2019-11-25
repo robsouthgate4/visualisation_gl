@@ -19,10 +19,11 @@ void main() {
     vec4 vel = texture2D(textureVelocity, position.xy);
 
     vWorldPosition = modelMatrix * vec4(pos.xyz, 1.0);
-    
 
     vec4 mvPosition = modelViewMatrix * vec4( pos.xyz, 1.0 );
-    gl_PointSize = 4.0 * ( 4.0 / -mvPosition.z );
+
+
+    gl_PointSize = 2.5 * ( 2.5 / -mvPosition.z );
     gl_Position = projectionMatrix * mvPosition;
 
     vDepth = -mvPosition.z;

@@ -130,9 +130,10 @@ void main() {
     
     vec3 velocity = selfVelocity;
 
-    float p1 = cnoise3(selfPosition.xyz) * 100.0;
+    velocity.x = 0.0;
+    velocity.z = 0.0;
 
-    velocity = vec3(0.0); //curlNoise(vec3(p1)) * 5.0 * delta;
+    velocity.y -= 0.001 * delta;
 
     gl_FragColor = vec4(velocity, 1.0);
 }
