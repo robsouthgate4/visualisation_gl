@@ -132,8 +132,7 @@ void main() {
 
     velocity.x = 0.0;
     velocity.z = 0.0;
-
-    velocity.y -= 0.001 * delta;
+    velocity.y = 0.0;// -= 0.0001 * delta;
 
     gl_FragColor = vec4(velocity, 1.0);
 }

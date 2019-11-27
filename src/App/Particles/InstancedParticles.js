@@ -12,4 +12,9 @@ export default class InstancedParticles extends Mesh {
         super(geo, mat)
 
     }
+
+    setUniforms(uniformName, value) {
+        this.material.uniforms[uniformName].value = value
+    }
+    
 }
