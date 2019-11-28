@@ -123,16 +123,31 @@ vec3 curlNoise( vec3 p ){
 
 void main() {
 
-    vec2 uv = gl_FragCoord.xy / resolution.xy;
+    vec2 uv = gl_FragCoord.xy / resolution.xy;    
 
     vec3 selfPosition = texture2D(texturePosition, uv).xyz;
     vec3 selfVelocity = texture2D(textureVelocity, uv).xyz;
-    
+
     vec3 velocity = selfVelocity;
 
-    velocity.x = 0.0;
-    velocity.z = 0.0;
-    velocity.y = 0.0;// -= 0.0001 * delta;
+    vec3 attractorLocation = vec3(0.,0., 0.0);
+    vec3 direction = selfPosition - attractorLocation;
+    normalize(direction);
+    
+    //velocity.xyz = vec3(0.0);
+
+    //velocity += (direction * 0.001);
+
+    //velocity.y -= 0.001;
+
+    // if(selfPosition.y <= 0.0) {
+    //   selfPosition.y = 3.0;
+    //   //  velocity.y *= -1.0;
+    // }
+
+    // velocity.x = 0.0;
+    // velocity.z = 0.0;
+    //velocity.y -= 0.0001 * delta;
 
     gl_FragColor = vec4(velocity, 1.0);
 }

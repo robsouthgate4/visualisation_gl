@@ -111,7 +111,7 @@ export default class App {
             posArray[i + 0] = x
             posArray[i + 1] = y
             posArray[i + 2] = z
-            posArray[i + 3] = 1
+            posArray[i + 3] = 0
         }
 
         this.positionVariable = this.gpuCompute.addVariable("texturePosition", fragShaderPosition, this.dtPosition)
@@ -121,7 +121,7 @@ export default class App {
 
         for (let i = 0, l = velArray.length; i < l; i += 4) {
             const x = 0
-            const y = Math.random() - 1
+            const y = 0
             const z = 0
             velArray[i + 0] = x
             velArray[i + 1] = y
@@ -221,7 +221,7 @@ export default class App {
         this.scene.add(new DirectionalLight(0xffffff, 1))
         //this.scene.add(this.surface)
 
-        this.camera.position.set(0, 0, 2)
+        this.camera.position.set(0, 0, 1)
 
     }
 
