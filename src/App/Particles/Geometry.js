@@ -2,52 +2,60 @@ import { InstancedBufferGeometry, BufferAttribute, InstancedBufferAttribute } fr
 
 export default class Geometry extends InstancedBufferGeometry {
 
-    constructor( particleCount ) {
-        super()
-        
-        /**
-         * Create geo
-         */
+	constructor( particleCount ) {
 
-        const positions = new BufferAttribute(new Float32Array(4 * 3), 3)
-        positions.setXYZ(0, -0.5, 0.5, 0.0)
-        positions.setXYZ(1, 0.5, 0.5, 0.0)
-        positions.setXYZ(2, -0.5, -0.5, 0.0)
-        positions.setXYZ(3, 0.5, -0.5, 0.0)
+		super();
 
-        const uvs = new BufferAttribute(new Float32Array(4 * 2), 2)
-        uvs.setXYZ(0, 0.0, 0.0)
-        uvs.setXYZ(1, 1.0, 0.0)
-        uvs.setXYZ(2, 0.0, 1.0)
-        uvs.setXYZ(3, 1.0, 1.0)
+		// Create Geometry
 
-        this.setAttribute('position', positions)
-        this.setAttribute('uv', uvs)
-        
-        this.setIndex(new BufferAttribute(new Uint16Array([0,2,1,2,3,1]), 1))
+		const positions = new BufferAttribute( new Float32Array( 4 * 3 ), 3 );
+		positions.setXYZ( 0, - 0.5, 0.5, 0.0 );
+		positions.setXYZ( 1, 0.5, 0.5, 0.0 );
+		positions.setXYZ( 2, - 0.5, - 0.5, 0.0 );
+		positions.setXYZ( 3, 0.5, - 0.5, 0.0 );
 
-        // Create instanced params
+		const uvs = new BufferAttribute( new Float32Array( 4 * 2 ), 2 );
+		uvs.setXYZ( 0, 0.0, 0.0 );
+		uvs.setXYZ( 1, 1.0, 0.0 );
+		uvs.setXYZ( 2, 0.0, 1.0 );
+		uvs.setXYZ( 3, 1.0, 1.0 );
 
-        const indices = new Uint16Array(particleCount)
-        const offsets = new Float32Array(particleCount * 3)
-        const angles = new Float32Array(particleCount)
+		this.setAttribute( 'position', positions );
+		this.setAttribute( 'uv', uvs );
 
-        for (let i = 0; i < particleCount; i++) {
-            
-            offsets[i * 3 + 0] = Math.random() * 2
-            offsets[i * 3 + 1] = Math.random() * 2
-            offsets[i * 3 + 2] = Math.random() * 2
+		this.setIndex( new BufferAttribute( new Uint16Array( [ 0, 2, 1, 2, 3, 1 ] ), 1 ) );
 
-            indices[i] = i
+		// Create instanced params
 
-            angles[i] =  Math.random() * Math.PI
+		const indices = new Uint16Array( particleCount );
+		const offsets = new Float32Array( particleCount * 3 );
+		const colors = new Float32Array( particleCount * 3 );
+		const scale = new Float32Array( particleCount );
+		const angles = new Float32Array( particleCount );
 
-        }
+		for ( let i = 0; i < particleCount; i ++ ) {
 
-        this.setAttribute('pindex', new InstancedBufferAttribute(indices, 1, false))
-        this.setAttribute('offset', new InstancedBufferAttribute(offsets, 3, false))
-        this.setAttribute('angle', new InstancedBufferAttribute(angles, 1, false))
+			offsets[ i * 3 + 0 ] = Math.random() * 2;
+			offsets[ i * 3 + 1 ] = Math.random() * 2;
+			offsets[ i * 3 + 2 ] = Math.random() * 2;
 
-    }
+			colors[ i * 3 + 0 ] = Math.random();
+			colors[ i * 3 + 1 ] = Math.random();
+			colors[ i * 3 + 2 ] = Math.random();
+
+			scale[ i ] = Math.random() + 1;
+
+			indices[ i ] = i;
+
+			angles[ i ] = Math.random() * Math.PI;
+
+		}
+
+		this.setAttribute( 'pindex', new InstancedBufferAttribute( indices, 1, false ) );
+		this.setAttribute( 'offset', new InstancedBufferAttribute( offsets, 3, false ) );
+		this.setAttribute( 'angle', new InstancedBufferAttribute( angles, 1, false ) );
+		this.setAttribute( 'scale', new InstancedBufferAttribute( scale, 1, false ) );
+
+	}
 
 }

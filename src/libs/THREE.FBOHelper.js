@@ -1,5 +1,5 @@
 
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 var layerCSS = `
 #fboh-fbos-list{
@@ -66,7 +66,7 @@ var layerCSS = `
 }
 `;
 
-let formats = {}
+let formats = {};
 formats[ THREE.AlphaFormat ] = 'THREE.AlphaFormat';
 formats[ THREE.RGBFormat ] = 'THREE.RGBFormat';
 formats[ THREE.RGBAFormat ] = 'THREE.RGBAFormat';
@@ -74,7 +74,7 @@ formats[ THREE.LuminanceFormat ] = 'THREE.LuminanceFormat';
 formats[ THREE.LuminanceAlphaFormat ] = 'THREE.LuminanceAlphaFormat';
 //formats[ THREE.RGBEFormat ] = 'THREE.RGBEFormat';
 
-let types = {}
+let types = {};
 types[ THREE.UnsignedByteType ] = 'THREE.UnsignedByteType';
 types[ THREE.ByteType ] = 'THREE.ByteType';
 types[ THREE.ShortType ] = 'THREE.ShortType';
@@ -93,13 +93,13 @@ export default class FBOHelper {
 
 		this.renderer = renderer;
 		this.autoUpdate = false;
-		this.fbos = []
+		this.fbos = [];
 		this.list = document.createElement( 'ul' );
 		this.list.setAttribute( 'id', 'fboh-fbos-list' );
 		document.body.appendChild( this.list );
 
 		this.scene = new THREE.Scene();
-		this.camera = new THREE.OrthographicCamera( -1, 1, 1, -1, .000001, 1000 );
+		this.camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, .000001, 1000 );
 
 		this.raycaster = new THREE.Raycaster();
 		this.mouse = new THREE.Vector2();
@@ -134,17 +134,21 @@ export default class FBOHelper {
 
 		this.grid.appendChild( this.hotspot );
 
-		const head = window.document.head || window.document.getElementsByTagName('head')[0];
-		const style = window.document.createElement('style');
+		const head = window.document.head || window.document.getElementsByTagName( 'head' )[ 0 ];
+		const style = window.document.createElement( 'style' );
 
 		style.type = 'text/css';
-		if (style.styleSheet){
+		if ( style.styleSheet ) {
+
 			style.styleSheet.cssText = layerCSS;
+
 		} else {
-			style.appendChild(document.createTextNode(layerCSS));
+
+			style.appendChild( document.createTextNode( layerCSS ) );
+
 		}
 
-		head.appendChild(style);
+		head.appendChild( style );
 
 		const ss = document.createElement( 'link' );
 		ss.type = 'text/css';
@@ -155,14 +159,14 @@ export default class FBOHelper {
 
 		this.grid.addEventListener( 'wheel', e => {
 
-			var direction = ( e.deltaY < 0 ) ? 1 : -1;
+			var direction = ( e.deltaY < 0 ) ? 1 : - 1;
 
 			this.camera.zoom += direction / 50;
 			this.camera.updateProjectionMatrix();
 			this.grid.style.transform = `translate3d(-50%, -50%, 0 ) scale(${this.camera.zoom},${this.camera.zoom}) translate3d(${this.offsetX}px,${this.offsetY}px,0) `;
-			this.label.style.transform = `scale(${1/this.camera.zoom},${1/this.camera.zoom})`;
-			this.hotspot.style.transform = `scale(${1/this.camera.zoom},${1/this.camera.zoom})`;
-			this.hotspot.style.borderWidth = `${1/this.camera.zoom}px`;
+			this.label.style.transform = `scale(${1 / this.camera.zoom},${1 / this.camera.zoom})`;
+			this.hotspot.style.transform = `scale(${1 / this.camera.zoom},${1 / this.camera.zoom})`;
+			this.hotspot.style.borderWidth = `${1 / this.camera.zoom}px`;
 			this.readPixel( this.currentObj, this.currentU, this.currentV );
 
 		} );
@@ -202,11 +206,11 @@ export default class FBOHelper {
 
 		this.grid.addEventListener( 'mousemove', e => {
 
-			if( dragging ) {
+			if ( dragging ) {
 
 				this.offsetX = offsetStart.x + ( e.clientX - mouseStart.x ) / this.camera.zoom;
 				this.offsetY = offsetStart.y + ( e.clientY - mouseStart.y ) / this.camera.zoom;
-				this.camera.position.x = -this.offsetX;
+				this.camera.position.x = - this.offsetX;
 				this.camera.position.y = this.offsetY;
 
 				this.grid.style.transform = `translate3d(-50%, -50%, 0 ) scale(${this.camera.zoom},${this.camera.zoom}) translate3d(${this.offsetX}px,${this.offsetY}px,0)`;
@@ -235,15 +239,23 @@ export default class FBOHelper {
 		} );
 
 		window.addEventListener( 'keydown', e => {
-			if( e.keyCode === 27 ) {
+
+			if ( e.keyCode === 27 ) {
+
 				this.hide();
+
 			}
+
 		} );
 
 		this.grid.addEventListener( 'keydown', e => {
-			if( e.keyCode === 27 ) {
+
+			if ( e.keyCode === 27 ) {
+
 				this.hide();
+
 			}
+
 		} );
 
 	}
@@ -263,9 +275,11 @@ export default class FBOHelper {
 
 		li.textContent = name;
 
-		if( fbo.image ) {
+		if ( fbo.image ) {
+
 			fbo.width = fbo.image.width;
 			fbo.height = fbo.image.height;
+
 		}
 
 		const width = 600;
@@ -273,7 +287,7 @@ export default class FBOHelper {
 
 		const material = new THREE.MeshBasicMaterial( { map: fbo, side: THREE.DoubleSide } );
 		const quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( 1, 1 ), material );
-		if( !fbo.flipY ) quad.rotation.x = Math.PI;
+		if ( ! fbo.flipY ) quad.rotation.x = Math.PI;
 		quad.visible = false;
 		quad.width = width;
 		quad.height = height;
@@ -296,8 +310,10 @@ export default class FBOHelper {
 		this.fboMap.set( quad, fboData );
 
 		li.addEventListener( 'click', e => {
-			quad.visible = !quad.visible;
-			if( quad.visible ) {
+
+			quad.visible = ! quad.visible;
+			if ( quad.visible ) {
+
 				this.hideAll();
 				quad.visible = true;
 				li.classList.add( 'active' );
@@ -306,13 +322,17 @@ export default class FBOHelper {
 				this.grid.style.width = ( fboData.width + 2 ) + 'px';
 				this.grid.style.height = ( fboData.height + 2 ) + 'px';
 				this.currentObj = fboData;
-				this.info.innerHTML = `Width: ${fbo.width} Height: ${fbo.height}<br/>Format: ${formats[fbo.texture?fbo.texture.format:fbo.format]} Type: ${types[fbo.texture?fbo.texture.type:fbo.type]}`;
+				this.info.innerHTML = `Width: ${fbo.width} Height: ${fbo.height}<br/>Format: ${formats[ fbo.texture ? fbo.texture.format : fbo.format ]} Type: ${types[ fbo.texture ? fbo.texture.type : fbo.type ]}`;
+
 			} else {
+
 				this.info.style.display = 'none';
 				li.classList.remove( 'active' );
 				this.grid.style.display = 'none';
 				this.currentObj = null;
+
 			}
+
 		} );
 
 		this.buildList();
@@ -322,11 +342,16 @@ export default class FBOHelper {
 	detach( f ) {
 
 		var p = 0;
-		for( var fbo of this.fbos ) {
-			if( fbo.fbo === f ) {
-				this.fbos.splice( p, 1 )
+		for ( var fbo of this.fbos ) {
+
+			if ( fbo.fbo === f ) {
+
+				this.fbos.splice( p, 1 );
+
 			}
-			p++;
+
+			p ++;
+
 		}
 
 		this.buildList();
@@ -335,8 +360,10 @@ export default class FBOHelper {
 
 	refreshFBO( f ) {
 
-		for( var fbo of this.fbos ) {
-			if( fbo.fbo === f ) {
+		for ( var fbo of this.fbos ) {
+
+			if ( fbo.fbo === f ) {
+
 				const width = 600;
 				const height = f.height * width / f.width;
 				fbo.width = width;
@@ -344,7 +371,9 @@ export default class FBOHelper {
 				fbo.quad.width = width;
 				fbo.quad.height = height;
 				fbo.quad.scale.set( width, height, 1. );
+
 			}
+
 		}
 
 	}
@@ -352,18 +381,22 @@ export default class FBOHelper {
 	hideAll() {
 
 		this.fbos.forEach( fbo => {
+
 			fbo.quad.visible = false;
 			fbo.li.classList.remove( 'active' );
+
 		} );
 
 	}
 
 	buildList() {
 
-		while( this.list.firstChild ) this.list.removeChild( this.list.firstChild );
+		while ( this.list.firstChild ) this.list.removeChild( this.list.firstChild );
 
-		for( var fbo of this.fbos ) {
+		for ( var fbo of this.fbos ) {
+
 			this.list.appendChild( fbo.li );
+
 		}
 
 	}
@@ -384,14 +417,14 @@ export default class FBOHelper {
 		this.currentU = u;
 		this.currentV = v;
 
-		if( this.currentObj === null ) return;
+		if ( this.currentObj === null ) return;
 
 		const fbo = obj.fbo;
 
-		const x = ~~( fbo.width * u );
-		const y = ~~( fbo.height * v );
+		const x = ~ ~ ( fbo.width * u );
+		const y = ~ ~ ( fbo.height * v );
 
-		let types = {}
+		let types = {};
 		types[ THREE.UnsignedByteType ] = Uint8Array;
 		types[ THREE.ByteType ] = Int8Array;
 		types[ THREE.ShortType ] = Int16Array;
@@ -405,9 +438,11 @@ export default class FBOHelper {
 		types[ THREE.UnsignedShort565Type ] = Uint16Array;
 
 		var type = types[ fbo.texture ? fbo.texture.type : fbo.type ];
-		if( type === null ) {
+		if ( type === null ) {
+
 			console.warning( fbo.texture ? fbo.texture.type : fbo.type + ' not supported' );
 			return;
+
 		}
 
 		const pixelBuffer = new ( type )( 4 );
@@ -429,8 +464,8 @@ export default class FBOHelper {
 			`R: ${pixelBuffer[ 0 ]} G: ${pixelBuffer[ 1 ]} B: ${pixelBuffer[ 2 ]} A: ${pixelBuffer[ 3 ]}`;
 		this.label.innerHTML = `${posTxt}<br/>${dataTxt}`;
 
-		const ox = ~~( u * fbo.width ) * obj.quad.width / fbo.width;
-		const oy = ~~( obj.flipY ? ( 1 - v ) * fbo.height : v * fbo.height ) * obj.quad.height / fbo.height;
+		const ox = ~ ~ ( u * fbo.width ) * obj.quad.width / fbo.width;
+		const oy = ~ ~ ( obj.flipY ? ( 1 - v ) * fbo.height : v * fbo.height ) * obj.quad.height / fbo.height;
 		this.hotspot.style.width = `${obj.quad.width / fbo.width}px`;
 		this.hotspot.style.height = `${obj.quad.height / fbo.height}px`;
 		this.hotspot.style.transform = `translate3d(${ox}px,${oy}px,0)`;
@@ -443,7 +478,7 @@ export default class FBOHelper {
 		this.renderer.autoClear = false;
 		this.renderer.render( this.scene, this.camera );
 		this.renderer.autoClear = true;
-		if( this.autoUpdate ) this.readPixel( this.currentObj, this.currentU, this.currentV );
+		if ( this.autoUpdate ) this.readPixel( this.currentObj, this.currentU, this.currentV );
 
 	}
 

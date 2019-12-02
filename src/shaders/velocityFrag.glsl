@@ -121,6 +121,8 @@ vec3 curlNoise( vec3 p ){
 
 }
 
+
+
 void main() {
 
     vec2 uv = gl_FragCoord.xy / resolution.xy;    
@@ -148,6 +150,8 @@ void main() {
     // velocity.x = 0.0;
     // velocity.z = 0.0;
     //velocity.y -= 0.0001 * delta;
+
+    //velocity = curlNoise(selfPosition.xyz * 5.0) * 2.0 * delta;
 
     gl_FragColor = vec4(velocity, 1.0);
 }

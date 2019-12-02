@@ -63,11 +63,11 @@ void main() {
     vec3 halfVector = normalize( eye + lightVector);
     float spec = max( pow(dot(N,halfVector), Ns), 0.);
 
-    vec3 col1 = vec3(155. / 255., 155. / 255., 155. / 255.);
+    vec3 col1 = vec3(246. / 255.,	226. / 255.,	127. / 255.);
     vec3 col2 = vec3(255. / 255., 119. / 255., 155. / 255.);
     vec3 col3 = vec3(50. / 255., 119. / 255., 255. / 255.);
 
-    vec3 col = col1 * 0.8;
+    vec3 col = col1 * 0.5;
 
     // if(velocity.x > 0.5) {
     //   col = col1;
@@ -75,7 +75,7 @@ void main() {
     //   col = col2;
     // }
     
-    gl_FragColor = vec4(col * diffuse, 1.0);
+    gl_FragColor = vec4(col, 1.0);
 
     //gl_FragColor = pack1K(vDepth);
 

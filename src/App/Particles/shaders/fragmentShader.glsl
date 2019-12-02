@@ -15,6 +15,7 @@ void main() {
     if (mag > 1.0) discard;   // kill pixels outside circle
 
 	
-	vec4 color = vec4(1.0);
-	gl_FragColor = color;
+	vec3 color = vec3(246. / 255.,	226. / 255., 127. / 255.);
+    
+	gl_FragColor = vec4(color, 1.0);
 }

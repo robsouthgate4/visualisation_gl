@@ -5,6 +5,10 @@ varying vec2 vUv;
 
 uniform sampler2D textureOrigins;
 
+float sdSphere( vec3 p, float s )
+{
+  return length( p ) - s;
+}
 
 void main() {
 
@@ -21,6 +25,11 @@ void main() {
 
     //vec3 position = originPos.xyz;
 
-    gl_FragColor = vec4(position + velocity * delta, 1.0);
+    //position -= sdSphere(position, 1.0);
+    
+
+    vec3 pos = position + velocity * delta;
+
+    gl_FragColor = vec4(pos, 1.0);
 
 }

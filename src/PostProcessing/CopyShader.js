@@ -1,45 +1,49 @@
-import PP from "./PP"
-import { ShaderMaterial } from "three"
+import PP from "./PP";
+import { ShaderMaterial } from "three";
 
 export default class CopyShader {
 
-    constructor() {
+	constructor() {
 
-        this.material = new ShaderMaterial({
+		this.material = new ShaderMaterial( {
 
-            uniforms: {
+			uniforms: {
+
                 texture: { type: 't', value: null }
-            },
-            vertexShader: [
+                
+			},
+			vertexShader: [
 
-                'varying vec2 vUv;',
+				'varying vec2 vUv;',
 
-                'void main() {',
-                '	vUv = uv;',
-                '	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-                '} '
+				'void main() {',
+				'	vUv = uv;',
+				'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+				'} '
 
-            ].join('\n'),
-            fragmentShader: [
+			].join( '\n' ),
+			fragmentShader: [
 
-                'varying vec2 vUv;',
-                'uniform sampler2D texture;',
+				'varying vec2 vUv;',
+				'uniform sampler2D texture;',
 
-                'void main() {',
-                '	gl_FragColor = texture2D( texture, vUv );',
-                '}'
+				'void main() {',
+				'	gl_FragColor = texture2D( texture, vUv );',
+				'}'
 
-            ].join('\n')
+			].join( '\n' )
 
-        })
+		} );
 
-    }
+	}
 
-    setTexture(texture) {
-        this.material.uniforms.texture.value = texture
-    }
+	setTexture( texture ) {
+
+		this.material.uniforms.texture.value = texture;
+
+	}
 
 
 }
 
-Object.assign(PP, { CopyShader })
+Object.assign( PP, { CopyShader } );

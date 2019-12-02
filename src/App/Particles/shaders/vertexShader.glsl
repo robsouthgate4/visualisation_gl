@@ -3,6 +3,7 @@ attribute vec3 position;
 attribute vec3 offset;
 attribute vec2 uv;
 attribute float angle;
+attribute float scale;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
@@ -20,6 +21,25 @@ varying vec2 vUv;
 void main() {
 	// displacement
 
+    mat4 modelViewBB = modelViewMatrix;
+
+    // First colunm.
+    modelViewBB[0][0] = 1.0; 
+    modelViewBB[0][1] = 0.0; 
+    modelViewBB[0][2] = 0.0; 
+
+
+    // Second colunm.
+    modelViewBB[1][0] = 0.0; 
+    modelViewBB[1][1] = 1.0; 
+    modelViewBB[1][2] = 0.0; 
+
+
+    // Thrid colunm.
+    modelViewBB[2][0] = 0.0; 
+    modelViewBB[2][1] = 0.0; 
+    modelViewBB[2][2] = 1.0; 
+
     vUv = uv;
 
     vec4 tPos = texture2D(uPositionTexture, offset.xy);
@@ -27,10 +47,13 @@ void main() {
 	vec3 displaced = tPos.xyz;
 
     vec3 pos = position;
+
+    pos *= scale;
     
     pos.xyz *= 0.005;
     //pos.x *= 0.001;
 
-    vec4 mvPos = modelViewMatrix * vec4(pos + displaced, 1.0);
+    vec4 mvPos = modelViewBB * vec4(pos + displaced, 1.0);
+
 	gl_Position = projectionMatrix * mvPos;
 }
