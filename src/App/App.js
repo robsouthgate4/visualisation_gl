@@ -11,14 +11,7 @@ import FBOHelper from '../libs/THREE.FBOHelper';
 import fragShaderPosition from '../shaders/positionFrag.glsl';
 import fragShaderVelocity from '../shaders/velocityFrag.glsl';
 
-import particleFrag from '../shaders/particleFrag.glsl';
-import particleVert from '../shaders/particleVert.glsl';
-
-import { HorizontalBlurShader } from "three/examples/jsm/shaders/HorizontalBlurShader";
-import { VerticalBlurShader } from "three/examples/jsm/shaders/VerticalBlurShader";
-
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import PP from '../PostProcessing/PP';
 
 import CopyShader from '../PostProcessing/CopyShader';
@@ -46,61 +39,78 @@ export default class App {
 		this.camera.near = 0.01;
 		this.camera.far = 10;
 
-		/**
-         * Postprocessing
-         */
-		this.pp = new PP( this.renderer );
+		//Post Processing
 
-		this.rtPost1 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
-		this.rtPost1.texture.generateMipmaps = false;
+		this.copyShader;
+		this.blurShader;
+		this.mixShader;
 
-		this.rtPost2 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
-		this.rtPost2.texture.generateMipmaps = false;
+		// GPGPU
 
-		this.rtPost3 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
-		this.rtPost3.texture.generateMipmaps = false;
+		this.size;
+		this.gpuCompute;
+		this.dtPosition;
+		this.originsTexture;
+		this.positionVariable;
+		this.velocityVariable;
 
-		this.rtDepth = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: NearestFilter, magFilter: NearestFilter } );
-		this.rtDepth.texture.generateMipmaps = false;
-		this.rtDepth.texture.format = RGBFormat;
-		this.rtDepth.stencilBuffer = false;
-		this.rtDepth.depthBuffer = true;
-		this.rtDepth.depthTexture = new DepthTexture();
-		this.rtDepth.depthTexture.type = UnsignedShortType;
+		this.bounds = 400;
+		this.boundsHalf = this.bounds / 2;
 
-
-		this.copyShader = new PP.CopyShader();
-		this.blurShader = new PP.BlurShader();
-		this.mixShader = new PP.MixShader();
-
-		this.mixShader.material.uniforms.cameraNear.value = this.camera.near;
-		this.mixShader.material.uniforms.cameraFar.value = this.camera.far;
-		this.mixShader.material.uniforms.tDepth.value = this.rtDepth.depthTexture;
-
+		// Controls
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		this.controls.enableDamping = true;
 		this.controls.dampingFactor = 0.1;
 
-		this.bounds = 400;
-		this.boundsHalf = this.bounds / 2;
 
 		this.tapPosition = new Vector2();
-		this.raycaster = new Raycaster();
-		this.loadingManager = new LoadingManager();
 		this.clock = new Clock();
 
-		/**.
-         * GPGPU
-         */
+		// Postprocessing
+
+		this.initPostProcessing()
+
+		// GPGPU
+
+		this.initGPGPU()		
+
+		// Instanced particles
+
+		this.initParticles()
+		
+		// FBO Helper
+
+		this.fbohelper = new FBOHelper( this.renderer );
+		this.fbohelper.setSize( window.innerWidth, window.innerHeight );	
+
+		const error = this.gpuCompute.init();
+
+		if ( error != null ) {
+
+			console.log( error );
+
+		}		
+
+		this.init();
+
+	}
+
+	init() {
+
+		this.setupScene();
+		requestAnimationFrame( this.render.bind( this ) );
+		this.onWindowResize();
+
+	}
+
+	initGPGPU() {
+
 		this.size = 256;
 		this.gpuCompute = new GPUComputationRenderer( this.size, this.size, this.renderer );
 
 		this.dtPosition = this.gpuCompute.createTexture();
 		const posArray = this.dtPosition.image.data;
-		const loader = new OBJLoader();
-
-		this.originsTexture;
 
 		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 0.4, 4 ), posArray.length );
 
@@ -140,68 +150,74 @@ export default class App {
 		this.positionUniforms = this.positionVariable.material.uniforms;
 		this.velocityUniforms = this.velocityVariable.material.uniforms;
 
-		const initParticles = () => {
+		this.positionUniforms[ "time" ] = { value: 0.0 };
+		this.positionUniforms[ "delta" ] = { value: 0.0 };
+		this.positionUniforms[ "textureOrigins" ] = { type: 't', value: this.originsTexture };
 
+		this.velocityUniforms[ "time" ] = { value: 0.0 };
+		this.velocityUniforms[ "delta" ] = { value: 0.0 };
+		this.velocityVariable.material.defines.BOUNDS = this.bounds.toFixed( 2 );
 
-			this.particles = new InstancedParticles( { particleCount: this.size * this.size } );
-			this.scene.add( this.particles );
+		this.positionVariable.wrapS = ClampToEdgeWrapping;
+		this.positionVariable.wrapT = ClampToEdgeWrapping;
 
+		this.velocityVariable.wrapS = ClampToEdgeWrapping;
+		this.velocityVariable.wrapT = ClampToEdgeWrapping;
 
-			this.positionUniforms[ "time" ] = { value: 0.0 };
-			this.positionUniforms[ "delta" ] = { value: 0.0 };
-			this.positionUniforms[ "textureOrigins" ] = { type: 't', value: this.originsTexture };
+		this.fbohelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'Positions' );
 
-			this.velocityUniforms[ "time" ] = { value: 0.0 };
-			this.velocityUniforms[ "delta" ] = { value: 0.0 };
-			this.velocityVariable.material.defines.BOUNDS = this.bounds.toFixed( 2 );
+	}
 
-			this.positionVariable.wrapS = ClampToEdgeWrapping;
-			this.positionVariable.wrapT = ClampToEdgeWrapping;
+	initParticles() {
 
-			this.velocityVariable.wrapS = ClampToEdgeWrapping;
-			this.velocityVariable.wrapT = ClampToEdgeWrapping;
+		// Create instanced particles
 
-			const error = this.gpuCompute.init();
-			if ( error != null ) {
+		this.particles = new InstancedParticles( { particleCount: this.size * this.size } );
+		this.scene.add( this.particles );
 
-				console.log( error );
+		this.particles.setUniforms( 'uPositionTexture', this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture );
 
-			}
+	}
 
+	initPostProcessing() {
 
-		};
+		// Setup postprocessing
+		
+		this.pp = new PP( this.renderer );
 
-		initParticles();
+		this.copyShader = new PP.CopyShader();
+		this.blurShader = new PP.BlurShader();
+		this.mixShader = new PP.MixShader();		
 
-		this.fbohelper = new FBOHelper( this.renderer );
-		this.fbohelper.setSize( window.innerWidth, window.innerHeight );
+		this.rtPost1 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+		this.rtPost1.texture.generateMipmaps = false;
 
-		const posRT = this.gpuCompute.getCurrentRenderTarget( this.positionVariable );
-		const velRT = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable );
+		this.rtPost2 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+		this.rtPost2.texture.generateMipmaps = false;
 
-		this.fbohelper.attach( posRT, 'Positions' );
+		this.rtPost3 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+		this.rtPost3.texture.generateMipmaps = false;
 
+		this.rtDepth = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: NearestFilter, magFilter: NearestFilter } );
+		this.rtDepth.texture.generateMipmaps = false;
+		this.rtDepth.texture.format = RGBFormat;
+		this.rtDepth.stencilBuffer = false;
+		this.rtDepth.depthBuffer = true;
+		this.rtDepth.depthTexture = new DepthTexture();
+		this.rtDepth.depthTexture.type = UnsignedShortType;
 
-		this.particles.setUniforms( 'uPositionTexture', posRT.texture );
-		// this.fbohelper.attach(velRT, 'Velocity')
+		this.mixShader.material.uniforms.cameraNear.value = this.camera.near;
+		this.mixShader.material.uniforms.cameraFar.value = this.camera.far;
+		this.mixShader.material.uniforms.tDepth.value = this.rtDepth.depthTexture;
+
 		// this.fbohelper.attach(this.rtPost1, 'Post 1')
 		// this.fbohelper.attach(this.rtPost2, 'Post 2')
 		// this.fbohelper.attach(this.rtPost3, 'Post 3')
 		// this.fbohelper.attach(this.rtDepth, 'Depth')
 
-		this.init();
-
 	}
 
-	init() {
-
-		this._setupScene();
-		requestAnimationFrame( this.render.bind( this ) );
-		this._onWindowResize();
-
-	}
-
-	_onWindowResize() {
+	onWindowResize() {
 
 		this.camera.aspect = window.innerWidth / window.innerHeight;
 		this.camera.updateProjectionMatrix();
@@ -209,26 +225,11 @@ export default class App {
 
 	}
 
-	_setupScene() {
 
-		this.surface = new Mesh(
-			new PlaneGeometry( 1, 1, 1, 1 ),
-			new MeshBasicMaterial( {
-				//map: this.rtPost4.depthTexture,
-				color: 0xffffff,
-				transparent: true,
-				opacity: 1.0,
-				side: DoubleSide
-			} )
-		);
-		this.surface.rotateX( - Math.PI );
-		this.surface.position.set( 0, 0, 0 );
 
-		this.scene.add( new AmbientLight( 0x404040, 5 ) );
-		this.scene.add( new DirectionalLight( 0xffffff, 1 ) );
-		//this.scene.add(this.surface)
+	setupScene() {		
 
-		this.camera.position.set( 0, 0, 1 );
+		this.camera.position.set( 0, 0, 2 );
 
 	}
 
@@ -247,6 +248,7 @@ export default class App {
 		this.gpuCompute.compute();
 
 		// update particle uniforms
+
 		this.particles.setUniforms( 'uPositionTexture', this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture );
 		this.particles.setUniforms( 'uVelocityTexture', this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture );
 
@@ -258,7 +260,10 @@ export default class App {
 
 		// this.camera.position.x = Math.sin(time * 0.1) * 50.0 * delta;
 		// this.camera.position.z = Math.cos(time * 0.1) * 50.0 * delta;
+
 		this.camera.lookAt( 0, 0, 0 );
+
+		// Post processing
 
 		this.pp.render( this.scene, this.camera, this.rtDepth );
 		this.pp.render( this.scene, this.camera, this.rtPost1 );
