@@ -121,15 +121,17 @@ vec3 curlNoise( vec3 p ){
 
 }
 
+
 vec2 get_velocity(vec2 p) {
   vec2 v = vec2(0., 0.);
 
   // change this to get a new vector field
+
   float a = 0.0001;
 
   float r2 = p.x * p.x + p.y * p.y;
 
-  r2 *= 10.0;
+  r2 *= 60.0;
 
   v = vec2(p.y, - p.x) / r2 - a * p;
 
@@ -137,6 +139,8 @@ vec2 get_velocity(vec2 p) {
 }
 
 void main() {
+
+    vec3 acceleration = vec3( 0. );
 
     vec2 uv = gl_FragCoord.xy / resolution.xy;    
 
@@ -152,12 +156,24 @@ void main() {
     vec3 direction = selfPosition - attractorLocation;
     normalize(direction);
 
+    acceleration.xz += get_velocity( selfPosition.xz * 0.1 ) * 0.0001;
 
-    velocity.xz = get_velocity( selfPosition.xz * 0.1 ) * 0.05;
+    vec3 temPos = selfPosition;
+    temPos.y = 0.0;
 
-    velocity.xz *= abs((selfPosition.y * 10.));
+    float distFromCenter = length(temPos);
 
-    velocity += curlNoise(selfPosition.xyz * 10.) * 0.001;
+    vec3 vecToCenter = normalize(temPos) * -1.0;
+
+    float maxForce = 0.01;
+
+    acceleration.xz += vecToCenter.xz * maxForce * distFromCenter;
+
+    acceleration.xz *= abs((selfPosition.y * 10.));
+
+    acceleration += curlNoise(selfPosition.xyz * 20.) * 0.001;
+
+    velocity += acceleration;
 
     gl_FragColor = vec4(velocity, 1.0);
 }
