@@ -53,7 +53,7 @@ void main() {
     pos.xyz *= 0.005;
     //pos.x *= 0.001;
 
-    vec4 mvPos = modelViewBB * vec4(pos + displaced, 1.0);
+    vec4 mvPos = modelViewMatrix * vec4(pos + displaced, 1.0);
 
 	gl_Position = projectionMatrix * mvPos;
 }

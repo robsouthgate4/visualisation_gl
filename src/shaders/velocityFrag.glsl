@@ -121,39 +121,43 @@ vec3 curlNoise( vec3 p ){
 
 }
 
+vec2 get_velocity(vec2 p) {
+  vec2 v = vec2(0., 0.);
 
+  // change this to get a new vector field
+  float a = 0.0001;
+
+  float r2 = p.x * p.x + p.y * p.y;
+
+  r2 *= 10.0;
+
+  v = vec2(p.y, - p.x) / r2 - a * p;
+
+  return v;
+}
 
 void main() {
 
     vec2 uv = gl_FragCoord.xy / resolution.xy;    
 
     vec3 selfPosition = texture2D(texturePosition, uv).xyz;
+
+    selfPosition.y += 1.0;
+
     vec3 selfVelocity = texture2D(textureVelocity, uv).xyz;
 
     vec3 velocity = selfVelocity;
 
-    vec3 attractorLocation = vec3(0.,0., 0.0);
+    vec3 attractorLocation = vec3(0., 0., 0.0);
     vec3 direction = selfPosition - attractorLocation;
     normalize(direction);
-    
-    //velocity.xyz = vec3(0.0);
 
-    //velocity += (direction * 0.001);
 
-    //velocity.y -= 0.001;
+    velocity.xz = get_velocity( selfPosition.xz * 0.1 ) * 0.05;
 
-    // if(selfPosition.y <= 0.0) {
-    //   selfPosition.y = 3.0;
-    //   //  velocity.y *= -1.0;
-    // }
+    velocity.xz *= abs((selfPosition.y * 10.));
 
-    // velocity.x = 0.0;
-    // velocity.z = 0.0;
-    //velocity.y -= 0.0001 * delta;
-
-    velocity = curlNoise(selfPosition.xyz * sin(time) - length(curlNoise(selfPosition.xyz * 0.1).xyz) * cos( time * 5.0 ) ) * 20.0 * delta;
-
-    //velocity = vec3(0.0);
+    velocity += curlNoise(selfPosition.xyz * 10.) * 0.001;
 
     gl_FragColor = vec4(velocity, 1.0);
 }
