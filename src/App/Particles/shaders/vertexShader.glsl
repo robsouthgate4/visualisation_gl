@@ -48,7 +48,7 @@ void main() {
 
     vec3 pos = position;
 
-    pos *= scale;
+    pos *= (scale * 1.5);
     
     pos.xyz *= 0.005;
     //pos.x *= 0.001;

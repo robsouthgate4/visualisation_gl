@@ -25,8 +25,7 @@ void main() {
 
     //vec3 position = originPos.xyz;
 
-    //position -= sdSphere(position, 1.0);
-    
+    //position -= sdSphere(position, 1.0);    
 
     vec3 pos = position + velocity * delta;
 

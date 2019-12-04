@@ -23,15 +23,15 @@ export default class App {
 
 	constructor() {
 
-		/**
-         * Core Renderer
-         */
+		// Renderer
+
 		this.renderer = new WebGLRenderer();
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setClearColor( new Color( 'rgb(0,0,0)' ), 1.0 );
 		document.body.appendChild( this.renderer.domElement );
-
+		
+		// Scene
 
 		this.scene = new Scene();
 		this.canvas = document.getElementById( 'canvas' );
@@ -39,7 +39,7 @@ export default class App {
 		this.camera.near = 0.01;
 		this.camera.far = 10;
 
-		//Post Processing
+		// Post Processing
 
 		this.copyShader;
 		this.blurShader;
@@ -47,7 +47,7 @@ export default class App {
 
 		// GPGPU
 
-		this.size;
+		this.size = 256;
 		this.gpuCompute;
 		this.dtPosition;
 		this.originsTexture;
@@ -67,30 +67,23 @@ export default class App {
 		this.tapPosition = new Vector2();
 		this.clock = new Clock();
 
-		// Postprocessing
-
-		this.initPostProcessing()
-
-		// GPGPU
-
-		this.initGPGPU()		
-
-		// Instanced particles
-
-		this.initParticles()
-		
 		// FBO Helper
 
 		this.fbohelper = new FBOHelper( this.renderer );
 		this.fbohelper.setSize( window.innerWidth, window.innerHeight );	
 
-		const error = this.gpuCompute.init();
+		// Postprocessing
 
-		if ( error != null ) {
+		this.initPostProcessing();
 
-			console.log( error );
+		// GPGPU
 
-		}		
+		this.initGPGPU();
+
+		// Instanced particles
+
+		this.initParticles();
+
 
 		this.init();
 
@@ -104,13 +97,19 @@ export default class App {
 
 	}
 
-	initGPGPU() {
+	initGPGPU() {		
 
-		this.size = 256;
 		this.gpuCompute = new GPUComputationRenderer( this.size, this.size, this.renderer );
+		
+		// GPGPU Initial state float textures
 
 		this.dtPosition = this.gpuCompute.createTexture();
 		const posArray = this.dtPosition.image.data;
+
+		this.dtVelocity = this.gpuCompute.createTexture();
+		const velArray = this.dtVelocity.image.data;
+
+		// Position data
 
 		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 0.4, 4 ), posArray.length );
 
@@ -126,10 +125,7 @@ export default class App {
 
 		}
 
-		this.positionVariable = this.gpuCompute.addVariable( "texturePosition", fragShaderPosition, this.dtPosition );
-
-		this.dtVelocity = this.gpuCompute.createTexture();
-		const velArray = this.dtVelocity.image.data;
+		// Velocity data
 
 		for ( let i = 0, l = velArray.length; i < l; i += 4 ) {
 
@@ -143,9 +139,13 @@ export default class App {
 
 		}
 
+		// Texture Variables
+
 		this.velocityVariable = this.gpuCompute.addVariable( "textureVelocity", fragShaderVelocity, this.dtVelocity );
-		this.gpuCompute.setVariableDependencies( this.velocityVariable, [ this.positionVariable, this.velocityVariable ] );
-		this.gpuCompute.setVariableDependencies( this.positionVariable, [ this.positionVariable, this.velocityVariable ] );
+		this.positionVariable = this.gpuCompute.addVariable( "texturePosition", fragShaderPosition, this.dtPosition );
+
+		this.gpuCompute.setVariableDependencies( this.velocityVariable, [ this.velocityVariable, this.positionVariable ] );
+		this.gpuCompute.setVariableDependencies( this.positionVariable, [ this.velocityVariable, this.positionVariable ] );
 
 		this.positionUniforms = this.positionVariable.material.uniforms;
 		this.velocityUniforms = this.velocityVariable.material.uniforms;
@@ -164,7 +164,16 @@ export default class App {
 		this.velocityVariable.wrapS = ClampToEdgeWrapping;
 		this.velocityVariable.wrapT = ClampToEdgeWrapping;
 
+		const error = this.gpuCompute.init();
+
+		if ( error != null ) {
+
+			console.log( error );
+
+		}
+		
 		this.fbohelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'Positions' );
+		this.fbohelper.attach( this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ), 'Velocity' );
 
 	}
 
@@ -174,6 +183,8 @@ export default class App {
 
 		this.particles = new InstancedParticles( { particleCount: this.size * this.size } );
 		this.scene.add( this.particles );
+
+		const posTexture = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture
 
 		this.particles.setUniforms( 'uPositionTexture', this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture );
 

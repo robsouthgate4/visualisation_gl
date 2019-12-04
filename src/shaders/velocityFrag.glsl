@@ -151,7 +151,9 @@ void main() {
     // velocity.z = 0.0;
     //velocity.y -= 0.0001 * delta;
 
-    //velocity = curlNoise(selfPosition.xyz * 5.0) * 2.0 * delta;
+    velocity = curlNoise(selfPosition.xyz * sin(time) - length(curlNoise(selfPosition.xyz * 0.1).xyz) * cos( time * 5.0 ) ) * 20.0 * delta;
+
+    //velocity = vec3(0.0);
 
     gl_FragColor = vec4(velocity, 1.0);
 }
