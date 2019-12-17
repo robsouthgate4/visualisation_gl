@@ -16,7 +16,7 @@ export default class Material extends RawShaderMaterial {
 			uVelocityTexture: { value: null }
 		};
 
-		super( { uniforms, vertexShader, fragmentShader, depthTest: false, transparent: true, side: DoubleSide } );
+		super( { uniforms, vertexShader, fragmentShader, depthTest: true, transparent: true, side: DoubleSide } );
 
 	}
 

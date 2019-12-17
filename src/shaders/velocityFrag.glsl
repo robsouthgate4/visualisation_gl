@@ -169,11 +169,13 @@ void main() {
 
     acceleration.xz += vecToCenter.xz * maxForce * distFromCenter;
 
-    acceleration.xz *= abs((selfPosition.y * 10.));
+    acceleration.xz *= abs((selfPosition.y * 1.));
 
     acceleration += curlNoise(selfPosition.xyz * 20.) * 0.001;
 
     velocity += acceleration;
+
+    //velocity = vec3(0.0);
 
     gl_FragColor = vec4(velocity, 1.0);
 }

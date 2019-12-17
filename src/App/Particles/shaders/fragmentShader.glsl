@@ -7,18 +7,30 @@ uniform float time;
 
 varying vec2 vUv;
 
+const vec3 lightPos = vec3(0.0, 0.0, 10.0);
+varying vec3 vNormal;
+varying vec3 vFragPos;
+
 void main() {
-	vec3 N;
+	// vec3 N;
 
-    N.xy = vUv * 2.0 - vec2(1.0);
+    vec3 lightColor = vec3(255. / 255., 255. / 255., 255. / 255.);
 
-    float mag = dot(N.xy, N.xy);
+    vec3 norm = normalize( vNormal );
+    vec3 lightDir = normalize( lightPos - vFragPos ); 
 
-    if (mag > 1.0) discard;   // kill pixels outside circle
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightColor;
 
-    vec3 velocity = texture2D(uVelocityTexture, vUv).rgb;
+    // N.xy = vUv * 2.0 - vec2(1.0);
 
-	vec3 color = vec3(246. / 255.,	226. / 255., 127. / 255.);
+    // float mag = dot(N.xy, N.xy);
+
+    // if (mag > 1.0) discard;   // kill pixels outside circle
+
+    // vec3 velocity = texture2D(uVelocityTexture, vUv).rgb;
+
+	
     
-	gl_FragColor = vec4(color, 1.0);
+	gl_FragColor = vec4( diffuse * vec3(0.9), 1.0);
 }

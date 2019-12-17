@@ -1,4 +1,4 @@
-import { InstancedBufferGeometry, BufferAttribute, InstancedBufferAttribute } from "three";
+import { InstancedBufferGeometry, BufferAttribute, InstancedBufferAttribute, BoxGeometry, BoxBufferGeometry } from "three";
 
 export default class Geometry extends InstancedBufferGeometry {
 
@@ -8,22 +8,18 @@ export default class Geometry extends InstancedBufferGeometry {
 
 		// Create Geometry
 
-		const positions = new BufferAttribute( new Float32Array( 4 * 3 ), 3 );
-		positions.setXYZ( 0, - 0.5, 0.5, 0.0 );
-		positions.setXYZ( 1, 0.5, 0.5, 0.0 );
-		positions.setXYZ( 2, - 0.5, - 0.5, 0.0 );
-		positions.setXYZ( 3, 0.5, - 0.5, 0.0 );
+		const boxGeometry = new BoxBufferGeometry( 1, 1, 1 );
 
-		const uvs = new BufferAttribute( new Float32Array( 4 * 2 ), 2 );
-		uvs.setXYZ( 0, 0.0, 0.0 );
-		uvs.setXYZ( 1, 1.0, 0.0 );
-		uvs.setXYZ( 2, 0.0, 1.0 );
-		uvs.setXYZ( 3, 1.0, 1.0 );
+		//we have to copy the meat - geometry into this wrapper
+		Object.keys(boxGeometry.attributes).forEach( attributeName => {
+			
+			this.attributes[attributeName] = boxGeometry.attributes[attributeName];
 
-		this.setAttribute( 'position', positions );
-		this.setAttribute( 'uv', uvs );
+		} );
 
-		this.setIndex( new BufferAttribute( new Uint16Array( [ 0, 2, 1, 2, 3, 1 ] ), 1 ) );
+		//along with the index
+
+		this.index = boxGeometry.index;
 
 		// Create instanced params
 
