@@ -74,7 +74,7 @@ export default class App {
 
 		// Postprocessing
 
-		this.initPostProcessing();
+		this.initRenderPasses();
 
 		// GPGPU
 
@@ -190,7 +190,7 @@ export default class App {
 
 	}
 
-	initPostProcessing() {
+	initRenderPasses() {
 
 		// Setup postprocessing
 		
@@ -236,8 +236,6 @@ export default class App {
 
 	}
 
-
-
 	setupScene() {		
 
 		this.camera.position.set( 0, 0, 2 );
@@ -263,20 +261,11 @@ export default class App {
 		this.particles.setUniforms( 'uPositionTexture', this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture );
 		this.particles.setUniforms( 'uVelocityTexture', this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture );
 
-
-		// this.particleMaterial.uniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture
-		// this.particleMaterial.uniforms.time.value = time
-		// this.particleMaterial.uniforms.delta.value = delta
-
-
-		// this.camera.position.x = Math.sin(time * 0.1) * 50.0 * delta;
-		// this.camera.position.z = Math.cos(time * 0.1) * 50.0 * delta;
-
 		this.camera.lookAt( 0, 0, 0 );
 
 		// Post processing
 
-		this.pp.render( this.scene, this.camera, this.rtDepth );
+		//this.pp.render( this.scene, this.camera, this.rtDepth );
 		this.pp.render( this.scene, this.camera, this.rtPost1 );
 
 		this.copyShader.setTexture( this.rtPost1 );

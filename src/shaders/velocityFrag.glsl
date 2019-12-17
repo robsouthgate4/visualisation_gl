@@ -173,9 +173,9 @@ void main() {
 
     acceleration += curlNoise(selfPosition.xyz * 20.) * 0.001;
 
-    velocity += acceleration;
+    //velocity += acceleration;
 
-    //velocity = vec3(0.0);
+    velocity = vec3(0.0);
 
     gl_FragColor = vec4(velocity, 1.0);
 }
