@@ -11,6 +11,7 @@ const float PI = 3.141592653589793;
 const float PI_2 = PI * 2.0;
 
 
+
 float rand( vec2 co ){
     return fract( sin( dot( co.xy, vec2(12.9898,78.233) ) ) * 43758.5453 );
 }
@@ -98,6 +99,8 @@ vec3 snoiseVec3( vec3 x ){
 }
 
 
+
+
 vec3 curlNoise( vec3 p ){
   
   const float e = .1;
@@ -121,61 +124,17 @@ vec3 curlNoise( vec3 p ){
 
 }
 
-
-vec2 get_velocity(vec2 p) {
-  vec2 v = vec2(0., 0.);
-
-  // change this to get a new vector field
-
-  float a = 0.0001;
-
-  float r2 = p.x * p.x + p.y * p.y;
-
-  r2 *= 60.0;
-
-  v = vec2(p.y, - p.x) / r2 - a * p;
-
-  return v;
-}
-
-void main() {
-
-    vec3 acceleration = vec3( 0. );
+void main() {    
 
     vec2 uv = gl_FragCoord.xy / resolution.xy;    
 
     vec3 selfPosition = texture2D(texturePosition, uv).xyz;
 
-    selfPosition.y += 1.0;
+    vec3 acceleration = vec3( 0. );
+    
+    // vec3 velocity = curlNoise( selfPosition );
 
-    vec3 selfVelocity = texture2D(textureVelocity, uv).xyz;
-
-    vec3 velocity = selfVelocity;
-
-    vec3 attractorLocation = vec3(0., 0., 0.0);
-    vec3 direction = selfPosition - attractorLocation;
-    normalize(direction);
-
-    acceleration.xz += get_velocity( selfPosition.xz * 0.1 ) * 0.0001;
-
-    vec3 temPos = selfPosition;
-    temPos.y = 0.0;
-
-    float distFromCenter = length(temPos);
-
-    vec3 vecToCenter = normalize(temPos) * -1.0;
-
-    float maxForce = 0.01;
-
-    acceleration.xz += vecToCenter.xz * maxForce * distFromCenter;
-
-    acceleration.xz *= abs((selfPosition.y * 1.));
-
-    acceleration += curlNoise(selfPosition.xyz * 20.) * 0.001;
-
-    //velocity += acceleration;
-
-    velocity = vec3(0.0);
+    vec3 velocity = vec3( 0.0 );
 
     gl_FragColor = vec4(velocity, 1.0);
 }

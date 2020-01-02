@@ -1,14 +1,44 @@
+
+
+#define PHONG
+
+varying vec3 vViewPosition;
+varying vec3 vFragPos;
+
 attribute float pindex;
 attribute vec3 position;
+attribute vec3 normal;
 attribute vec3 offset;
 attribute vec2 uv;
 attribute float angle;
 attribute float scale;
-attribute vec3 normal;
 
-uniform mat4 modelViewMatrix;
 uniform mat4 modelMatrix;
+uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat3 normalMatrix;
+uniform vec3 cameraPosition;
+uniform vec3 pointLightPosition;
+uniform vec3 color;
+
+#ifndef FLAT_SHADED
+
+	varying vec3 vNormal;
+
+#endif
+
+#include <common>
+#include <uv_pars_vertex>
+#include <uv2_pars_vertex>
+//#include <displacementmap_pars_vertex>
+//#include <envmap_pars_vertex>
+//#include <color_pars_vertex>
+//#include <fog_pars_vertex>
+//#include <morphtarget_pars_vertex>
+//#include <skinning_pars_vertex>
+//#include <shadowmap_pars_vertex>
+//#include <logdepthbuf_pars_vertex>
+//#include <clipping_planes_pars_vertex>
 
 uniform float uTime;
 uniform float uRandom;
@@ -18,19 +48,42 @@ uniform float uSize;
 uniform sampler2D uPositionTexture;
 uniform sampler2D uVelocityTexture;
 
-varying vec2 vUv;
-varying vec3 vFragPos; 
-varying vec3 vNormal;
-
 vec3 applyQuaternionToVector( vec4 q, vec3 v ){
-			return v + 2.0 * cross( q.xyz, cross( q.xyz, v ) + q.w * v );
-		}
+    return v + 2.0 * cross( q.xyz, cross( q.xyz, v ) + q.w * v );
+}
 
 void main() {
 
-	// displacement
+    #include <uv_vertex>
+    #include <uv2_vertex>
+    #include <color_vertex>
 
-    vUv = uv;
+    #include <beginnormal_vertex>
+    #include <morphnormal_vertex>
+    #include <skinbase_vertex>
+    #include <skinnormal_vertex>
+    #include <defaultnormal_vertex>
+
+    #ifndef FLAT_SHADED // Normal computed with derivatives when FLAT_SHADED
+
+        vNormal = normalize( transformedNormal );
+
+    #endif
+
+    #include <begin_vertex>
+    #include <morphtarget_vertex>
+    #include <skinning_vertex>
+    #include <displacementmap_vertex>
+    #include <project_vertex>
+    #include <logdepthbuf_vertex>
+    #include <clipping_planes_vertex>
+
+    vViewPosition = - mvPosition.xyz;
+
+    #include <worldpos_vertex>
+    #include <envmap_vertex>
+    #include <shadowmap_vertex>
+    #include <fog_vertex>
 
     vec4 tPos = texture2D(uPositionTexture, offset.xy);
     vec4 tVel = texture2D(uVelocityTexture, offset.xy);
@@ -38,20 +91,19 @@ void main() {
 	vec3 displaced = tPos.xyz;
 
     vec3 pos = position;
-
     
     //pos.x *= 0.001;
 
-    vec3 vPosition = applyQuaternionToVector( vec4(vec3(tVel), 1.0), pos );
+    //vec3 vPosition = applyQuaternionToVector( vec4(vec3(0.0), 1.0), pos );
 
-    vPosition *= (scale * 1.5);
+    pos *= (scale * 1.8);
     
-    vPosition.xyz *= 0.005;
+    pos.xyz *= 0.005;
 
-    vec4 mvPos = modelViewMatrix * vec4( vPosition + displaced, 1.0);
+    vec4 mvPos = modelViewMatrix * vec4( pos + displaced, 1.0);
 
 	gl_Position = projectionMatrix * mvPos;
 
-    vFragPos = vec3( modelMatrix * vec4( vPosition + displaced, 1.0) );
-    vNormal = normal;
+    // vFragPos = vec3( modelMatrix * vec4( pos + displaced, 1.0) );
+
 }

@@ -1,5 +1,5 @@
 // import Globals from "./Globals"
-import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture, OrthographicCamera, UniformsUtils, RGBFormat, LinearFilter, UnsignedShortType, UniformsLib, DataTexture } from 'three';
+import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture, OrthographicCamera, UniformsUtils, RGBFormat, LinearFilter, UnsignedShortType, UniformsLib, DataTexture, PointLight } from 'three';
 // import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 // import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
@@ -34,6 +34,7 @@ export default class App {
 		// Scene
 
 		this.scene = new Scene();
+		window.scene = this.scene;
 		this.canvas = document.getElementById( 'canvas' );
 		this.camera = new PerspectiveCamera( ( 70, window.innerWidth / window.innerHeight, 0.01, 50 ) );
 		this.camera.near = 0.01;
@@ -84,6 +85,15 @@ export default class App {
 
 		this.initParticles();
 
+		// Lights
+
+		const ambientLight = new AmbientLight( 0x000000 );
+		this.scene.add( ambientLight );
+
+		const pointLight = new PointLight( 0xFFFFFF, 1, 100 );
+		pointLight.position.set( 10, 10, 10 );
+		this.scene.add( pointLight );
+		
 
 		this.init();
 
@@ -261,6 +271,8 @@ export default class App {
 		this.particles.setUniforms( 'uPositionTexture', this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture );
 		this.particles.setUniforms( 'uVelocityTexture', this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture );
 
+		this.particles.update();
+
 		this.camera.lookAt( 0, 0, 0 );
 
 		// Post processing
@@ -287,9 +299,9 @@ export default class App {
 
 		this.mixShader.setTextures( this.rtPost1, this.rtPost2 );
 
-		this.pp.out( this.mixShader );
+		// this.pp.out( this.mixShader );
 
-		//this.renderer.render(this.scene, this.camera)
+		this.renderer.render(this.scene, this.camera)
 
 		this.fbohelper.update();
 		this.controls.update();

@@ -1,36 +1,88 @@
-
-
 precision highp float;
 
+#define PHONG
+
+uniform vec3 diffuse;
+uniform vec3 emissive;
+uniform vec3 specular;
+uniform float shininess;
+uniform float opacity;
+uniform bool isOrthographic;
+
+uniform mat4 viewMatrix;
 uniform sampler2D uVelocityTexture;
 uniform float time;
 
-varying vec2 vUv;
+#include <common>
+#include <packing>
+#include <dithering_pars_fragment>
+#include <color_pars_fragment>
+#include <uv_pars_fragment>
+#include <uv2_pars_fragment>
+#include <map_pars_fragment>
+#include <alphamap_pars_fragment>
+#include <aomap_pars_fragment>
+#include <lightmap_pars_fragment>
+#include <emissivemap_pars_fragment>
+#include <envmap_common_pars_fragment>
+#include <envmap_pars_fragment>
+#include <gradientmap_pars_fragment>
+#include <fog_pars_fragment>
+#include <bsdfs>
+#include <lights_pars_begin>
+#include <lights_phong_pars_fragment>
+#include <shadowmap_pars_fragment>
+#include <bumpmap_pars_fragment>
+#include <normalmap_pars_fragment>
+#include <specularmap_pars_fragment>
+#include <logdepthbuf_pars_fragment>
+#include <clipping_planes_pars_fragment>
 
-const vec3 lightPos = vec3(0.0, 0.0, 10.0);
-varying vec3 vNormal;
-varying vec3 vFragPos;
+
+// vec2 envMapEquirect(vec3 wcNormal, float flipEnvMap) {
+//   //I assume envMap texture has been flipped the WebGL way (pixel 0,0 is a the bottom)
+//   //therefore we flip wcNormal.y as acos(1) = 0
+//   float phi = acos(-wcNormal.y);
+//   float theta = atan(flipEnvMap * wcNormal.x, wcNormal.z) + PI;
+//   return vec2(theta / PI * 2.0, phi / PI);
+// }
+
+// vec2 envMapEquirect(vec3 wcNormal) {
+//     //-1.0 for left handed coordinate system oriented texture (usual case)
+//     return envMapEquirect(wcNormal, -1.0);
+// }
 
 void main() {
-	// vec3 N;
 
-    vec3 lightColor = vec3(255. / 255., 255. / 255., 255. / 255.);
+	#include <clipping_planes_fragment>
 
-    vec3 norm = normalize( vNormal );
-    vec3 lightDir = normalize( lightPos - vFragPos ); 
+	vec4 diffuseColor = vec4( diffuse, opacity );
+	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
+	vec3 totalEmissiveRadiance = emissive;
 
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
+	#include <logdepthbuf_fragment>
+	#include <map_fragment>
+	#include <color_fragment>
+	#include <alphamap_fragment>
+	#include <alphatest_fragment>
+	#include <specularmap_fragment>
+	#include <normal_fragment_begin>
+	#include <normal_fragment_maps>
+	#include <emissivemap_fragment>
 
-    // N.xy = vUv * 2.0 - vec2(1.0);
+	// accumulation
+	#include <lights_phong_fragment>
+	#include <lights_fragment_begin>
+	#include <lights_fragment_maps>
+	#include <lights_fragment_end>
 
-    // float mag = dot(N.xy, N.xy);
+	// modulation
+	#include <aomap_fragment>
 
-    // if (mag > 1.0) discard;   // kill pixels outside circle
+	vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular + totalEmissiveRadiance;
 
-    // vec3 velocity = texture2D(uVelocityTexture, vUv).rgb;
+	#include <envmap_fragment>
 
-	
-    
-	gl_FragColor = vec4( diffuse * vec3(0.9), 1.0);
+	gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+
 }
