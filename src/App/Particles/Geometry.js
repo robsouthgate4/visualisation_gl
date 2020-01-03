@@ -1,4 +1,4 @@
-import { InstancedBufferGeometry, BufferAttribute, InstancedBufferAttribute, BoxGeometry, BoxBufferGeometry } from "three";
+import { InstancedBufferGeometry, BufferAttribute, InstancedBufferAttribute, BoxGeometry, BoxBufferGeometry, Math as ThreeMath } from "three";
 
 export default class Geometry extends InstancedBufferGeometry {
 
@@ -40,7 +40,7 @@ export default class Geometry extends InstancedBufferGeometry {
 
 			indices[ i ] = i;
 
-			angles[ i ] = Math.random() * Math.PI;
+			angles[ i ] = ThreeMath.degToRad( Math.random() * 360 );
 
 		}
 

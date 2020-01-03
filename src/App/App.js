@@ -145,9 +145,11 @@ export default class App {
 			const x = 0;
 			const y = 0;
 			const z = 0;
+
 			velArray[ i + 0 ] = x;
 			velArray[ i + 1 ] = y;
 			velArray[ i + 2 ] = z;
+			
 			velArray[ i + 3 ] = 1;
 
 		}
