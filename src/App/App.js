@@ -25,7 +25,7 @@ export default class App {
 
 		// Renderer
 
-		this.renderer = new WebGLRenderer();
+		this.renderer = new WebGLRenderer( { antialias: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setClearColor( new Color( 'rgb(0,0,0)' ), 1.0 );
@@ -48,7 +48,7 @@ export default class App {
 
 		// GPGPU
 
-		this.size = 256;
+		this.size = 512;
 		this.gpuCompute;
 		this.dtPosition;
 		this.originsTexture;
@@ -87,12 +87,15 @@ export default class App {
 
 		// Lights
 
-		const ambientLight = new AmbientLight( 0x000000 );
+		const ambientLight = new AmbientLight( 0xFFFFFF, 0.01 );
 		this.scene.add( ambientLight );
 
 		const pointLight = new PointLight( 0xFFFFFF, 1, 100 );
-		pointLight.position.set( 10, 10, 10 );
+		pointLight.position.set( 10, 0, 10 );
 		this.scene.add( pointLight );
+
+		const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+		this.scene.add( directionalLight );
 		
 
 		this.init();
@@ -121,7 +124,7 @@ export default class App {
 
 		// Position data
 
-		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 0.4, 4 ), posArray.length );
+		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 0.6, 4 ), posArray.length );
 
 		for ( let i = 0, l = posArray.length; i < l; i += 4 ) {
 
@@ -299,9 +302,9 @@ export default class App {
 
 		this.mixShader.setTextures( this.rtPost1, this.rtPost2 );
 
-		// this.pp.out( this.mixShader );
+		this.pp.out( this.mixShader );
 
-		this.renderer.render(this.scene, this.camera)
+		//this.renderer.render(this.scene, this.camera)
 
 		this.fbohelper.update();
 		this.controls.update();

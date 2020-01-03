@@ -12,10 +12,12 @@ attribute vec3 offset;
 attribute vec2 uv;
 attribute float angle;
 attribute float scale;
+attribute mat4 aInstanceMatrix;
 
 uniform mat4 modelMatrix;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
 uniform mat3 normalMatrix;
 uniform vec3 cameraPosition;
 uniform vec3 pointLightPosition;
@@ -30,6 +32,7 @@ uniform vec3 color;
 #include <common>
 #include <uv_pars_vertex>
 #include <uv2_pars_vertex>
+
 //#include <displacementmap_pars_vertex>
 //#include <envmap_pars_vertex>
 //#include <color_pars_vertex>
@@ -96,11 +99,11 @@ void main() {
 
     //vec3 vPosition = applyQuaternionToVector( vec4(vec3(0.0), 1.0), pos );
 
-    pos *= (scale * 1.8);
+    pos *= (scale * 1.5);
     
     pos.xyz *= 0.005;
 
-    vec4 mvPos = modelViewMatrix * vec4( pos + displaced, 1.0);
+    vec4 mvPos = viewMatrix * modelMatrix * vec4( pos + displaced, 1.0);
 
 	gl_Position = projectionMatrix * mvPos;
 

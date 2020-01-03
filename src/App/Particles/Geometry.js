@@ -10,14 +10,11 @@ export default class Geometry extends InstancedBufferGeometry {
 
 		const boxGeometry = new BoxBufferGeometry( 1, 1, 1 );
 
-		//we have to copy the meat - geometry into this wrapper
 		Object.keys(boxGeometry.attributes).forEach( attributeName => {
 			
 			this.attributes[attributeName] = boxGeometry.attributes[attributeName];
 
 		} );
-
-		//along with the index
 
 		this.index = boxGeometry.index;
 

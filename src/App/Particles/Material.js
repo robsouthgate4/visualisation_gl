@@ -10,8 +10,9 @@ export default class Material extends RawShaderMaterial {
 		const uniforms = UniformsUtils.merge( [
 			ShaderLib.phong.uniforms,
 			{
-				color: { value: new Color( 0x000000 ) },
-				shininess: { value: 100 },
+				diffuse: {value: new Color( 0x2194ce )},
+				wireframe: {value: true},
+				shininess: { value: 2 },
 				specular: { value: new Color( 0xffffff ) },
 				isOrthographic: { value: false },
 				uTime: { value: 0 },
@@ -30,8 +31,10 @@ export default class Material extends RawShaderMaterial {
 			depthTest: true, 
 			transparent: true, 
 			side: DoubleSide, 
-			lights: true 
+			lights: true,
 		} );
+
+		//this.uniforms.color.value = 0x2194ce;
 
 	}
 
