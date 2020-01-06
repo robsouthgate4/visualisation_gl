@@ -33,15 +33,15 @@ uniform vec3 color;
 #include <uv_pars_vertex>
 #include <uv2_pars_vertex>
 
-//#include <displacementmap_pars_vertex>
-//#include <envmap_pars_vertex>
-//#include <color_pars_vertex>
-//#include <fog_pars_vertex>
-//#include <morphtarget_pars_vertex>
-//#include <skinning_pars_vertex>
-//#include <shadowmap_pars_vertex>
-//#include <logdepthbuf_pars_vertex>
-//#include <clipping_planes_pars_vertex>
+#include <displacementmap_pars_vertex>
+#include <envmap_pars_vertex>
+#include <color_pars_vertex>
+#include <fog_pars_vertex>
+#include <morphtarget_pars_vertex>
+#include <skinning_pars_vertex>
+#include <shadowmap_pars_vertex>
+#include <logdepthbuf_pars_vertex>
+#include <clipping_planes_pars_vertex>
 
 uniform float uTime;
 uniform float uRandom;
@@ -115,7 +115,7 @@ void main() {
     
     pos.xyz *= 0.005;
 
-    pos = (vec4( pos, 1.0 ) * rotation3d( vec3(1,1,1), angle + (uTime * 0.1) )).xyz;
+    pos = (vec4( pos, 1.0 ) * rotation3d( vec3(1,1,1), angle + (uTime * 0.05) )).xyz;
 
     vec4 mvPos = viewMatrix * modelMatrix * vec4( pos + displaced, 1.0);
 

@@ -291,11 +291,13 @@ export default class App {
 		for ( let i = 0; i < 16; i ++ ) {
 
 			/* Blur on the X */
+
 			this.blurShader.setTexture( this.rtPost2 );
 			this.blurShader.setDelta( 1 / this.rtPost2.width, 0 );
 			this.pp.pass( this.blurShader, this.rtPost3 );
 
 			/* Blur on the Y */
+			
 			this.blurShader.setTexture( this.rtPost3 );
 			this.blurShader.setDelta( 0, 1 / this.rtPost2.height );
 			this.pp.pass( this.blurShader, this.rtPost2 );
