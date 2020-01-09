@@ -132,9 +132,9 @@ void main() {
 
     vec3 acceleration = vec3( 0. );
     
-    vec3 velocity = curlNoise( selfPosition ) * (0.5 * sin( time ));
+    //vec3 velocity = curlNoise( selfPosition ) * (0.5 * sin( time ));
 
-    //vec3 velocity = vec3( 0.0 );
+    vec3 velocity = vec3( 0.0 );
 
     gl_FragColor = vec4(velocity, 1.0);
 }
