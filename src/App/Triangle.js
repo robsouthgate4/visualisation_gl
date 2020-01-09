@@ -6,7 +6,7 @@ export default class Triangle extends BufferGeometry {
 
 		super()
 
-		this.setIndex( [2, 1, 0] )
+		this.setIndex( [ 2, 1, 0 ] )
 
 		this.setAttribute( 'position',  new Float32BufferAttribute( 
 		    [
@@ -14,7 +14,7 @@ export default class Triangle extends BufferGeometry {
 		      -1,  4, 0, 
 		       4, -1, 0
 		    ]
-		,3 ));
+		, 3 ));
 
 		this.needsUpdate = true
 
