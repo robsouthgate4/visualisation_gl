@@ -88,7 +88,7 @@ export default class App {
 
 	}
 
-	createFBO( textureId, width, height, internalFormat, format, type, param, displayHelper ) {
+	createFBO( textureId, width, height, internalFormat, format, type, param, displayHelper, displayName ) {
 
 		const texture = new DataTexture(
 			new Float32Array(),
@@ -110,7 +110,7 @@ export default class App {
 
 		if ( displayHelper ) {
 
-			this.fbohelper.attach( fbo, 'Curl' );
+			this.fbohelper.attach( fbo, displayName );
 
 		}
 
@@ -118,10 +118,10 @@ export default class App {
 
 	}
 
-	createDoubleFBO( textureId, width, height, internalFormat, format, type, param ) {
+	createDoubleFBO( textureId, width, height, internalFormat, format, type, param, ) {
 
-		let fbo1 = this.createFBO( textureId, width, height, internalFormat, format, type, param );
-		let fbo2 = this.createFBO( textureId + 1, width, height, internalFormat, format, type, param );
+		let fbo1 = this.createFBO( textureId, width, height, internalFormat, format, type, param, displayName = '' );
+		let fbo2 = this.createFBO( textureId + 1, width, height, internalFormat, format, type, param, displayName = '' );
 
 		return {
 
@@ -164,7 +164,8 @@ export default class App {
 			RGBAFormat,
 			HalfFloatType,
 			NearestFilter,
-			true
+			true,
+			'Curl'
 		);
 
 	}
