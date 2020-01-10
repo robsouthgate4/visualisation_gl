@@ -1,21 +1,59 @@
 // import Globals from "./Globals"
-import { Scene, DoubleSide, PerspectiveCamera, WebGLRenderer, Vector2, Raycaster, LoadingManager, Clock, Mesh, PlaneGeometry, MeshBasicMaterial, AmbientLight, DirectionalLight, WebGLRenderTarget, NearestFilter, RGBAFormat, FloatType, ClampToEdgeWrapping, SphereBufferGeometry, RepeatWrapping, BufferAttribute, BufferGeometry, PointsMaterial, Points, Math as ThreeMath, BoxBufferGeometry, PlaneBufferGeometry, ShaderMaterial, SphereGeometry, Color, TextureLoader, IcosahedronGeometry, ObjectLoader, IcosahedronBufferGeometry, DepthTexture, OrthographicCamera, UniformsUtils, RGBFormat, LinearFilter, UnsignedShortType, UniformsLib, DataTexture, PointLight, CubeTextureLoader, CubeReflectionMapping, sRGBEncoding, HalfFloatType, UVMapping, RedFormat, Camera } from 'three';
+import { 
+	Scene, 
+	PerspectiveCamera,
+	WebGLRenderer,
+	Vector2,
+	Clock,
+	Mesh,
+	AmbientLight,
+	WebGLRenderTarget,
+	NearestFilter,
+	RGBAFormat,
+	ClampToEdgeWrapping,
+	Math as ThreeMath,
+	ShaderMaterial,
+	Color, 
+	DataTexture, 
+	PointLight, 
+	HalfFloatType, 
+	UVMapping, 
+	RedFormat,
+	Camera } from 'three';
+
+import { WEBGL } from 'three/examples/jsm/WebGL.js';
 
 import FBOHelper from '../libs/THREE.FBOHelper';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 import Triangle from './Triangle'
+
+// Shaders
+
 import triangleVert from '../shaders/sceenTriangle/triangleVert.glsl'
 import triangleFrag from '../shaders/sceenTriangle/triangleFrag.glsl'
+
+import baseVertex from '../shaders/baseVertex.glsl'
+
+import velocityFragment from '../shaders/velocityFrag.glsl'
+
 
 export default class App {
 
 	constructor() {
 
-		// Renderer
+		if ( WEBGL.isWebGL2Available() === false ) {
 
-		this.renderer = new WebGLRenderer( { antialias: true } );
+			document.body.appendChild( WEBGL.getWebGL2ErrorMessage() );
+		
+		}
+
+		// Renderer WEBGL2 !!
+		const canvas = document.createElement( 'canvas' );
+		const context = canvas.getContext( 'webgl2', { alpha: false } );
+
+		this.renderer = new WebGLRenderer( { canvas: canvas, context: context, antialias: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setClearColor( new Color( 'rgb(0,0,0)' ), 1.0 );
@@ -55,7 +93,6 @@ export default class App {
 		const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
 		this.scene.add( directionalLight );
 
-
 		this.init();
 
 		// Create the full screen triangle ready for blit
@@ -65,11 +102,16 @@ export default class App {
         this.gpuWidth = 1
 		this.gpuHeight = 1
 		this.screenTriangle = new Triangle();
-		this.screenMat = new ShaderMaterial({
+		this.displayProgram = new ShaderMaterial({
 			vertexShader: triangleVert,
-			fragmentShader: triangleFrag
+			fragmentShader: triangleFrag,
+			uniforms: {
+				uTexture: { type: 't', value: null },
+				uTexelSize: { type: 'v2', value: new Vector2() }
+			}
 		});
-		this.screenMesh = new Mesh( this.screenTriangle, this.screenMat );
+
+		this.screenMesh = new Mesh( this.screenTriangle, this.displayProgram );
 		this.scene.add( this.screenMesh );
 
 
@@ -82,6 +124,21 @@ export default class App {
 		this.divergence;
 		this.curl;
 		this.pressure;
+
+		const size = new Vector2();
+
+		this.renderer.getSize( size );
+
+		this.textureWidth = size.x;
+		this.textureHeight = size.y;
+
+		this.velocityProgram = new ShaderMaterial({
+			vertexShader: baseVertex,
+			fragmentShader: velocityFragment,
+			uniforms: {
+				uTexture: { type: 't', value: null }
+			}
+		})
 
 		this.initFrameBuffers();
 
@@ -118,10 +175,10 @@ export default class App {
 
 	}
 
-	createDoubleFBO( textureId, width, height, internalFormat, format, type, param, ) {
+	createDoubleFBO( textureId, width, height, internalFormat, format, type, param, displayHelper, displayName) {
 
-		let fbo1 = this.createFBO( textureId, width, height, internalFormat, format, type, param, displayName = '' );
-		let fbo2 = this.createFBO( textureId + 1, width, height, internalFormat, format, type, param, displayName = '' );
+		let fbo1 = this.createFBO( textureId, width, height, internalFormat, format, type, param, displayHelper, displayName);
+		let fbo2 = this.createFBO( textureId + 1, width, height, internalFormat, format, type, param, displayHelper, displayName);
 
 		return {
 
@@ -147,14 +204,7 @@ export default class App {
 
 	}
 
-	initFrameBuffers( ) {
-
-		const size = new Vector2();
-
-		this.renderer.getSize( size );
-
-		this.textureWidth = size.x;
-		this.textureHeight = size.y;
+	initFrameBuffers( ) {		
 
 		this.curl = this.createFBO(
 			5,
@@ -166,6 +216,18 @@ export default class App {
 			NearestFilter,
 			true,
 			'Curl'
+		);
+
+		this.velocity = this.createDoubleFBO( 
+			0,
+			this.textureWidth,
+			this.textureHeight,
+			RGBAFormat,
+			RGBAFormat,
+			HalfFloatType,
+			NearestFilter,
+			true, 
+			'Velocity' 
 		);
 
 	}
@@ -196,6 +258,13 @@ export default class App {
 
 		const delta = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
+
+		// Advection
+
+		this.velocity.swap();
+
+		//this.displayProgram.uniforms.uTexture.value = this.velocity.read[1];
+		this.displayProgram.uniforms.uTexelSize.value = new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight );
 
 		this.camera.lookAt( 0, 0, 0 );
 
