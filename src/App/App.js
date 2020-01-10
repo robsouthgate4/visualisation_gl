@@ -19,7 +19,8 @@ import {
 	HalfFloatType, 
 	UVMapping, 
 	RedFormat,
-	Camera } from 'three';
+	Camera, 
+	FloatType} from 'three';
 
 import { WEBGL } from 'three/examples/jsm/WebGL.js';
 
@@ -37,6 +38,7 @@ import triangleFrag from '../shaders/sceenTriangle/triangleFrag.glsl'
 import baseVertex from '../shaders/baseVertex.glsl'
 
 import velocityFragment from '../shaders/velocityFrag.glsl'
+import positionFragment from '../shaders/positionFrag.glsl'
 
 
 export default class App {
@@ -95,6 +97,30 @@ export default class App {
 
 		this.init();
 
+
+		const size = new Vector2();
+
+		this.renderer.getSize( size );
+
+		this.textureWidth = size.x;
+		this.textureHeight = size.y;
+
+		// Programs
+
+		const posData = new Float32Array( 4 * this.width * this.height );
+
+		for ( let i = 0; i < ( this.width * this.height ); i ++ ) {
+
+			posData[ 4 * i + 0 ] = Math.random() * 255.0;
+			posData[ 4 * i + 1 ] = Math.random() * 255.0;
+			posData[ 4 * i + 2 ] = Math.random() * 255.0;
+			posData[ 4 * i + 3 ] = 0.;
+
+		}		
+
+		const initPos = new DataTexture( posData, this.width, this.height, RGBAFormat, FloatType );
+		initPos.needsUpdate = true;
+
 		// Create the full screen triangle ready for blit
 
 		this.gpuCamera = new Camera();
@@ -125,19 +151,38 @@ export default class App {
 		this.curl;
 		this.pressure;
 
-		const size = new Vector2();
+		
 
-		this.renderer.getSize( size );
+		this.initProgram = new ShaderMaterial( { 
+			
+			vertexShader: baseVertex,
+			fragmentShader: triangleFrag,
+			uniforms: {
+				uTexture: { value: initPos }				
+			}
 
-		this.textureWidth = size.x;
-		this.textureHeight = size.y;
+		} );
 
 		this.velocityProgram = new ShaderMaterial({
+
 			vertexShader: baseVertex,
 			fragmentShader: velocityFragment,
 			uniforms: {
-				uTexture: { type: 't', value: null }
+				uTextureVelocity: { type: 't', value: null },
+				uTexturePosition: { type: 't', value: null }
 			}
+
+		})
+
+		this.positionProgram = new ShaderMaterial({
+
+			vertexShader: baseVertex,
+			fragmentShader: positionFragment,
+			uniforms: {
+				uTextureVelocity: { type: 't', value: null },
+				uTexturePosition: { type: 't', value: null }
+			}
+
 		})
 
 		this.initFrameBuffers();
@@ -145,40 +190,38 @@ export default class App {
 
 	}
 
-	createFBO( textureId, width, height, internalFormat, format, type, param, displayHelper, displayName ) {
+	createFBO( width, height, displayHelper, displayName ) {
 
-		const texture = new DataTexture(
-			new Float32Array(),
-			width,
+		let fbo = new WebGLRenderTarget( 
+			width, 
 			height,
-			format,
-			type,
-			UVMapping,
-			ClampToEdgeWrapping,
-			ClampToEdgeWrapping,
-			param,
-			param,
-		)
-
-		texture.internalFormat = internalFormat;
-
-		let fbo = new WebGLRenderTarget( width, height );
-		fbo.texture = texture;
+			{
+				wrapS: ClampToEdgeWrapping,
+				wrapT: ClampToEdgeWrapping,
+				minFilter: NearestFilter,
+				magFilter: NearestFilter,
+				format: RGBAFormat,
+				type: HalfFloatType,
+				stencilBuffer: false
+			} );
 
 		if ( displayHelper ) {
 
-			this.fbohelper.attach( fbo, displayName );
+			this.fbohelper.attach( fbo.texture, displayName );
 
 		}
 
-		return [ texture, fbo, textureId ];
+		return {
+			fbo,
+			helper: this.fbohelper
+		};
 
 	}
 
-	createDoubleFBO( textureId, width, height, internalFormat, format, type, param, displayHelper, displayName) {
+	createDoubleFBO( width, height, displayHelper, displayName) {
 
-		let fbo1 = this.createFBO( textureId, width, height, internalFormat, format, type, param, displayHelper, displayName);
-		let fbo2 = this.createFBO( textureId + 1, width, height, internalFormat, format, type, param, displayHelper, displayName);
+		let fbo1 = this.createFBO( width, height, displayHelper, displayName );
+		let fbo2 = this.createFBO( width, height, displayHelper, displayName );
 
 		return {
 
@@ -206,29 +249,23 @@ export default class App {
 
 	initFrameBuffers( ) {		
 
-		this.curl = this.createFBO(
-			5,
-			this.textureWidth,
-			this.textureHeight,
-			RedFormat,
-			RGBAFormat,
-			HalfFloatType,
-			NearestFilter,
-			true,
-			'Curl'
-		);
+		this.velocity = this.createDoubleFBO(
 
-		this.velocity = this.createDoubleFBO( 
-			0,
 			this.textureWidth,
 			this.textureHeight,
-			RGBAFormat,
-			RGBAFormat,
-			HalfFloatType,
-			NearestFilter,
 			true, 
 			'Velocity' 
+
 		);
+
+		this.position = this.createDoubleFBO(
+
+			this.textureWidth,
+			this.textureHeight,
+			true,
+			'Position'
+
+		)
 
 	}
 
@@ -254,23 +291,44 @@ export default class App {
 
 	}
 
+	renderPass( program, fbo ) {
+
+		let renderTarget = this.renderer.getRenderTarget();
+		this.screenMesh.material = program
+		this.renderer.setRenderTarget( fbo )
+		this.renderer.render( this.scene, this.camera );
+		this.renderer.setRenderTarget( renderTarget );
+
+	}
+
 	render( now ) {
 
 		const delta = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
-		// Advection
-
+		// Velocity
 		this.velocity.swap();
+		this.velocity.read.helper.update();
+		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
+		this.renderPass ( this.velocityProgram, this.velocity.write.fbo );
 
-		//this.displayProgram.uniforms.uTexture.value = this.velocity.read[1];
-		this.displayProgram.uniforms.uTexelSize.value = new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight );
+
+		// Position
+		this.position.swap();
+		this.position.read.helper.update();
+		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
+		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
+		this.renderPass ( this.positionProgram, this.position.write.fbo );
+	
+	
+
+		// Display
+
 
 		this.camera.lookAt( 0, 0, 0 );
 
 		this.renderer.render( this.scene, this.camera );
 
-		this.fbohelper.update();
 		this.controls.update();
 
 		requestAnimationFrame( this.render.bind( this ) );

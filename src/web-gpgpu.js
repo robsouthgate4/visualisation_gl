@@ -461,7 +461,7 @@ function createFBO (texId, w, h, internalFormat, format, type, param) {
     gl.viewport(0, 0, w, h);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    return [texture, fbo, texId];
+    return [ texture, fbo, texId ];
 }
 
 function createDoubleFBO (texId, w, h, internalFormat, format, type, param) {

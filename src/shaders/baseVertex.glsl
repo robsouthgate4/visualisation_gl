@@ -1,25 +1,17 @@
 precision highp float;
 precision mediump sampler2D;
 
-attribute vec3 position;
 varying vec2 vUv;
-varying vec2 vL;
-varying vec2 vR;
-varying vec2 vT;
-varying vec2 vB;
-uniform vec2 texelSize;
+
+const vec2 EPS = vec2(1.0 / 2048.0, 1.0 / 1024.0);
+
+uniform vec2 side;
 
 void main () {
 
-    vUv = position.xy * 0.5 + 0.5;
+    vUv = vec2( 0.5 ) + ( position.xy ) * 0.5;
 
-    vL = vUv - vec2(texelSize.x, 0.0);
-
-    vR = vUv + vec2(texelSize.x, 0.0);
-
-    vT = vUv + vec2(0.0, texelSize.y);
-
-    vB = vUv - vec2(0.0, texelSize.y);
+ 	vUv = vUv + side * EPS * 0.5;
 
     gl_Position = vec4(position, 1.0);
     
