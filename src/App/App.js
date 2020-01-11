@@ -39,6 +39,7 @@ import baseVertex from '../shaders/baseVertex.glsl'
 
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
+import densityFragment from '../shaders/densityFrag.glsl'
 
 
 export default class App {
@@ -146,13 +147,10 @@ export default class App {
 		this.textureWidth;
 		this.textureWidth;
 		this.density;
+		this.diffusion;
 		this.velocity;
-		this.divergence;
-		this.curl;
-		this.pressure;
-
+		this.viscosity;
 		
-
 		this.initProgram = new ShaderMaterial( { 
 			
 			vertexShader: baseVertex,
@@ -163,6 +161,15 @@ export default class App {
 
 		} );
 
+		this.densityProgram = new ShaderMaterial({
+
+			vertexShader: baseVertex,
+			fragmentShader: densityFragment,
+			uniforms: {
+
+			}
+		});
+
 		this.velocityProgram = new ShaderMaterial({
 
 			vertexShader: baseVertex,
@@ -172,7 +179,7 @@ export default class App {
 				uTexturePosition: { type: 't', value: null }
 			}
 
-		})
+		});
 
 		this.positionProgram = new ShaderMaterial({
 
@@ -183,7 +190,7 @@ export default class App {
 				uTexturePosition: { type: 't', value: null }
 			}
 
-		})
+		});
 
 		this.initFrameBuffers();
 
@@ -207,7 +214,7 @@ export default class App {
 
 		if ( displayHelper ) {
 
-			this.fbohelper.attach( fbo.texture, displayName );
+			this.fbohelper.attach( fbo, displayName );
 
 		}
 
@@ -258,6 +265,15 @@ export default class App {
 
 		);
 
+		this.density = this.createDoubleFBO(
+
+			this.textureWidth,
+			this.textureHeight,
+			true,
+			'Density'
+
+		);
+
 		this.position = this.createDoubleFBO(
 
 			this.textureWidth,
@@ -265,7 +281,7 @@ export default class App {
 			true,
 			'Position'
 
-		)
+		);
 
 	}
 
@@ -306,11 +322,17 @@ export default class App {
 		const delta = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
+		// Density
+		this.density.swap();
+		this.density.read.helper.update();
+		this.renderPass( this.densityProgram, this.density.write.fbo );
+
+
 		// Velocity
 		this.velocity.swap();
 		this.velocity.read.helper.update();
 		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
-		this.renderPass ( this.velocityProgram, this.velocity.write.fbo );
+		this.renderPass( this.velocityProgram, this.velocity.write.fbo );
 
 
 		// Position
@@ -318,7 +340,7 @@ export default class App {
 		this.position.read.helper.update();
 		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
 		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
-		this.renderPass ( this.positionProgram, this.position.write.fbo );
+		this.renderPass( this.positionProgram, this.position.write.fbo );
 	
 	
 
