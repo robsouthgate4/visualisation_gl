@@ -20,7 +20,9 @@ import {
 	UVMapping, 
 	RedFormat,
 	Camera, 
-	FloatType} from 'three';
+	FloatType,
+	RGBFormat,
+	Vector3} from 'three';
 
 import { WEBGL } from 'three/examples/jsm/WebGL.js';
 
@@ -147,6 +149,10 @@ export default class App {
 		this.textureWidth;
 		this.textureWidth;
 		this.density;
+		this.densityProperties = {
+			amount: 0,
+			position: new Vector3()
+		};
 		this.diffusion;
 		this.velocity;
 		this.viscosity;
@@ -166,7 +172,8 @@ export default class App {
 			vertexShader: baseVertex,
 			fragmentShader: densityFragment,
 			uniforms: {
-
+				uPosition: { value: new Vector3() }, 
+				uAmount: { value: 0 }
 			}
 		});
 
@@ -209,7 +216,7 @@ export default class App {
 				magFilter: NearestFilter,
 				format: RGBAFormat,
 				type: HalfFloatType,
-				stencilBuffer: false
+				stencilBuffer: true
 			} );
 
 		if ( displayHelper ) {
@@ -260,7 +267,7 @@ export default class App {
 
 			this.textureWidth,
 			this.textureHeight,
-			false, 
+			true, 
 			'Velocity' 
 
 		);
@@ -278,7 +285,7 @@ export default class App {
 
 			this.textureWidth,
 			this.textureHeight,
-			false,
+			true,
 			'Position'
 
 		);
@@ -307,6 +314,21 @@ export default class App {
 
 	}
 
+	getIndex( x, y ) {
+
+		return ( x + y * this.textureWidth )
+		
+	}
+
+	addDensity ( position, amount ) {
+
+		const index = this.getIndex( position.x, position.y );
+
+		this.densityProperties.position = position;
+		this.densityProperties.amount += amount;
+
+	}
+
 	renderPass( program, fbo ) {
 
 		let renderTarget = this.renderer.getRenderTarget();
@@ -315,6 +337,7 @@ export default class App {
 		this.renderer.render( this.scene, this.camera );
 		this.renderer.setRenderTarget( renderTarget );
 
+		this.renderer.render( this.scene, this.camera );
 	}
 
 	render( now ) {
@@ -324,29 +347,27 @@ export default class App {
 
 		// Density
 		this.density.swap();
-		//this.density.read.helper.update();
+		this.densityProgram.uniforms.uAmount.value = this.densityAmount;
+		this.densityProgram.uniforms.uPosition.value = this.densityPosition;
 		this.renderPass( this.densityProgram, this.density.write.fbo );
 
 
 		// Velocity
 		this.velocity.swap();
-		//this.velocity.read.helper.update();
 		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
 		this.renderPass( this.velocityProgram, this.velocity.write.fbo );
 
 
 		// Position
 		this.position.swap();
-		//this.position.read.helper.update();
 		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
 		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
 		this.renderPass( this.positionProgram, this.position.write.fbo );
 	
-	
+		this.fbohelper.update();
 
 		// Display
 		this.camera.lookAt( 0, 0, 0 );
-		this.renderer.render( this.scene, this.camera );
 		this.controls.update();
 
 		requestAnimationFrame( this.render.bind( this ) );

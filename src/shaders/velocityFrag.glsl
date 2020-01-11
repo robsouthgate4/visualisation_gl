@@ -16,7 +16,7 @@ void main() {
 
     vec3 prevVelocity = texture2D( uTextureVelocity, vUv ).xyz;
 
-    vec3 velocity = prevVelocity += 0.000001;
+    vec3 velocity = vec3( 0.001 );
  
     gl_FragColor = vec4( velocity, 1.0 );
 }

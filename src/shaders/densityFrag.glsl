@@ -4,6 +4,7 @@ uniform float time;
 uniform float delta;
 
 uniform sampler2D uTextureVelocity;
+uniform float uAmount;
 
 const float PI = 3.141592653589793;
 const float PI_2 = PI * 2.0;
