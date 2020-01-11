@@ -260,7 +260,7 @@ export default class App {
 
 			this.textureWidth,
 			this.textureHeight,
-			true, 
+			false, 
 			'Velocity' 
 
 		);
@@ -278,7 +278,7 @@ export default class App {
 
 			this.textureWidth,
 			this.textureHeight,
-			true,
+			false,
 			'Position'
 
 		);
@@ -324,20 +324,20 @@ export default class App {
 
 		// Density
 		this.density.swap();
-		this.density.read.helper.update();
+		//this.density.read.helper.update();
 		this.renderPass( this.densityProgram, this.density.write.fbo );
 
 
 		// Velocity
 		this.velocity.swap();
-		this.velocity.read.helper.update();
+		//this.velocity.read.helper.update();
 		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
 		this.renderPass( this.velocityProgram, this.velocity.write.fbo );
 
 
 		// Position
 		this.position.swap();
-		this.position.read.helper.update();
+		//this.position.read.helper.update();
 		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
 		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
 		this.renderPass( this.positionProgram, this.position.write.fbo );
@@ -345,12 +345,8 @@ export default class App {
 	
 
 		// Display
-
-
 		this.camera.lookAt( 0, 0, 0 );
-
 		this.renderer.render( this.scene, this.camera );
-
 		this.controls.update();
 
 		requestAnimationFrame( this.render.bind( this ) );
