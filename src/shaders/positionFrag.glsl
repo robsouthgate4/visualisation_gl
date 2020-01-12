@@ -18,9 +18,9 @@ varying vec2 vUv;
 
 
 
-vec4 live = vec4(0.5,1.0,0.7,1.);
+vec4 live = vec4(0.0,1.0,0.0,1.);
 vec4 dead = vec4(0.,0.,0.,1.);
-vec4 blue = vec4(0.,0.,1.,1.);
+vec4 blue = vec4(1.,0.,0.,1.);
 
 
 void main() {    
