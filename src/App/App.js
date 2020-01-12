@@ -107,10 +107,10 @@ export default class App {
 
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-				posData[ 4 * i + 0 ] = 0;
-				posData[ 4 * i + 1 ] = 0;
-				posData[ 4 * i + 2 ] = 0;
-				posData[ 4 * i + 3 ] = 1;
+				posData[ 4 * i + 0 ] = 1.0;
+				posData[ 4 * i + 1 ] = 1.0;
+				posData[ 4 * i + 2 ] = 1.0;
+				posData[ 4 * i + 3 ] = 1.0;
 
 			
 
@@ -335,7 +335,7 @@ export default class App {
 		this.screenMesh.material = program
 		this.renderer.setRenderTarget( fbo )
 		this.renderer.render( this.scene, this.gpuCamera );
-		this.renderer.setRenderTarget( null );
+		this.renderer.setRenderTarget( renderTarget );
 
 	}
 
