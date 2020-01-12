@@ -22,7 +22,8 @@ import {
 	Camera, 
 	FloatType,
 	RGBFormat,
-	Vector3} from 'three';
+	Vector3,
+	TextureLoader} from 'three';
 
 import { WEBGL } from 'three/examples/jsm/WebGL.js';
 
@@ -42,23 +43,15 @@ import baseVertex from '../shaders/baseVertex.glsl'
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
 import densityFragment from '../shaders/densityFrag.glsl'
+import initFragment from '../shaders/initFrag.glsl'
 
 
 export default class App {
 
 	constructor() {
 
-		if ( WEBGL.isWebGL2Available() === false ) {
 
-			document.body.appendChild( WEBGL.getWebGL2ErrorMessage() );
-		
-		}
-
-		// Renderer WEBGL2 !!
-		const canvas = document.createElement( 'canvas' );
-		const context = canvas.getContext( 'webgl2', { alpha: false } );
-
-		this.renderer = new WebGLRenderer( { canvas: canvas, context: context, antialias: true } );
+		this.renderer = new WebGLRenderer( { antialias: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setClearColor( new Color( 'rgb(0,0,0)' ), 1.0 );
@@ -110,18 +103,20 @@ export default class App {
 
 		// Programs
 
-		const posData = new Float32Array( 4 * this.width * this.height );
+		const posData = new Float32Array( 4 * this.textureWidth * this.textureHeight );
 
-		for ( let i = 0; i < ( this.width * this.height ); i ++ ) {
+		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-			posData[ 4 * i + 0 ] = Math.random() * 255.0;
-			posData[ 4 * i + 1 ] = Math.random() * 255.0;
-			posData[ 4 * i + 2 ] = Math.random() * 255.0;
-			posData[ 4 * i + 3 ] = 0.;
+				posData[ 4 * i + 0 ] = 0;
+				posData[ 4 * i + 1 ] = 0;
+				posData[ 4 * i + 2 ] = 0;
+				posData[ 4 * i + 3 ] = 1;
+
+			
 
 		}		
 
-		const initPos = new DataTexture( posData, this.width, this.height, RGBAFormat, FloatType );
+		const initPos = new DataTexture( posData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
 		initPos.needsUpdate = true;
 
 		// Create the full screen triangle ready for blit
@@ -136,6 +131,7 @@ export default class App {
 			fragmentShader: triangleFrag,
 			uniforms: {
 				uTexture: { type: 't', value: null },
+				uResolution: { value: new Vector2( this.textureWidth, this.textureHeight ) },
 				uTexelSize: { type: 'v2', value: new Vector2() }
 			}
 		});
@@ -145,9 +141,7 @@ export default class App {
 
 
 		// GPGPU
-
-		this.textureWidth;
-		this.textureWidth;
+		
 		this.density;
 		this.densityProperties = {
 			amount: 0,
@@ -156,68 +150,72 @@ export default class App {
 		this.diffusion;
 		this.velocity;
 		this.viscosity;
+
+			this.initProgram = new ShaderMaterial({
+				vertexShader: baseVertex,
+				fragmentShader: initFragment,
+				uniforms: {
+					uTexture: { value: initPos }
+				}
+			})
+	
+			this.densityProgram = new ShaderMaterial({
+	
+				vertexShader: baseVertex,
+				fragmentShader: densityFragment,
+				uniforms: {
+					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+					uPosition: { value: new Vector3() }, 
+					uAmount: { value: 0 }
+				}
+			});
+	
+			this.velocityProgram = new ShaderMaterial({
+	
+				vertexShader: baseVertex,
+				fragmentShader: velocityFragment,
+				uniforms: {
+					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+					uTextureVelocity: { type: 't', value: null },
+					uTexturePosition: { type: 't', value: null }
+				}
+	
+			});
+	
+			this.positionProgram = new ShaderMaterial({
+	
+				vertexShader: baseVertex,
+				fragmentShader: positionFragment,
+				uniforms: {
+					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+					uTextureVelocity: { type: 't', value: null },
+					uTexturePosition: { type: 't', value: null },
+					uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) }
+				}
+	
+			});
+	
+			this.initFrameBuffers();
+
 		
-		this.initProgram = new ShaderMaterial( { 
-			
-			vertexShader: baseVertex,
-			fragmentShader: triangleFrag,
-			uniforms: {
-				uTexture: { value: initPos }				
-			}
-
-		} );
-
-		this.densityProgram = new ShaderMaterial({
-
-			vertexShader: baseVertex,
-			fragmentShader: densityFragment,
-			uniforms: {
-				uPosition: { value: new Vector3() }, 
-				uAmount: { value: 0 }
-			}
-		});
-
-		this.velocityProgram = new ShaderMaterial({
-
-			vertexShader: baseVertex,
-			fragmentShader: velocityFragment,
-			uniforms: {
-				uTextureVelocity: { type: 't', value: null },
-				uTexturePosition: { type: 't', value: null }
-			}
-
-		});
-
-		this.positionProgram = new ShaderMaterial({
-
-			vertexShader: baseVertex,
-			fragmentShader: positionFragment,
-			uniforms: {
-				uTextureVelocity: { type: 't', value: null },
-				uTexturePosition: { type: 't', value: null }
-			}
-
-		});
-
-		this.initFrameBuffers();
 
 
 	}
 
 	createFBO( width, height, displayHelper, displayName ) {
 
-		let fbo = new WebGLRenderTarget( 
-			width, 
-			height,
-			{
-				wrapS: ClampToEdgeWrapping,
-				wrapT: ClampToEdgeWrapping,
-				minFilter: NearestFilter,
-				magFilter: NearestFilter,
-				format: RGBAFormat,
-				type: HalfFloatType,
-				stencilBuffer: true
-			} );
+		const fbo = new THREE.WebGLRenderTarget( width, height, {
+			wrapS: ClampToEdgeWrapping,
+			wrapT: ClampToEdgeWrapping,
+			minFilter: NearestFilter,
+			magFilter: NearestFilter,
+			format: RGBAFormat,
+			type: FloatType,
+			stencilBuffer: false,
+			depthBuffer: false
+		});
+	
+		fbo.texture.generateMipmaps = false;
 
 		if ( displayHelper ) {
 
@@ -290,6 +288,8 @@ export default class App {
 
 		);
 
+		this.renderPass(this.initProgram, this.position.read.fbo)
+
 	}
 
 	init() {
@@ -334,35 +334,30 @@ export default class App {
 		let renderTarget = this.renderer.getRenderTarget();
 		this.screenMesh.material = program
 		this.renderer.setRenderTarget( fbo )
-		this.renderer.render( this.scene, this.camera );
-		this.renderer.setRenderTarget( renderTarget );
+		this.renderer.render( this.scene, this.gpuCamera );
+		this.renderer.setRenderTarget( null );
 
-		this.renderer.render( this.scene, this.camera );
 	}
 
 	render( now ) {
 
 		const delta = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
+		
 
-		// Density
-		this.density.swap();
-		this.densityProgram.uniforms.uAmount.value = this.densityAmount;
-		this.densityProgram.uniforms.uPosition.value = this.densityPosition;
-		this.renderPass( this.densityProgram, this.density.write.fbo );
+		// // Position
+		//
 
-
-		// Velocity
-		this.velocity.swap();
-		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
-		this.renderPass( this.velocityProgram, this.velocity.write.fbo );
-
-
-		// Position
-		this.position.swap();
-		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
+		
 		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
 		this.renderPass( this.positionProgram, this.position.write.fbo );
+		this.position.swap();
+
+		this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
+
+		this.screenMesh.material = this.displayProgram;
+
+		this.renderer.render( this.scene, this.gpuCamera );
 	
 		this.fbohelper.update();
 
@@ -370,6 +365,7 @@ export default class App {
 		this.camera.lookAt( 0, 0, 0 );
 		this.controls.update();
 
+		
 		requestAnimationFrame( this.render.bind( this ) );
 
 

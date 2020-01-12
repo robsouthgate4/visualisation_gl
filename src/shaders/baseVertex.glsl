@@ -3,16 +3,17 @@ precision mediump sampler2D;
 
 varying vec2 vUv;
 
-const vec2 EPS = vec2(1.0 / 2048.0, 1.0 / 1024.0);
+uniform vec2 uTexelSize;
 
-uniform vec2 side;
+varying vec2 vL;
+varying vec2 vR;
+varying vec2 vT;
+varying vec2 vB;
 
 void main () {
 
-    vUv = vec2( 0.5 ) + ( position.xy ) * 0.5;
+    vUv = vec2(0.5) + ( position.xy ) * 0.5;
 
- 	vUv = vUv + side * EPS * 0.5;
-
-    gl_Position = vec4(position, 1.0);
+    gl_Position = vec4(position.xy, 0.0, 1.0);
     
 }
