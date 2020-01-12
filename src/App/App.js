@@ -108,8 +108,8 @@ export default class App {
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
 				posData[ 4 * i + 0 ] = 1.0;
-				posData[ 4 * i + 1 ] = 1.0;
-				posData[ 4 * i + 2 ] = 1.0;
+				posData[ 4 * i + 1 ] = 0.0;
+				posData[ 4 * i + 2 ] = 0.0;
 				posData[ 4 * i + 3 ] = 1.0;
 
 			
@@ -151,53 +151,58 @@ export default class App {
 		this.velocity;
 		this.viscosity;
 
-			this.initProgram = new ShaderMaterial({
-				vertexShader: baseVertex,
-				fragmentShader: initFragment,
-				uniforms: {
-					uTexture: { value: initPos }
-				}
-			})
-	
-			this.densityProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: densityFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uPosition: { value: new Vector3() }, 
-					uAmount: { value: 0 }
-				}
-			});
-	
-			this.velocityProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: velocityFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					uTexturePosition: { type: 't', value: null }
-				}
-	
-			});
-	
-			this.positionProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: positionFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					uTexturePosition: { type: 't', value: null },
-					uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) }
-				}
-	
-			});
-	
-			this.initFrameBuffers();
+		this.initProgram = new ShaderMaterial({
+			vertexShader: baseVertex,
+			fragmentShader: initFragment,
+			uniforms: {
+				uTexture: { value: initPos }
+			}
+		})
 
-		
+		this.densityProgram = new ShaderMaterial({
+
+			vertexShader: baseVertex,
+			fragmentShader: densityFragment,
+			uniforms: {
+				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+				uPosition: { value: new Vector3() }, 
+				uAmount: { value: 0 }
+			}
+		});
+
+		this.velocityProgram = new ShaderMaterial({
+
+			vertexShader: baseVertex,
+			fragmentShader: velocityFragment,
+			uniforms: {
+				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+				uTextureVelocity: { type: 't', value: null },
+				uTexturePosition: { type: 't', value: null }
+			}
+
+		});
+
+		this.positionProgram = new ShaderMaterial({
+
+			vertexShader: baseVertex,
+			fragmentShader: positionFragment,
+			uniforms: {
+				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+				uTextureVelocity: { type: 't', value: null },
+				uTexturePosition: { type: 't', value: null },
+				uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
+				uMouse: { value: new Vector2() }
+			}
+
+		});
+
+		this.initFrameBuffers();
+
+		window.addEventListener( 'mousemove', ( e ) => {
+
+			this.onMouseMove( e );
+
+		} );
 
 
 	}
@@ -329,6 +334,12 @@ export default class App {
 
 	}
 
+	onMouseMove(e) {
+		this.mouseX = (e.clientX / this.textureWidth);
+		this.mouseY = -(e.clientY / this.textureHeight) + 1;
+		console.log(this.mouseY);
+	}
+
 	renderPass( program, fbo ) {
 
 		let renderTarget = this.renderer.getRenderTarget();
@@ -350,6 +361,7 @@ export default class App {
 
 		
 		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
+		this.positionProgram.uniforms.uMouse.value = new Vector2( this.mouseX, this.mouseY );
 		this.renderPass( this.positionProgram, this.position.write.fbo );
 		this.position.swap();
 

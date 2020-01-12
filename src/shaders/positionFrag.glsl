@@ -8,7 +8,7 @@ uniform float time;
 uniform float delta;
 uniform sampler2D uTextureVelocity;
 uniform sampler2D uTexturePosition;
-
+uniform vec2 uMouse;
 uniform vec2 uResolution;
 
 const float PI = 3.141592653589793;
@@ -18,62 +18,21 @@ varying vec2 vUv;
 
 
 
-vec4 live = vec4(0.0,1.0,0.0,1.);
-vec4 dead = vec4(0.,0.,0.,1.);
-vec4 blue = vec4(1.,0.,0.,1.);
-
-
 void main() {    
 
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
     vec2 pixel = 1.0 / uResolution.xy;
 
-    if ( length( uv - vec2(0.5) ) < 0.01 ) {
+    float sum = 0.;
 
-		float rnd1 = mod(fract(sin(dot(uv + time * 0.001, vec2(14.9898,78.233))) * 43758.5453), 1.0);
+    float current =  0.0;
 
-		if (rnd1 > 0.5) {
+    float prev = texture2D(uTexturePosition, uv).r;
 
-			gl_FragColor = live;
+    //current *= 0.99;
 
-		} else {
-
-			gl_FragColor = blue;
-
-		}
-	} else
-     {
-
-         float sum = 0.;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(-1., -1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(-1., 0.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(-1., 1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(1., -1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(1., 0.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(1., 1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(0., -1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(0., 1.)).g;
-
-        vec4 me = texture2D(uTexturePosition, uv);
-
-        if (me.g <= 0.1) {
-            if ((sum >= 2.9) && (sum <= 3.1)) {
-                gl_FragColor = live;
-            } else if (me.b > 0.004) {
-                gl_FragColor = vec4(0., 0., max(me.b - 0.004, 0.25), 0.);
-            } else {
-                gl_FragColor = dead;
-            }
-        } else {
-            if ((sum >= 1.9) && (sum <= 3.1)) {
-                gl_FragColor = live;
-            } else {
-                gl_FragColor = blue;
-            }
-        }
-
-    }
+    gl_FragColor = vec4(uv, 0.0, 1.0);
 
    
 }
