@@ -71,7 +71,13 @@ export default class App {
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		this.controls.enableDamping = true;
 		this.controls.dampingFactor = 0.1;
+		this.mouse = new Vector2();
 
+		window.addEventListener( 'mousemove', ( e ) => {
+
+			this.onMouseMove( e );
+
+		} );
 
 		this.tapPosition = new Vector2();
 		this.clock = new Clock();
@@ -190,7 +196,9 @@ export default class App {
 					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
 					uTextureVelocity: { type: 't', value: null },
 					uTexturePosition: { type: 't', value: null },
-					uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) }
+					uTexturePositionPrev: { type: 't', value: null },
+					uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
+					uMouse: { value: new Vector2() }
 				}
 	
 			});
@@ -288,7 +296,7 @@ export default class App {
 
 		);
 
-		this.renderPass(this.initProgram, this.position.read.fbo)
+		this.renderPass( this.initProgram, this.position.read.fbo );
 
 	}
 
@@ -306,6 +314,12 @@ export default class App {
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 
+	}
+
+	onMouseMove( e ) { 
+
+		this.mouse.x = e.clientX / window.innerWidth;
+		this.mouse.y =  - (e.clientY  / window.innerHeight) + 1;
 	}
 
 	setupScene() {
@@ -343,13 +357,10 @@ export default class App {
 
 		const delta = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
-		
 
-		// // Position
-		//
-
-		
-		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
+		this.positionProgram.uniforms.uTexturePositionPrev.value = this.position.write.fbo.texture;
+		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;		
+		this.positionProgram.uniforms.uMouse.value = this.mouse;
 		this.renderPass( this.positionProgram, this.position.write.fbo );
 		this.position.swap();
 
