@@ -42,9 +42,9 @@ import baseVertex from '../shaders/baseVertex.glsl'
 
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
-import densityFragment from '../shaders/densityFrag.glsl'
+import colorFragment from '../shaders/colorFrag.glsl'
 import initFragment from '../shaders/initFrag.glsl'
-
+import advectFragment from '../shaders/advectFrag.glsl'
 
 export default class App {
 
@@ -148,14 +148,7 @@ export default class App {
 
 		// GPGPU
 		
-		this.density;
-		this.densityProperties = {
-			amount: 0,
-			position: new Vector3()
-		};
-		this.diffusion;
-		this.velocity;
-		this.viscosity;
+		this.density = 1.0;
 
 			this.initProgram = new ShaderMaterial({
 				vertexShader: baseVertex,
@@ -164,17 +157,6 @@ export default class App {
 					uTexture: { value: initPos }
 				}
 			})
-	
-			this.densityProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: densityFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uPosition: { value: new Vector3() }, 
-					uAmount: { value: 0 }
-				}
-			});
 	
 			this.velocityProgram = new ShaderMaterial({
 	
@@ -187,6 +169,33 @@ export default class App {
 				}
 	
 			});
+
+			this.colorProgram = new ShaderMaterial({
+
+				vertexShader: baseVertex,
+				fragmentShader: colorFragment,
+				uniforms: {
+					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+					uTextureVelocity: { type: 't', value: null },
+					dt: { type: 't', value: null },
+					time: { type: 't', value: null }
+				}
+
+			});
+
+			this.advectionProgram = new ShaderMaterial({
+
+				vertexShader: baseVertex,
+				fragmentShader: advectFragment,
+				uniforms: {
+					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+					uTextureVelocity: { type: 't', value: null },
+					uInputTexture: { type: 't', value: null },
+					dt: { type: 't', value: null },
+					time: { type: 't', value: null },
+				}
+
+			})
 	
 			this.positionProgram = new ShaderMaterial({
 	
@@ -198,7 +207,9 @@ export default class App {
 					uTexturePosition: { type: 't', value: null },
 					uTexturePositionPrev: { type: 't', value: null },
 					uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
-					uMouse: { value: new Vector2() }
+					uMouse: { value: new Vector2() },
+					dt: { type: 't', value: null },
+					time: { type: 't', value: null },
 				}
 	
 			});
@@ -355,12 +366,14 @@ export default class App {
 
 	render( now ) {
 
-		const delta = this.clock.getDelta();
+		const dt = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
-		this.positionProgram.uniforms.uTexturePositionPrev.value = this.position.write.fbo.texture;
+		
 		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;		
 		this.positionProgram.uniforms.uMouse.value = this.mouse;
+		this.positionProgram.uniforms.time.value = time;
+		this.positionProgram.uniforms.dt.value = dt;
 		this.renderPass( this.positionProgram, this.position.write.fbo );
 		this.position.swap();
 
