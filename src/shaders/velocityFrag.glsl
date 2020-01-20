@@ -1,7 +1,7 @@
 
 
 uniform float time;
-uniform float delta;
+uniform float dt;
 
 uniform sampler2D uTextureVelocity;
 uniform sampler2D uTexturePosition;
@@ -18,10 +18,8 @@ varying vec2 vB;
 
 varying vec2 vUv;
 
-void main() {
+void main() {  
 
-    
-   
+    gl_FragColor = vec4( vec3( sin( time ) * 0.1 ), 1.0 );
 
-    gl_FragColor = vec4( 1.0 );
 }

@@ -42,9 +42,7 @@ import baseVertex from '../shaders/baseVertex.glsl'
 
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
-import colorFragment from '../shaders/colorFrag.glsl'
 import initFragment from '../shaders/initFrag.glsl'
-import advectFragment from '../shaders/advectFrag.glsl'
 
 export default class App {
 
@@ -61,6 +59,8 @@ export default class App {
 
 		this.scene = new Scene();
 		window.scene = this.scene;
+		this.gpuScene = new Scene();
+		
 		this.canvas = document.getElementById( 'canvas' );
 		this.camera = new PerspectiveCamera( ( 70, window.innerWidth / window.innerHeight, 0.01, 50 ) );
 		this.camera.near = 0.01;
@@ -99,13 +99,12 @@ export default class App {
 
 		this.init();
 
-
 		const size = new Vector2();
 
 		this.renderer.getSize( size );
 
-		this.textureWidth = size.x;
-		this.textureHeight = size.y;
+		this.textureWidth = 512;
+		this.textureHeight = 512;
 
 		// Programs
 
@@ -113,25 +112,24 @@ export default class App {
 
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-				posData[ 4 * i + 0 ] = 1.0;
-				posData[ 4 * i + 1 ] = 1.0;
-				posData[ 4 * i + 2 ] = 1.0;
-				posData[ 4 * i + 3 ] = 1.0;
-
-			
+				posData[ 4 * i + 0 ] = 0.0;
+				posData[ 4 * i + 1 ] = 0.0;
+				posData[ 4 * i + 2 ] = 0.0;
+				posData[ 4 * i + 3 ] = 0.0;
 
 		}		
 
 		const initPos = new DataTexture( posData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
 		initPos.needsUpdate = true;
+		initPos.flipY = true;
 
 		// Create the full screen triangle ready for blit
 
 		this.gpuCamera = new Camera();
 		this.gpuCamera.position.z = 1;
-        this.gpuWidth = 1
-		this.gpuHeight = 1
+
 		this.screenTriangle = new Triangle();
+
 		this.displayProgram = new ShaderMaterial({
 			vertexShader: triangleVert,
 			fragmentShader: triangleFrag,
@@ -143,78 +141,71 @@ export default class App {
 		});
 
 		this.screenMesh = new Mesh( this.screenTriangle, this.displayProgram );
-		this.scene.add( this.screenMesh );
+		this.gpuScene.add( this.screenMesh );
+
+
+		// Particle settings 
+
+		this.particleSettings = {
+
+			gravity: -0.1
+
+		};
 
 
 		// GPGPU
+
+		
 		
 		this.density = 1.0;
 
-			this.initProgram = new ShaderMaterial({
-				vertexShader: baseVertex,
-				fragmentShader: initFragment,
-				uniforms: {
-					uTexture: { value: initPos }
-				}
-			})
-	
-			this.velocityProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: velocityFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					uTexturePosition: { type: 't', value: null }
-				}
-	
-			});
+		this.initProgram = new ShaderMaterial({
+			vertexShader: baseVertex,
+			fragmentShader: initFragment,
+			uniforms: {
+				uTexture: { value: initPos }
+			}
+		})
 
-			this.colorProgram = new ShaderMaterial({
+		this.velocityProgram = new ShaderMaterial({
 
-				vertexShader: baseVertex,
-				fragmentShader: colorFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					dt: { type: 't', value: null },
-					time: { type: 't', value: null }
-				}
+			vertexShader: baseVertex,
+			fragmentShader: velocityFragment,
+			uniforms: {
+				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+				uTextureVelocity: { type: 't', value: null },
+				uTexturePosition: { type: 't', value: null },
+				uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
+				uGravity: { value: this.particleSettings.gravity },
+				uMouse: { value: new Vector2() },
+				dt: { type: 't', value: null },
+				time: { type: 't', value: null },
+			}
 
-			});
+		});
 
-			this.advectionProgram = new ShaderMaterial({
+		this.positionProgram = new ShaderMaterial({
 
-				vertexShader: baseVertex,
-				fragmentShader: advectFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					uInputTexture: { type: 't', value: null },
-					dt: { type: 't', value: null },
-					time: { type: 't', value: null },
-				}
+			vertexShader: baseVertex,
+			fragmentShader: positionFragment,
+			uniforms: {
+				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+				uTextureVelocity: { type: 't', value: null },
+				uTexturePosition: { type: 't', value: null },
+				uTextureOrigin: { type: 't', value: initPos },
+				uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
+				u_MinTheta: { type: 't', value: null },
+				u_MaxTheta: { type: 't', value: null },
+				u_MinSpeed: { type: 't', value: null },
+				u_MaxSpeed: { type: 't', value: null },
+				uMouse: { value: new Vector2() },
+				dt: { type: 't', value: null },
+				time: { type: 't', value: null },
+			}
 
-			})
-	
-			this.positionProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: positionFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					uTexturePosition: { type: 't', value: null },
-					uTexturePositionPrev: { type: 't', value: null },
-					uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
-					uMouse: { value: new Vector2() },
-					dt: { type: 't', value: null },
-					time: { type: 't', value: null },
-				}
-	
-			});
-	
-			this.initFrameBuffers();
+		});
+
+		this.initFrameBuffers();
 
 		
 
@@ -223,7 +214,7 @@ export default class App {
 
 	createFBO( width, height, displayHelper, displayName ) {
 
-		const fbo = new THREE.WebGLRenderTarget( width, height, {
+		const fbo = new WebGLRenderTarget( width, height, {
 			wrapS: ClampToEdgeWrapping,
 			wrapT: ClampToEdgeWrapping,
 			minFilter: NearestFilter,
@@ -252,7 +243,10 @@ export default class App {
 	createDoubleFBO( width, height, displayHelper, displayName) {
 
 		let fbo1 = this.createFBO( width, height, displayHelper, displayName );
+		fbo1.id = 0;
+		
 		let fbo2 = this.createFBO( width, height, displayHelper, displayName );
+		fbo2.id = 1;
 
 		return {
 
@@ -286,15 +280,6 @@ export default class App {
 			this.textureHeight,
 			true, 
 			'Velocity' 
-
-		);
-
-		this.density = this.createDoubleFBO(
-
-			this.textureWidth,
-			this.textureHeight,
-			true,
-			'Density'
 
 		);
 
@@ -359,7 +344,7 @@ export default class App {
 		let renderTarget = this.renderer.getRenderTarget();
 		this.screenMesh.material = program
 		this.renderer.setRenderTarget( fbo )
-		this.renderer.render( this.scene, this.gpuCamera );
+		this.renderer.render( this.gpuScene, this.gpuCamera );
 		this.renderer.setRenderTarget( renderTarget );
 
 	}
@@ -369,19 +354,27 @@ export default class App {
 		const dt = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
+		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
+		this.velocityProgram.uniforms.uTexturePosition.value = this.position.write.fbo.texture;
+		this.velocityProgram.uniforms.uMouse.value = this.mouse;
+		this.velocityProgram.uniforms.time.value = time;
+		this.velocityProgram.uniforms.dt.value = dt;
+		this.renderPass( this.velocityProgram, this.velocity.write.fbo );
+		this.velocity.swap();
 		
-		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;		
+		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
+		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
 		this.positionProgram.uniforms.uMouse.value = this.mouse;
 		this.positionProgram.uniforms.time.value = time;
 		this.positionProgram.uniforms.dt.value = dt;
 		this.renderPass( this.positionProgram, this.position.write.fbo );
 		this.position.swap();
 
-		this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
+		//this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
 
-		this.screenMesh.material = this.displayProgram;
+		//this.screenMesh.material = this.displayProgram;
 
-		this.renderer.render( this.scene, this.gpuCamera );
+		this.renderer.render( this.scene, this.camera );
 	
 		this.fbohelper.update();
 
