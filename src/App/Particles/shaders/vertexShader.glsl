@@ -42,18 +42,18 @@ void main() {
 
     vUv = uv;
 
-    vec4 tPos = texture2D(uPositionTexture, offset.xy);
+    vec4 tPos = texture2D( uPositionTexture, offset.xy );
 
 	vec3 displaced = tPos.xyz;
 
     vec3 pos = position;
 
-    pos *= (scale * 1.5);
+    pos *= ( scale * 1.5 );
     
     pos.xyz *= 0.005;
     //pos.x *= 0.001;
 
-    vec4 mvPos = modelViewBB * vec4(pos + displaced, 1.0);
+    vec4 mvPos = modelViewMatrix * vec4( pos + displaced , 1.0);
 
 	gl_Position = projectionMatrix * mvPos;
 }

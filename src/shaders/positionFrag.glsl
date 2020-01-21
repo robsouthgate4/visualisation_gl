@@ -7,18 +7,22 @@ precision highp float;
 uniform float time;
 uniform float dt;
 
-uniform float u_MinTheta;
-uniform float u_MaxTheta;
+uniform float uMinTheta;
+uniform float uMaxTheta;
 
-uniform float u_MinSpeed;
-uniform float u_MaxSpeed;
+uniform float uMinSpeed;
+uniform float uMaxSpeed;
 
-uniform float u_Age;
+uniform float uAge;
+uniform float uLife;
+
+uniform float uGravity;
 
 uniform sampler2D uTextureVelocity;
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTextureOrigin;
 
+uniform vec3 uOrigin;
 uniform vec2 uResolution;
 
 const float PI = 3.141592653589793;
@@ -31,14 +35,31 @@ uniform vec2 uMouse;
 
 void main() {    
 
-    vec2 uv = gl_FragCoord.xy / uResolution.xy;
     vec2 pixel = 1.0 / uResolution.xy;
 
-	vec3 vel = texture2D(uTextureVelocity, uv).xyz;
-    vec3 pos = texture2D(uTexturePosition, uv).xyz;
+	vec3 vel = texture2D(uTextureVelocity, vUv).xyz;
+    vec4 pos = texture2D(uTexturePosition, vUv).xyzw;
 
-	vec3 color = pos + vel * dt;
+    vec4 origin = texture2D( uTextureOrigin, vUv );
 
-    gl_FragColor = vec4( color, u_Age );
+	vec3 position = vec3(0.0);
+
+    float age = pos.w;
+
+    if ( age >= uLife ) {
+
+        pos.xyz = vec3(0.0);
+
+        age = 0.0;
+
+    } else {
+
+        age += 100.;
+
+        position = pos.xyz + vel * dt;
+
+    }
+
+    gl_FragColor = vec4( position, age );
    
 }

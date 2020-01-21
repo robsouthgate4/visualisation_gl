@@ -43,10 +43,21 @@ import baseVertex from '../shaders/baseVertex.glsl'
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
 import initFragment from '../shaders/initFrag.glsl'
+import InstancedParticles from './Particles/InstancedParticles';
 
 export default class App {
 
 	constructor() {
+
+		// Particle settings 
+
+		this.particleSettings = {
+			
+			count: 256,
+			gravity: -0.1,
+			life: 4000
+
+		};
 
 
 		this.renderer = new WebGLRenderer( { antialias: true } );
@@ -103,8 +114,8 @@ export default class App {
 
 		this.renderer.getSize( size );
 
-		this.textureWidth = 512;
-		this.textureHeight = 512;
+		this.textureWidth = this.particleSettings.count;
+		this.textureHeight = this.particleSettings.count;
 
 		// Programs
 
@@ -112,10 +123,10 @@ export default class App {
 
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-				posData[ 4 * i + 0 ] = 0.0;
-				posData[ 4 * i + 1 ] = 0.0;
-				posData[ 4 * i + 2 ] = 0.0;
-				posData[ 4 * i + 3 ] = 0.0;
+				posData[ 4 * i + 0 ] = Math.random();
+				posData[ 4 * i + 1 ] = Math.random();
+				posData[ 4 * i + 2 ] = Math.random();
+				posData[ 4 * i + 3 ] = 1.0;
 
 		}		
 
@@ -144,18 +155,7 @@ export default class App {
 		this.gpuScene.add( this.screenMesh );
 
 
-		// Particle settings 
-
-		this.particleSettings = {
-
-			gravity: -0.1
-
-		};
-
-
-		// GPGPU
-
-		
+		// GPGPU		
 		
 		this.density = 1.0;
 
@@ -175,11 +175,18 @@ export default class App {
 				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
 				uTextureVelocity: { type: 't', value: null },
 				uTexturePosition: { type: 't', value: null },
-				uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
+				uTextureFlow: { type: 't', value: new TextureLoader().load( 'assets/images/flowmap.png' ) },
+				uResolution: { value: new Vector2( this.textureWidth, this.textureHeight) },
 				uGravity: { value: this.particleSettings.gravity },
+				uAge: { value: 0 },
+				uLife: { value: this.particleSettings.life },
+				uMinTheta: { value: null },
+				uMaxTheta: { value: null },
+				uMinSpeed: { value: null },
+				uMaxSpeed: { value: null },
 				uMouse: { value: new Vector2() },
-				dt: { type: 't', value: null },
-				time: { type: 't', value: null },
+				dt: { value: null },
+				time: { value: null },
 			}
 
 		});
@@ -193,14 +200,17 @@ export default class App {
 				uTextureVelocity: { type: 't', value: null },
 				uTexturePosition: { type: 't', value: null },
 				uTextureOrigin: { type: 't', value: initPos },
-				uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) },
-				u_MinTheta: { type: 't', value: null },
-				u_MaxTheta: { type: 't', value: null },
-				u_MinSpeed: { type: 't', value: null },
-				u_MaxSpeed: { type: 't', value: null },
+				uResolution: { value: new Vector2( this.textureWidth, this.textureHeight) },
+				uGravity: { value: this.particleSettings.gravity },
+				uAge: { value: 0 },
+				uLife: { value: this.particleSettings.life },
+				uMinTheta: { value: null },
+				uMaxTheta: { value: null },
+				uMinSpeed: { value: null },
+				uMaxSpeed: { value: null },
 				uMouse: { value: new Vector2() },
-				dt: { type: 't', value: null },
-				time: { type: 't', value: null },
+				dt: { value: null },
+				time: { value: null },
 			}
 
 		});
@@ -272,7 +282,16 @@ export default class App {
 
 	}
 
-	initFrameBuffers( ) {		
+	initFrameBuffers( ) {
+		
+		this.origin = this.createFBO(
+
+			this.textureWidth,
+			this.textureHeight,
+			true, 
+			'Origin' 
+
+		)
 
 		this.velocity = this.createDoubleFBO(
 
@@ -292,7 +311,9 @@ export default class App {
 
 		);
 
-		this.renderPass( this.initProgram, this.position.read.fbo );
+		// Blit original particle positions
+
+		this.renderPass( this.initProgram, this.origin.fbo );
 
 	}
 
@@ -321,6 +342,16 @@ export default class App {
 	setupScene() {
 
 		this.camera.position.set( 0, 0, 2 );
+
+		// Add Particles
+
+		this.particles = new InstancedParticles( { 
+
+			particleCount: this.particleSettings.count
+
+		 } );
+
+		 this.scene.add( this.particles );
 
 	}
 
@@ -357,8 +388,9 @@ export default class App {
 		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
 		this.velocityProgram.uniforms.uTexturePosition.value = this.position.write.fbo.texture;
 		this.velocityProgram.uniforms.uMouse.value = this.mouse;
+		this.velocityProgram.uniforms.uGravity.value = dt;
 		this.velocityProgram.uniforms.time.value = time;
-		this.velocityProgram.uniforms.dt.value = dt;
+		this.velocityProgram.uniforms.dt.value = dt;		
 		this.renderPass( this.velocityProgram, this.velocity.write.fbo );
 		this.velocity.swap();
 		
@@ -369,6 +401,9 @@ export default class App {
 		this.positionProgram.uniforms.dt.value = dt;
 		this.renderPass( this.positionProgram, this.position.write.fbo );
 		this.position.swap();
+
+
+		this.particles.setUniforms( 'uPositionTexture', this.position.write.fbo.texture );
 
 		//this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
 
