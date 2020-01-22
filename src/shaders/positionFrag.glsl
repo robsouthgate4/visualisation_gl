@@ -42,6 +42,7 @@ void main() {
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
 	vec3 vel = texture2D(uTextureVelocity, uv).xyz;
+
     vec4 pos = texture2D(uTexturePosition, uv).xyzw;
     float life = texture2D(uTextureLife, uv).r;
     vec4 origin = texture2D( uTextureOrigin, uv );
@@ -60,15 +61,11 @@ void main() {
 
     } else {
 
-        age += dt;
+        age += dt;        
 
         position = pos.xyz + vel * dt;
 
     }
-
-    position = pos.xyz + vel * dt;
-
-    //position = pos.xyz + vel * dt;
 
     gl_FragColor = vec4( position, age );
    

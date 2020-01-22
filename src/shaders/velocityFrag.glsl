@@ -31,19 +31,34 @@ varying vec2 vUv;
 
 void main() {
 
-    vec3 vel = texture2D( uTextureVelocity, vUv ).xyz;
+    
+
+    //vel.y += uGravity;
 
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
+
+    vec3 selfVelocity = texture2D( uTextureVelocity, uv ).xyz;
+
+
+
 
     vec2 noiseCoord = uv;
     vec2 rand = texture2D(uTextureFlow, noiseCoord).rg;
 
-    float theta = uMinTheta + rand.r * ( uMaxTheta - uMinTheta );
-    float x = cos(theta);
-    float y = sin(theta);
+    // float theta = uMinTheta + rand.r * ( uMaxTheta - uMinTheta );
+    // float x = cos(theta);
+    // float y = sin(theta);
 
-    //vel.y = 0.1;
+    //vec3 velocity = vel + vec3( rand.r * 2.0 - 1.0, rand.g, 0.0 ) * dt;
 
-    gl_FragColor = vec4( vec3( rand.r * 2.0 - 1.0, rand.g, 0.0 ) , 1.0 );
+    vec3 velocity = selfVelocity;
+
+    velocity = vec3( rand.r * 2.0 - 1.0, rand.g, 0.0 );
+
+    velocity.y -= 0.1 * dt;
+
+    //velocity.rgb = vec3( rand.r * 2.0 - 1.0, rand.g, 0.0 );
+
+    gl_FragColor = vec4( velocity , 1.0 );
 
 }
