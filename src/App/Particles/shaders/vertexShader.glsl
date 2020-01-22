@@ -13,10 +13,11 @@ uniform float uRandom;
 uniform float uDepth;
 uniform float uSize;
 
-uniform sampler2D uPositionTexture;
-uniform sampler2D uVelocityTexture;
+uniform sampler2D uTexturePosition;
+uniform sampler2D uTextureVelocity;
 
 varying vec2 vUv;
+varying vec3 vOffset;
 
 void main() {
 	// displacement
@@ -42,7 +43,9 @@ void main() {
 
     vUv = uv;
 
-    vec4 tPos = texture2D( uPositionTexture, aOffset.xy );
+    vec4 tPos = texture2D( uTexturePosition, aOffset.xy );
+
+    vOffset = aOffset;
 
 	vec3 displaced = tPos.xyz;
 
@@ -50,7 +53,7 @@ void main() {
 
     pos *= ( aScale * 1.5 );
     
-    pos.xyz *= 0.005;
+    pos.xyz *= 0.002;
     //pos.x *= 0.001;
 
     vec4 mvPos = modelViewMatrix * vec4( pos + displaced , 1.0);

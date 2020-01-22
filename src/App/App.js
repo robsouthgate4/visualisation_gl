@@ -42,7 +42,7 @@ import baseVertex from '../shaders/baseVertex.glsl'
 
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
-import initFragment from '../shaders/initFrag.glsl'
+import passthroughFragment from '../shaders/passthroughFrag.glsl'
 import InstancedParticles from './Particles/InstancedParticles';
 
 export default class App {
@@ -53,10 +53,10 @@ export default class App {
 
 		this.particleSettings = {
 			
-			count: 256,
+			count: 512,
 			birthRate: 0.5,
 			gravity: -0.1,
-			lifeRange: [ 1.01, 1.15 ],
+			lifeRange: [ 1.01, 2.15 ],
 			speedRange: [ 0.5, 1.0 ],
 			minTheta: Math.PI / 2.0 - 0.5, 
 			maxTheta: Math.PI / 2.0 + 0.5
@@ -124,19 +124,34 @@ export default class App {
 		// Programs
 
 		const posData = new Float32Array( 4 * this.textureWidth * this.textureHeight );
+		const lifeData =  new Float32Array( 4 * this.textureWidth * this.textureHeight );
 
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-				posData[ 4 * i + 0 ] = 0.0;
-				posData[ 4 * i + 1 ] = 0.0;
-				posData[ 4 * i + 2 ] = 0.0;
+				posData[ 4 * i + 0 ] = 0;
+				posData[ 4 * i + 1 ] = 0;
+				posData[ 4 * i + 2 ] = 0;
 				posData[ 4 * i + 3 ] = 1.0;
 
-		}		
+				const minAge = this.particleSettings.lifeRange[0];
+				const maxAge = this.particleSettings.lifeRange[1];
 
-		const initPos = new DataTexture( posData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
-		initPos.needsUpdate = true;
-		initPos.flipY = true;
+				lifeData[ 4 * i + 0 ] = minAge + Math.random() * ( maxAge - minAge );
+				lifeData[ 4 * i + 1 ] = 0;
+				lifeData[ 4 * i + 2 ] = 0;
+				lifeData[ 4 * i + 3 ] = 0;
+
+		}
+
+		console.log( lifeData );
+
+		const initPosBuffer = new DataTexture( posData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
+		initPosBuffer.needsUpdate = true;
+		initPosBuffer.flipY = true;
+
+		const lifeBuffer = new DataTexture( lifeData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
+		lifeBuffer.needsUpdate = true;
+		lifeBuffer.flipY = true;
 
 		// Create the full screen triangle ready for blit
 
@@ -159,16 +174,31 @@ export default class App {
 		this.gpuScene.add( this.screenMesh );
 
 
+		// Create life buffer data
+
+
 		// GPGPU		
 		
 		this.density = 1.0;
 
 		this.initProgram = new ShaderMaterial({
+
 			vertexShader: baseVertex,
-			fragmentShader: initFragment,
+			fragmentShader: passthroughFragment,
 			uniforms: {
-				uTexture: { value: initPos }
+				uTexture: { value: initPosBuffer }
 			}
+
+		})
+
+		this.lifeProgram = new ShaderMaterial({
+			
+			vertexShader: baseVertex,
+			fragmentShader: passthroughFragment,
+			uniforms: {
+				uTexture: { value: lifeBuffer }
+			}
+			
 		})
 
 		this.velocityProgram = new ShaderMaterial({
@@ -203,7 +233,8 @@ export default class App {
 				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
 				uTextureVelocity: { type: 't', value: null },
 				uTexturePosition: { type: 't', value: null },
-				uTextureOrigin: { type: 't', value: initPos },
+				uTextureLife: { type: 't', value: lifeBuffer },
+				uTextureOrigin: { type: 't', value: initPosBuffer },
 				uResolution: { value: new Vector2( this.textureWidth, this.textureHeight) },
 				uGravity: { value: this.particleSettings.gravity },
 				uAge: { value: 0 },
@@ -315,10 +346,20 @@ export default class App {
 
 		);
 
+		this.life = this.createFBO(
+
+			this.textureWidth,
+			this.textureHeight,
+			true,
+			'Life'
+
+		)
+
 		// Blit original particle positions
 
 		this.renderPass( this.initProgram, this.origin.fbo );
 		this.renderPass( this.initProgram, this.position.read.fbo );
+		this.renderPass( this.lifeProgram, this.life.fbo );
 
 	}
 
@@ -352,10 +393,12 @@ export default class App {
 
 		this.particles = new InstancedParticles( { 
 
-			particleCount: 256 * 256,
+			particleCount: this.particleSettings.count * this.particleSettings.count,
 			settings: this.particleSettings
 
 		 } );
+
+		 this.particles.setUniforms( 'uResolution', new Vector2( this.particleSettings.count, this.particleSettings.count ) );
 
 		 this.scene.add( this.particles );
 
@@ -402,6 +445,7 @@ export default class App {
 		
 		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
 		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
+		this.positionProgram.uniforms.uTextureLife.value = this.life.fbo.texture;
 		this.positionProgram.uniforms.uMouse.value = this.mouse;
 		this.positionProgram.uniforms.time.value = time;
 		this.positionProgram.uniforms.dt.value = dt;
@@ -409,7 +453,9 @@ export default class App {
 		this.position.swap();
 
 
-		this.particles.setUniforms( 'uPositionTexture', this.position.write.fbo.texture );
+		this.particles.setUniforms( 'uTexturePosition', this.position.write.fbo.texture );
+		this.particles.setUniforms( 'uTextureVelocity', this.position.write.fbo.texture );
+		
 
 		//this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
 

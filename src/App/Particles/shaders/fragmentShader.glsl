@@ -2,10 +2,13 @@
 
 precision highp float;
 
-uniform sampler2D uVelocityTexture;
+uniform sampler2D uTextureVelocity;
+uniform sampler2D uTexturePosition;
 uniform float time;
+uniform vec2 uResolution;
 
 varying vec2 vUv;
+varying vec3 vOffset;
 
 void main() {
 	vec3 N;
@@ -16,9 +19,15 @@ void main() {
 
     if (mag > 1.0) discard;   // kill pixels outside circle
 
-    vec3 velocity = texture2D(uVelocityTexture, vUv).rgb;
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
-	vec3 color = vec3(246. / 255.,	226. / 255., 127. / 255.);
+    vec4 pos = texture2D( uTexturePosition, vOffset.xy );
+
+
+	vec3 color1 = vec3(246. / 255.,	226. / 255., 127. / 255.);
+    vec3 color2 = vec3(255. / 255., 255. / 255., 255.0 / 255.);
+
+    vec3 color = mix( color1, color2, pos.a );
     
 	gl_FragColor = vec4(color, 1.0);
 }

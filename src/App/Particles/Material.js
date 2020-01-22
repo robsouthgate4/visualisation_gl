@@ -12,11 +12,12 @@ export default class Material extends RawShaderMaterial {
 			uRandom: { value: 1.0 },
 			uDepth: { value: 2.0 },
 			uSize: { value: 0.0 },
-			uPositionTexture: { value: null },
-			uVelocityTexture: { value: null }
+			uTexturePosition: { value: null },
+			uTextureVelocity: { value: null },
+			uResolution: { value: null },
 		};
 
-		super( { uniforms, vertexShader, fragmentShader, depthTest: false, transparent: true, side: DoubleSide } );
+		super( { uniforms, vertexShader, fragmentShader, depthTest: false, depthFunc: false, transparent: true, side: DoubleSide } );
 
 	}
 

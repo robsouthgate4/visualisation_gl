@@ -44,6 +44,6 @@ void main() {
 
     //vel.y = 0.1;
 
-    gl_FragColor = vec4( vec3( 0.0, 0.1, 0.0 ) , 1.0 );
+    gl_FragColor = vec4( vec3( rand.r * 2.0 - 1.0, rand.g, 0.0 ) , 1.0 );
 
 }

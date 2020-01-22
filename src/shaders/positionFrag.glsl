@@ -21,6 +21,7 @@ uniform float uGravity;
 uniform sampler2D uTextureVelocity;
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTextureOrigin;
+uniform sampler2D uTextureLife;
 
 uniform vec3 uOrigin;
 uniform vec2 uResolution;
@@ -35,7 +36,6 @@ uniform vec2 uMouse;
 
 void main() {
 
-    float life = uLife;
 
     vec2 pixel = 1.0 / uResolution.xy;   
 
@@ -43,20 +43,19 @@ void main() {
 
 	vec3 vel = texture2D(uTextureVelocity, uv).xyz;
     vec4 pos = texture2D(uTexturePosition, uv).xyzw;
-
+    float life = texture2D(uTextureLife, uv).r;
     vec4 origin = texture2D( uTextureOrigin, uv );
 
 	vec3 position = origin.xyz;
 
-    float age = pos.w;
-  
+    float age = pos.w;  
 
     if ( age >= life ) {
 
         pos.xyz = origin.xyz;
 
         age = 0.0;
-        life = uLife;
+        //life = uLife;
 
 
     } else {
@@ -66,6 +65,10 @@ void main() {
         position = pos.xyz + vel * dt;
 
     }
+
+    position = pos.xyz + vel * dt;
+
+    //position = pos.xyz + vel * dt;
 
     gl_FragColor = vec4( position, age );
    
