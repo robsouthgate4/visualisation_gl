@@ -54,8 +54,12 @@ export default class App {
 		this.particleSettings = {
 			
 			count: 256,
+			birthRate: 0.5,
 			gravity: -0.1,
-			life: 4000
+			lifeRange: [ 1.01, 1.15 ],
+			speedRange: [ 0.5, 1.0 ],
+			minTheta: Math.PI / 2.0 - 0.5, 
+			maxTheta: Math.PI / 2.0 + 0.5
 
 		};
 
@@ -123,9 +127,9 @@ export default class App {
 
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-				posData[ 4 * i + 0 ] = Math.random();
-				posData[ 4 * i + 1 ] = Math.random();
-				posData[ 4 * i + 2 ] = Math.random();
+				posData[ 4 * i + 0 ] = 0.0;
+				posData[ 4 * i + 1 ] = 0.0;
+				posData[ 4 * i + 2 ] = 0.0;
 				posData[ 4 * i + 3 ] = 1.0;
 
 		}		
@@ -314,6 +318,7 @@ export default class App {
 		// Blit original particle positions
 
 		this.renderPass( this.initProgram, this.origin.fbo );
+		this.renderPass( this.initProgram, this.position.read.fbo );
 
 	}
 
@@ -336,7 +341,7 @@ export default class App {
 	onMouseMove( e ) { 
 
 		this.mouse.x = e.clientX / window.innerWidth;
-		this.mouse.y =  - (e.clientY  / window.innerHeight) + 1;
+		this.mouse.y =  - ( e.clientY  / window.innerHeight ) + 1;
 	}
 
 	setupScene() {
@@ -347,7 +352,8 @@ export default class App {
 
 		this.particles = new InstancedParticles( { 
 
-			particleCount: this.particleSettings.count
+			particleCount: 256 * 256,
+			settings: this.particleSettings
 
 		 } );
 

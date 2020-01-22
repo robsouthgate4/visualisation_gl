@@ -7,11 +7,11 @@ uniform sampler2D uTextureVelocity;
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTextureFlow;
 
-uniform float u_MinTheta;
-uniform float u_MaxTheta;
+uniform float uMinTheta;
+uniform float uMaxTheta;
 
-uniform float u_MinSpeed;
-uniform float u_MaxSpeed;
+uniform float uMinSpeed;
+uniform float uMaxSpeed;
 
 uniform vec2 uResolution;
 uniform vec2 uOrigin;
@@ -33,8 +33,17 @@ void main() {
 
     vec3 vel = texture2D( uTextureVelocity, vUv ).xyz;
 
-    vel.y = 0.1;
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
-    gl_FragColor = vec4( vel, 1.0 );
+    vec2 noiseCoord = uv;
+    vec2 rand = texture2D(uTextureFlow, noiseCoord).rg;
+
+    float theta = uMinTheta + rand.r * ( uMaxTheta - uMinTheta );
+    float x = cos(theta);
+    float y = sin(theta);
+
+    //vel.y = 0.1;
+
+    gl_FragColor = vec4( vec3( 0.0, 0.1, 0.0 ) , 1.0 );
 
 }

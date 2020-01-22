@@ -33,28 +33,35 @@ varying vec2 vUv;
 uniform vec2 uMouse;
 
 
-void main() {    
+void main() {
 
-    vec2 pixel = 1.0 / uResolution.xy;
+    float life = uLife;
 
-	vec3 vel = texture2D(uTextureVelocity, vUv).xyz;
-    vec4 pos = texture2D(uTexturePosition, vUv).xyzw;
+    vec2 pixel = 1.0 / uResolution.xy;   
 
-    vec4 origin = texture2D( uTextureOrigin, vUv );
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
-	vec3 position = vec3(0.0);
+	vec3 vel = texture2D(uTextureVelocity, uv).xyz;
+    vec4 pos = texture2D(uTexturePosition, uv).xyzw;
+
+    vec4 origin = texture2D( uTextureOrigin, uv );
+
+	vec3 position = origin.xyz;
 
     float age = pos.w;
+  
 
-    if ( age >= uLife ) {
+    if ( age >= life ) {
 
-        pos.xyz = vec3(0.0);
+        pos.xyz = origin.xyz;
 
         age = 0.0;
+        life = uLife;
+
 
     } else {
 
-        age += 100.;
+        age += dt;
 
         position = pos.xyz + vel * dt;
 

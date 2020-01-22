@@ -2,7 +2,7 @@ import { InstancedBufferGeometry, BufferAttribute, InstancedBufferAttribute } fr
 
 export default class Geometry extends InstancedBufferGeometry {
 
-	constructor( particleCount ) {
+	constructor( particleCount, settings ) {
 
 		super();
 
@@ -29,9 +29,8 @@ export default class Geometry extends InstancedBufferGeometry {
 
 		const indices = new Uint16Array( particleCount );
 		const offsets = new Float32Array( particleCount * 3 );
-		const colors = new Float32Array( particleCount * 3 );
-		const scale = new Float32Array( particleCount );
-		const angles = new Float32Array( particleCount );
+		const scales = new Float32Array( particleCount );
+		const lifes = new Float32Array( particleCount );
 
 		for ( let i = 0; i < particleCount; i ++ ) {
 
@@ -39,22 +38,18 @@ export default class Geometry extends InstancedBufferGeometry {
 			offsets[ i * 3 + 1 ] = Math.random() * 2;
 			offsets[ i * 3 + 2 ] = Math.random() * 2;
 
-			colors[ i * 3 + 0 ] = Math.random();
-			colors[ i * 3 + 1 ] = Math.random();
-			colors[ i * 3 + 2 ] = Math.random();
+			scales[ i ] = Math.random() + 1;
 
-			scale[ i ] = Math.random() + 1;
+			lifes[i] = settings.lifeRange[ 0 ] + Math.random() * ( settings.lifeRange[ 1 ] - settings.lifeRange[ 0 ] );
 
 			indices[ i ] = i;
-
-			angles[ i ] = Math.random() * Math.PI;
 
 		}
 
 		this.setAttribute( 'pindex', new InstancedBufferAttribute( indices, 1, false ) );
-		this.setAttribute( 'offset', new InstancedBufferAttribute( offsets, 3, false ) );
-		this.setAttribute( 'angle', new InstancedBufferAttribute( angles, 1, false ) );
-		this.setAttribute( 'scale', new InstancedBufferAttribute( scale, 1, false ) );
+		this.setAttribute( 'aOffset', new InstancedBufferAttribute( offsets, 3, false ) );
+		this.setAttribute( 'aScale', new InstancedBufferAttribute( scales, 1, false ) );
+		this.setAttribute( 'aLife', new InstancedBufferAttribute( lifes, 1, false ) );
 
 	}
 

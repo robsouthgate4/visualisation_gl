@@ -5,9 +5,9 @@ import { Mesh } from 'three';
 
 export default class InstancedParticles extends Mesh {
 
-	constructor( { particleCount } ) {
+	constructor( { particleCount, settings } ) {
 
-		const geo = new Geometry( particleCount );
+		const geo = new Geometry( particleCount, settings );
 		const mat = new Material( particleCount );
 
 		super( geo, mat );

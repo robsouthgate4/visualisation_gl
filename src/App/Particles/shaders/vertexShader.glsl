@@ -1,9 +1,9 @@
 attribute float pindex;
 attribute vec3 position;
-attribute vec3 offset;
+attribute vec3 aOffset;
 attribute vec2 uv;
 attribute float angle;
-attribute float scale;
+attribute float aScale;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
@@ -42,13 +42,13 @@ void main() {
 
     vUv = uv;
 
-    vec4 tPos = texture2D( uPositionTexture, offset.xy );
+    vec4 tPos = texture2D( uPositionTexture, aOffset.xy );
 
 	vec3 displaced = tPos.xyz;
 
     vec3 pos = position;
 
-    pos *= ( scale * 1.5 );
+    pos *= ( aScale * 1.5 );
     
     pos.xyz *= 0.005;
     //pos.x *= 0.001;
