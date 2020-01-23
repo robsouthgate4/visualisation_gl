@@ -53,10 +53,10 @@ export default class App {
 
 		this.particleSettings = {
 			
-			count: 512,
+			count: 1024,
 			birthRate: 0.5,
 			gravity: -0.2,
-			lifeRange: [ 1.01, 8.15 ],
+			lifeRange: [ 1.01, 5.0 ],
 			speedRange: [ 0.5, 1.0 ],
 			minTheta: Math.PI / 2.0 - 0.5, 
 			maxTheta: Math.PI / 2.0 + 0.5
@@ -126,11 +126,30 @@ export default class App {
 		const posData = new Float32Array( 4 * this.textureWidth * this.textureHeight );
 		const lifeData =  new Float32Array( 4 * this.textureWidth * this.textureHeight );
 
+		function randomPointInSphere( radius ) {
+
+			const v = new Vector3();
+
+			const x = ThreeMath.randFloat( -1, 1 );
+			const y = ThreeMath.randFloat( -1, 1 );
+			const z = ThreeMath.randFloat( -1, 1 );
+			const normalizationFactor = 1 / Math.sqrt( x * x + y * y + z * z );
+		  
+			v.x = x * normalizationFactor * radius;
+			v.y = y * normalizationFactor * radius;
+			v.z = z * normalizationFactor * radius;
+		  
+			return v;
+
+		}
+
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-				posData[ 4 * i + 0 ] = 0;
-				posData[ 4 * i + 1 ] = 0;
-				posData[ 4 * i + 2 ] = 0;
+			    const point = randomPointInSphere( 1.0 );
+
+				posData[ 4 * i + 0 ] = point.x;
+				posData[ 4 * i + 1 ] = point.y;
+				posData[ 4 * i + 2 ] = point.z;
 				posData[ 4 * i + 3 ] = 1.0;
 
 				const minAge = this.particleSettings.lifeRange[0];
@@ -359,6 +378,7 @@ export default class App {
 
 		this.renderPass( this.initProgram, this.origin.fbo );
 		this.renderPass( this.initProgram, this.position.read.fbo );
+		
 		this.renderPass( this.lifeProgram, this.life.fbo );
 
 	}
@@ -387,7 +407,7 @@ export default class App {
 
 	setupScene() {
 
-		this.camera.position.set( 0, 0, 2 );
+		this.camera.position.set( 0, 0, 4 );
 
 		// Add Particles
 

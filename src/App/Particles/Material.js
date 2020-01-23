@@ -1,4 +1,4 @@
-import { RawShaderMaterial, DoubleSide } from "three";
+import { RawShaderMaterial, DoubleSide, AdditiveBlending } from "three";
 import vertexShader from './shaders/vertexShader.glsl';
 import fragmentShader from './shaders/fragmentShader.glsl';
 
@@ -17,7 +17,7 @@ export default class Material extends RawShaderMaterial {
 			uResolution: { value: null },
 		};
 
-		super( { uniforms, vertexShader, fragmentShader, depthTest: false, depthFunc: false, transparent: true, side: DoubleSide } );
+		super( { uniforms, vertexShader, fragmentShader, depthTest: false, depthFunc: false, transparent: true, side: DoubleSide, blending: AdditiveBlending } );
 
 	}
 
