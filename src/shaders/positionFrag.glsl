@@ -6,8 +6,7 @@ precision highp float;
 
 uniform float time;
 uniform float delta;
-uniform sampler2D uTextureVelocity;
-uniform sampler2D uTexturePosition;
+uniform sampler2D uBuffer;
 
 uniform vec2 uResolution;
 
@@ -29,51 +28,20 @@ void main() {
 
     vec2 pixel = 1.0 / uResolution.xy;
 
-    if ( length( uv - vec2(0.5) ) < 0.01 ) {
+         
+    float sum = 0.;
+    sum += texture2D(uBuffer, uv + pixel * vec2(-1., -1.)).g;
+    sum += texture2D(uBuffer, uv + pixel * vec2(-1., 0.)).g;
+    sum += texture2D(uBuffer, uv + pixel * vec2(-1., 1.)).g;
+    sum += texture2D(uBuffer, uv + pixel * vec2(1., -1.)).g;
+    sum += texture2D(uBuffer, uv + pixel * vec2(1., 0.)).g;
+    sum += texture2D(uBuffer, uv + pixel * vec2(1., 1.)).g;
+    sum += texture2D(uBuffer, uv + pixel * vec2(0., -1.)).g;
+    sum += texture2D(uBuffer, uv + pixel * vec2(0., 1.)).g;
 
-		float rnd1 = mod(fract(sin(dot(uv + time * 0.001, vec2(14.9898,78.233))) * 43758.5453), 1.0);
+    vec4 me = texture2D(uBuffer, uv);
 
-		if (rnd1 > 0.5) {
-
-			gl_FragColor = live;
-
-		} else {
-
-			gl_FragColor = blue;
-
-		}
-	} else
-     {
-
-         float sum = 0.;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(-1., -1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(-1., 0.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(-1., 1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(1., -1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(1., 0.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(1., 1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(0., -1.)).g;
-        sum += texture2D(uTexturePosition, uv + pixel * vec2(0., 1.)).g;
-
-        vec4 me = texture2D(uTexturePosition, uv);
-
-        if (me.g <= 0.1) {
-            if ((sum >= 2.9) && (sum <= 3.1)) {
-                gl_FragColor = live;
-            } else if (me.b > 0.004) {
-                gl_FragColor = vec4(0., 0., max(me.b - 0.004, 0.25), 0.);
-            } else {
-                gl_FragColor = dead;
-            }
-        } else {
-            if ((sum >= 1.9) && (sum <= 3.1)) {
-                gl_FragColor = live;
-            } else {
-                gl_FragColor = blue;
-            }
-        }
-
-    }
+    gl_FragColor = vec4( uv.x, uv.y, 0.0, 1.0 );
 
    
 }

@@ -41,7 +41,7 @@ import triangleFrag from '../shaders/sceenTriangle/triangleFrag.glsl'
 import baseVertex from '../shaders/baseVertex.glsl'
 
 import velocityFragment from '../shaders/velocityFrag.glsl'
-import positionFragment from '../shaders/positionFrag.glsl'
+import bufferFragment from '../shaders/positionFrag.glsl'
 import densityFragment from '../shaders/densityFrag.glsl'
 import initFragment from '../shaders/initFrag.glsl'
 
@@ -151,51 +151,27 @@ export default class App {
 		this.velocity;
 		this.viscosity;
 
-			this.initProgram = new ShaderMaterial({
-				vertexShader: baseVertex,
-				fragmentShader: initFragment,
-				uniforms: {
-					uTexture: { value: initPos }
-				}
-			})
-	
-			this.densityProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: densityFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uPosition: { value: new Vector3() }, 
-					uAmount: { value: 0 }
-				}
-			});
-	
-			this.velocityProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: velocityFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					uTexturePosition: { type: 't', value: null }
-				}
-	
-			});
-	
-			this.positionProgram = new ShaderMaterial({
-	
-				vertexShader: baseVertex,
-				fragmentShader: positionFragment,
-				uniforms: {
-					uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
-					uTextureVelocity: { type: 't', value: null },
-					uTexturePosition: { type: 't', value: null },
-					uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) }
-				}
-	
-			});
-	
-			this.initFrameBuffers();
+		this.initProgram = new ShaderMaterial({
+			vertexShader: baseVertex,
+			fragmentShader: initFragment,
+			uniforms: {
+				uTexture: { value: initPos }
+			}
+		});
+
+		this.bufferProgram = new ShaderMaterial({
+
+			vertexShader: baseVertex,
+			fragmentShader: bufferFragment,
+			uniforms: {
+				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
+				uBuffer: { type: 't', value: null },
+				uResolution: { type: 'f', value: new Vector2( this.textureWidth, this.textureHeight) }
+			}
+
+		});
+
+		this.initFrameBuffers();
 
 		
 
@@ -259,36 +235,18 @@ export default class App {
 
 	}
 
-	initFrameBuffers( ) {		
+	initFrameBuffers( ) {
 
-		this.velocity = this.createDoubleFBO(
-
-			this.textureWidth,
-			this.textureHeight,
-			true, 
-			'Velocity' 
-
-		);
-
-		this.density = this.createDoubleFBO(
+		this.buffer = this.createDoubleFBO(
 
 			this.textureWidth,
 			this.textureHeight,
 			true,
-			'Density'
+			'Buffer'
 
 		);
 
-		this.position = this.createDoubleFBO(
-
-			this.textureWidth,
-			this.textureHeight,
-			true,
-			'Position'
-
-		);
-
-		this.renderPass(this.initProgram, this.position.read.fbo)
+		this.renderPass(this.initProgram, this.buffer.read.fbo)
 
 	}
 
@@ -349,11 +307,11 @@ export default class App {
 		//
 
 		
-		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
-		this.renderPass( this.positionProgram, this.position.write.fbo );
-		this.position.swap();
+		this.bufferProgram.uniforms.uBuffer.value = this.buffer.read.fbo.texture;
+		this.renderPass( this.bufferProgram, this.buffer.write.fbo );
+		this.buffer.swap();
 
-		this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
+		this.displayProgram.uniforms.uTexture.value = this.buffer.write.fbo.texture;
 
 		this.screenMesh.material = this.displayProgram;
 
