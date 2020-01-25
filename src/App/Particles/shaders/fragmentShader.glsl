@@ -24,10 +24,10 @@ void main() {
     vec4 pos = texture2D( uTexturePosition, vOffset.xy );
     vec3 vel = texture2D( uTextureVelocity, vOffset.xy ).rgb;
 
-	vec3 color1 = vec3(255. / 255.,	51. / 255., 0. / 255.);
+	vec3 color1 = vec3(255. / 255.,	91. / 255., 0. / 255.);
     vec3 color2 = vec3(255. / 255., 31. / 255., 0.0 / 255.);
 
-    vec3 color = mix( color1, color2, vel.z );
+    vec3 color = mix( color1, color2, length( vel ) );
     
 	gl_FragColor = vec4(color, 1.0);
 }

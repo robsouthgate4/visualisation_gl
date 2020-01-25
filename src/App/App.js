@@ -45,6 +45,17 @@ import positionFragment from '../shaders/positionFrag.glsl'
 import passthroughFragment from '../shaders/passthroughFrag.glsl'
 import InstancedParticles from './Particles/InstancedParticles';
 
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+var params = {
+	exposure: 0.5,
+	bloomStrength: 1.2,
+	bloomThreshold: 0,
+	bloomRadius: 0.5
+};
+
 export default class App {
 
 	constructor() {
@@ -56,7 +67,7 @@ export default class App {
 			count: 1024,
 			birthRate: 0.5,
 			gravity: -0.2,
-			lifeRange: [ 1.01, 10.0 ],
+			lifeRange: [ 1.01, 3.0 ],
 			speedRange: [ 0.5,1.0 ],
 			minTheta: Math.PI / 2.0 - 0.5, 
 			maxTheta: Math.PI / 2.0 + 0.5
@@ -271,7 +282,16 @@ export default class App {
 
 		this.initFrameBuffers();
 
-		
+		this.renderScene = new RenderPass( this.scene, this.camera );
+
+		this.bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+		this.bloomPass.threshold = params.bloomThreshold;
+		this.bloomPass.strength = params.bloomStrength;
+		this.bloomPass.radius = params.bloomRadius;
+
+		this.composer = new EffectComposer( this.renderer );
+		this.composer.addPass( this.renderScene );
+		this.composer.addPass( this.bloomPass );
 
 
 	}
@@ -481,7 +501,9 @@ export default class App {
 
 		//this.screenMesh.material = this.displayProgram;
 
-		this.renderer.render( this.scene, this.camera );
+		//this.renderer.render( this.scene, this.camera );
+
+		this.composer.render();
 	
 		this.fbohelper.update();
 

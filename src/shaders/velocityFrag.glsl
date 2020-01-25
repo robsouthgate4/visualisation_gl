@@ -217,6 +217,8 @@ void main() {
 
     //vel.y += uGravity;
 
+    float tTime = time;
+
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
     vec3 selfVelocity = texture2D( uTextureVelocity, uv ).xyz;
@@ -231,21 +233,18 @@ void main() {
     vec3 velocity = selfVelocity;
     vec3 position = selfPosition.xyz;
 
+    tTime *= 2.0;
  
 
-    
-
-    ;
-
     vec3 q = vec3(0.);
-    q.x = fbm3d( position + 0.0 * time, 5);
+    q.x = fbm3d( position + 0.0 * tTime, 5);
     q.y = fbm3d( position + vec3(0.0), 5);
     q.z = fbm3d( position + vec3(1.0), 5);
 
     vec3 r = vec3(0.);
-    r.x = fbm3d( position + 0.0 * q + vec3(1.7,9.2, 0.0)+ 0.015 * time, 5);
-    r.y = fbm3d( position + 0.0 * q + vec3(8.3,2.8, 8.0)+ 0.126 * time, 5);
-    r.z = fbm3d( position + 0.0  *q + vec3(4.3,8.8, 5.0)+ 0.026 * time, 5);
+    r.x = fbm3d( position + 0.0 * q + vec3(1.7,9.2, 0.0)+ 0.015 * tTime, 5);
+    r.y = fbm3d( position + 0.0 * q + vec3(8.3,2.8, 8.0)+ 0.126 * tTime, 5);
+    r.z = fbm3d( position + 0.0  *q + vec3(4.3,8.8, 5.0)+ 0.026 * tTime, 5);
 
     float f = fbm3d( position + r, 5);
 
