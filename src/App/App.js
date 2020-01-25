@@ -56,8 +56,8 @@ export default class App {
 			count: 1024,
 			birthRate: 0.5,
 			gravity: -0.2,
-			lifeRange: [ 1.01, 5.0 ],
-			speedRange: [ 0.5, 1.0 ],
+			lifeRange: [ 1.01, 10.0 ],
+			speedRange: [ 0.5,1.0 ],
 			minTheta: Math.PI / 2.0 - 0.5, 
 			maxTheta: Math.PI / 2.0 + 0.5
 

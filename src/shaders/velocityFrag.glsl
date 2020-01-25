@@ -1,4 +1,6 @@
 
+#pragma glslify: fbm3d = require('glsl-fractal-brownian-noise/3d') 
+#pragma glslify: curlNoise = require('glsl-curl-noise') 
 
 uniform float time;
 uniform float dt;
@@ -219,30 +221,43 @@ void main() {
 
     vec3 selfVelocity = texture2D( uTextureVelocity, uv ).xyz;
 
-    vec3 selfPosition = texture2D( uTexturePosition, uv ).xyz;
+    vec4 selfPosition = texture2D( uTexturePosition, uv );
 
 
     vec2 noiseCoord = uv;
     vec2 rand = texture2D(uTextureFlow, noiseCoord).rg;
 
-    // float theta = uMinTheta + rand.r * ( uMaxTheta - uMinTheta );
-    // float x = cos(theta);
-    // float y = sin(theta);
-
-    //vec3 velocity = vel + vec3( rand.r * 2.0 - 1.0, rand.g, 0.0 ) * dt;
 
     vec3 velocity = selfVelocity;
-    vec3 position = selfPosition;
+    vec3 position = selfPosition.xyz;
 
-    velocity = vec3( rand.r * 2.0 - 1.0, rand.g * 2.0 - 1.0, rand.g * 2.0 - 1.0 ) * 100.0 * dt;
-
-    //velocity.y -= 0.1 * dt;
+ 
 
     
 
-    velocity += pnoise( position * 100.0, vec3(1.0, 0.0, 0.0) ) * 100.0 * dt;
+    ;
 
-    velocity *= sdSphere( position, 0.95 );
+    vec3 q = vec3(0.);
+    q.x = fbm3d( position + 0.0 * time, 5);
+    q.y = fbm3d( position + vec3(0.0), 5);
+    q.z = fbm3d( position + vec3(1.0), 5);
+
+    vec3 r = vec3(0.);
+    r.x = fbm3d( position + 0.0 * q + vec3(1.7,9.2, 0.0)+ 0.015 * time, 5);
+    r.y = fbm3d( position + 0.0 * q + vec3(8.3,2.8, 8.0)+ 0.126 * time, 5);
+    r.z = fbm3d( position + 0.0  *q + vec3(4.3,8.8, 5.0)+ 0.026 * time, 5);
+
+    float f = fbm3d( position + r, 5);
+
+    velocity += f;
+
+    velocity += vec3( rand.r * 2.0 - 1.0, rand.g * 2.0 - 1.0, 0.0  ) * 30.0 * dt;
+    
+    velocity *= sdSphere( position , 0.85 );
+
+
+
+    //velocity *= 0.99;
 
     //velocity.z += 0.01 * position.x;
 
