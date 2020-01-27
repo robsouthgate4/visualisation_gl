@@ -455,7 +455,7 @@ export default class App {
 
 	setupScene() {
 
-		this.camera.position.set( 0, 0, 4 );
+		this.camera.position.set( 0, 0, 2 );
 
 		// Add Particles
 

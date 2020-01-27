@@ -15,7 +15,7 @@ export default class Material extends RawShaderMaterial {
 			uTexturePosition: { value: null },
 			uTextureVelocity: { value: null },
 			uTextureParticle: { type: 't', value: null },
-			uResolution: { value: null },
+			uResolution: { value: null }
 		};
 
 		super( { uniforms, vertexShader, fragmentShader, depthTest: false, depthFunc: true, transparent: true, side: DoubleSide,  } );

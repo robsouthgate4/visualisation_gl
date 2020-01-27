@@ -75,37 +75,37 @@ void main() {
 
     vec3 position = prevPos.xyz;
 
+
     float thetaAdd = cnoise3( vec3( position.x * 6.0, position.y * 6.0, time * 0.2) );
     float phiAdd = cnoise3( vec3( position.y * 6.0, position.z * 6.0, time * 0.2 ) );
 
     theta += thetaAdd;
     phi += phiAdd;
+   
 
-
-    theta += curlNoise( pos + (time * 0.06) ).x * 1.0;
-    phi += curlNoise( pos + (time * 0.06) ).y * 1.0;
-
-    vec3 targetPos = sphericalToCartesians(1.0, theta, phi );   
+    vec3 targetPos = sphericalToCartesians( -1.0 , theta, phi );   
 
    
     vec3 newPos = normalize( targetPos ) * 0.3;
 
-    if ( age >= life ) {
+    // if ( age >= life ) {
 
-        pos.xyz = origin.xyz;
+    //     pos.xyz = origin.xyz;
 
-        age = 0.0;
+    //     age = 0.0;
 
 
-    } else {
+    // } else {
 
-        age += dt;        
+    //     age += dt;        
 
-        pos += newPos;
+    //     pos += newPos;
 
-        //pos = clamp( pos, vec3(-1.0), vec3(1.0) );
+    //     //pos = clamp( pos, vec3(-1.0), vec3(1.0) );
 
-    }
+    // }
+
+    pos += newPos;
 
   
 
