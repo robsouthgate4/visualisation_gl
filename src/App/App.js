@@ -43,17 +43,19 @@ import baseVertex from '../shaders/baseVertex.glsl'
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
 import passthroughFragment from '../shaders/passthroughFrag.glsl'
-import InstancedParticles from './Particles/InstancedParticles';
+import PointParticles from './PointParticles/PointParticles';
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 
 var params = {
-	exposure: 0.5,
-	bloomStrength: 1.2,
+	exposure: 0.6,
+	bloomStrength: 1.3,
 	bloomThreshold: 0,
-	bloomRadius: 0.5
+	bloomRadius: 1.0
 };
 
 export default class App {
@@ -67,10 +69,11 @@ export default class App {
 			count: 1024,
 			birthRate: 0.5,
 			gravity: -0.2,
-			lifeRange: [ 1.01, 3.0 ],
+			lifeRange: [ 1.01, 3.3 ],
 			speedRange: [ 0.5,1.0 ],
 			minTheta: Math.PI / 2.0 - 0.5, 
-			maxTheta: Math.PI / 2.0 + 0.5
+			maxTheta: Math.PI / 2.0 + 0.5,
+			radius: 1
 
 		};
 
@@ -135,7 +138,9 @@ export default class App {
 		// Programs
 
 		const posData = new Float32Array( 4 * this.textureWidth * this.textureHeight );
-		const lifeData =  new Float32Array( 4 * this.textureWidth * this.textureHeight );
+		const particleData =  new Float32Array( 4 * this.textureWidth * this.textureHeight );
+		const thetaData =  new Float32Array( this.textureWidth * this.textureHeight );
+		const phiData =  new Float32Array( this.textureWidth * this.textureHeight );
 
 		function randomPointInSphere( radius ) {
 
@@ -154,34 +159,50 @@ export default class App {
 
 		}
 
+		function sphericalToCartesians( radius, theta, phi ) {
+
+			const x = radius * Math.sin( theta ) * Math.cos( phi );
+			const y = radius * Math.sin( theta ) * Math.sin( phi );
+			const z = radius * Math.cos( theta );
+
+			return new Vector3( x, y, z );
+
+		}
+		
+
 		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
 
-			    const point = randomPointInSphere( 1.0 );
+				const theta = ThreeMath.randFloat( 0, Math.PI * 2 );
+				const phi = ThreeMath.randFloat( 0, Math.PI * 2 );
 
-				posData[ 4 * i + 0 ] = point.x;
-				posData[ 4 * i + 1 ] = point.y;
-				posData[ 4 * i + 2 ] = point.z;
+				const pos = sphericalToCartesians( this.particleSettings.radius, theta, phi );
+				
+				// const pos = randomPointInSphere( 1 );
+
+				posData[ 4 * i + 0 ] = pos.x;
+				posData[ 4 * i + 1 ] = pos.y;
+				posData[ 4 * i + 2 ] = pos.z;
 				posData[ 4 * i + 3 ] = 1.0;
 
 				const minAge = this.particleSettings.lifeRange[0];
 				const maxAge = this.particleSettings.lifeRange[1];
 
-				lifeData[ 4 * i + 0 ] = minAge + Math.random() * ( maxAge - minAge );
-				lifeData[ 4 * i + 1 ] = 0;
-				lifeData[ 4 * i + 2 ] = 0;
-				lifeData[ 4 * i + 3 ] = 0;
+				particleData[ 4 * i + 0 ] = minAge + Math.random() * ( maxAge - minAge );
+				particleData[ 4 * i + 1 ] = theta;
+				particleData[ 4 * i + 2 ] = phi;
+				particleData[ 4 * i + 3 ] = 0;
+
 
 		}
 
-		console.log( lifeData );
 
 		const initPosBuffer = new DataTexture( posData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
 		initPosBuffer.needsUpdate = true;
 		initPosBuffer.flipY = true;
 
-		const lifeBuffer = new DataTexture( lifeData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
-		lifeBuffer.needsUpdate = true;
-		lifeBuffer.flipY = true;
+		const particleBuffer = new DataTexture( particleData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
+		particleBuffer.needsUpdate = true;
+		particleBuffer.flipY = true;
 
 		// Create the full screen triangle ready for blit
 
@@ -221,12 +242,12 @@ export default class App {
 
 		})
 
-		this.lifeProgram = new ShaderMaterial({
+		this.particleProgram = new ShaderMaterial({
 			
 			vertexShader: baseVertex,
 			fragmentShader: passthroughFragment,
 			uniforms: {
-				uTexture: { value: lifeBuffer }
+				uTexture: { value: particleBuffer }
 			}
 			
 		})
@@ -239,6 +260,7 @@ export default class App {
 				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
 				uTextureVelocity: { type: 't', value: null },
 				uTexturePosition: { type: 't', value: null },
+				uTextureParticle: { type: 't', value: particleBuffer },
 				uTextureFlow: { type: 't', value: new TextureLoader().load( 'assets/images/flowmap.png' ) },
 				uResolution: { value: new Vector2( this.textureWidth, this.textureHeight) },
 				uGravity: { value: this.particleSettings.gravity },
@@ -263,7 +285,7 @@ export default class App {
 				uTexelSize: { value: new Vector2( 1.0 / this.textureWidth, 1.0 / this.textureHeight ) },
 				uTextureVelocity: { type: 't', value: null },
 				uTexturePosition: { type: 't', value: null },
-				uTextureLife: { type: 't', value: lifeBuffer },
+				uTextureParticle: { type: 't', value: particleBuffer },
 				uTextureOrigin: { type: 't', value: initPosBuffer },
 				uResolution: { value: new Vector2( this.textureWidth, this.textureHeight) },
 				uGravity: { value: this.particleSettings.gravity },
@@ -289,10 +311,16 @@ export default class App {
 		this.bloomPass.strength = params.bloomStrength;
 		this.bloomPass.radius = params.bloomRadius;
 
+		this.fxaaPass = new ShaderPass( FXAAShader );
+
+		this.fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * this.renderer.getPixelRatio() );
+		this.fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * this.renderer.getPixelRatio() );
+
+
 		this.composer = new EffectComposer( this.renderer );
 		this.composer.addPass( this.renderScene );
 		this.composer.addPass( this.bloomPass );
-
+		
 
 	}
 
@@ -313,7 +341,7 @@ export default class App {
 
 		if ( displayHelper ) {
 
-			this.fbohelper.attach( fbo, displayName );
+			//this.fbohelper.attach( fbo, displayName );
 
 		}
 
@@ -385,12 +413,12 @@ export default class App {
 
 		);
 
-		this.life = this.createFBO(
+		this.particle = this.createFBO(
 
 			this.textureWidth,
 			this.textureHeight,
 			true,
-			'Life'
+			'Particle'
 
 		)
 
@@ -399,7 +427,7 @@ export default class App {
 		this.renderPass( this.initProgram, this.origin.fbo );
 		this.renderPass( this.initProgram, this.position.read.fbo );
 		
-		this.renderPass( this.lifeProgram, this.life.fbo );
+		this.renderPass( this.particleProgram, this.particle.fbo );
 
 	}
 
@@ -431,7 +459,7 @@ export default class App {
 
 		// Add Particles
 
-		this.particles = new InstancedParticles( { 
+		this.particles = new PointParticles( { 
 
 			particleCount: this.particleSettings.count * this.particleSettings.count,
 			settings: this.particleSettings
@@ -474,27 +502,40 @@ export default class App {
 		const dt = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
-		this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
-		this.velocityProgram.uniforms.uTexturePosition.value = this.position.write.fbo.texture;
-		this.velocityProgram.uniforms.uMouse.value = this.mouse;
-		this.velocityProgram.uniforms.uGravity.value = dt;
-		this.velocityProgram.uniforms.time.value = time;
-		this.velocityProgram.uniforms.dt.value = dt;		
-		this.renderPass( this.velocityProgram, this.velocity.write.fbo );
-		this.velocity.swap();
+
+		//this.velocity.swap();
+
 		
-		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
-		this.positionProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
-		this.positionProgram.uniforms.uTextureLife.value = this.life.fbo.texture;
+		// this.velocityProgram.uniforms.uTexturePosition.value = this.position.read.fbo.texture;
+		// this.velocityProgram.uniforms.uTextureVelocity.value = this.velocity.write.fbo.texture;
+		// this.velocityProgram.uniforms.uTextureParticle.value = this.particle.fbo.texture;
+		// this.velocityProgram.uniforms.uMouse.value = this.mouse;
+		// this.velocityProgram.uniforms.uGravity.value = dt;
+		// this.velocityProgram.uniforms.time.value = time;
+		// this.velocityProgram.uniforms.dt.value = dt;
+
+		
+		// this.renderPass( this.velocityProgram, this.velocity.read.fbo );	
+		
+		
+
+		this.position.swap();
+
+		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
+		this.positionProgram.uniforms.uTexturePosition.value = this.position.write.fbo.texture;
+		this.positionProgram.uniforms.uTextureParticle.value = this.particle.fbo.texture;
 		this.positionProgram.uniforms.uMouse.value = this.mouse;
 		this.positionProgram.uniforms.time.value = time;
 		this.positionProgram.uniforms.dt.value = dt;
-		this.renderPass( this.positionProgram, this.position.write.fbo );
-		this.position.swap();
 
 
-		this.particles.setUniforms( 'uTexturePosition', this.position.write.fbo.texture );
-		this.particles.setUniforms( 'uTextureVelocity', this.position.write.fbo.texture );
+		this.renderPass( this.positionProgram, this.position.read.fbo );
+		
+
+
+		this.particles.setUniforms( 'uTexturePosition', this.position.read.fbo.texture );
+		this.particles.setUniforms( 'uTextureVelocity', this.velocity.read.fbo.texture );
+		this.particles.setUniforms( 'uTextureParticle', this.particle.fbo.texture );
 		
 
 		//this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
