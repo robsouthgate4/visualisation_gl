@@ -112,6 +112,6 @@ void main() {
   
 
 
-    gl_FragColor = vec4( pos, age );
+    gl_FragColor = vec4( 1.0 );
    
 }

@@ -43,39 +43,16 @@ import baseVertex from '../shaders/baseVertex.glsl'
 import velocityFragment from '../shaders/velocityFrag.glsl'
 import positionFragment from '../shaders/positionFrag.glsl'
 import passthroughFragment from '../shaders/passthroughFrag.glsl'
-import PointParticles from './PointParticles/PointParticles';
 
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
+import Globe from './Globe/Globe';
 
-var params = {
-	exposure: 0.6,
-	bloomStrength: 1.3,
-	bloomThreshold: 0,
-	bloomRadius: 1.0
-};
+import PostProcessing from '../PostProcessing'
 
 export default class App {
 
 	constructor() {
 
-		// Particle settings 
-
-		this.particleSettings = {
-			
-			count: 1024,
-			birthRate: 0.5,
-			gravity: -0.2,
-			lifeRange: [ 1.01, 3.3 ],
-			speedRange: [ 0.5,1.0 ],
-			minTheta: Math.PI / 2.0 - 0.5, 
-			maxTheta: Math.PI / 2.0 + 0.5,
-			radius: 1
-
-		};
+		
 
 
 		this.renderer = new WebGLRenderer( { antialias: true } );
@@ -95,12 +72,42 @@ export default class App {
 		this.camera.near = 0.01;
 		this.camera.far = 10;
 
+		// FBO Helper
+
+		this.fbohelper = new FBOHelper( this.renderer );
+		this.fbohelper.setSize( window.innerWidth, window.innerHeight );
+
+
+		this.postProcessing = new PostProcessing( { renderer: this.renderer, scene: this.scene, camera: this.camera, FBOHelper: this.fbohelper } );
+
 		// Controls
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		this.controls.enableDamping = true;
 		this.controls.dampingFactor = 0.1;
 		this.mouse = new Vector2();
+
+
+		// Create Sphere geo
+
+		this.globe = new Globe( {} );
+		this.scene.add( this.globe );
+
+		// Particle settings 
+ 
+		this.particleSettings = {
+			
+			count: Math.sqrt( this.globe.geometry.attributes.position.count ),
+			birthRate: 0.5,
+			gravity: -0.2,
+			lifeRange: [ 1.01, 3.3 ],
+			speedRange: [ 0.5,1.0 ],
+			minTheta: Math.PI / 2.0 - 0.5, 
+			maxTheta: Math.PI / 2.0 + 0.5,
+			radius: 1
+
+		};
+
 
 		window.addEventListener( 'mousemove', ( e ) => {
 
@@ -111,20 +118,7 @@ export default class App {
 		this.tapPosition = new Vector2();
 		this.clock = new Clock();
 
-		// FBO Helper
-
-		this.fbohelper = new FBOHelper( this.renderer );
-		this.fbohelper.setSize( window.innerWidth, window.innerHeight );
-
-		const ambientLight = new AmbientLight( 0xFFFFFF, 0.01 );
-		this.scene.add( ambientLight );
-
-		const pointLight = new PointLight( 0xFFFFFF, 1, 100 );
-		pointLight.position.set( 10, 0, 10 );
-		this.scene.add( pointLight );
-
-		const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-		this.scene.add( directionalLight );
+		
 
 		this.init();
 
@@ -137,63 +131,8 @@ export default class App {
 
 		// Programs
 
-		const posData = new Float32Array( 4 * this.textureWidth * this.textureHeight );
+		const posData = new Float32Array( 3 * this.textureWidth * this.textureHeight );
 		const particleData =  new Float32Array( 4 * this.textureWidth * this.textureHeight );
-		const thetaData =  new Float32Array( this.textureWidth * this.textureHeight );
-		const phiData =  new Float32Array( this.textureWidth * this.textureHeight );
-
-		function randomPointInSphere( radius ) {
-
-			const v = new Vector3();
-
-			const x = ThreeMath.randFloat( -1, 1 );
-			const y = ThreeMath.randFloat( -1, 1 );
-			const z = ThreeMath.randFloat( -1, 1 );
-			const normalizationFactor = 1 / Math.sqrt( x * x + y * y + z * z );
-		  
-			v.x = x * normalizationFactor * radius;
-			v.y = y * normalizationFactor * radius;
-			v.z = z * normalizationFactor * radius;
-		  
-			return v;
-
-		}
-
-		function sphericalToCartesians( radius, theta, phi ) {
-
-			const x = radius * Math.sin( theta ) * Math.cos( phi );
-			const y = radius * Math.sin( theta ) * Math.sin( phi );
-			const z = radius * Math.cos( theta );
-
-			return new Vector3( x, y, z );
-
-		}
-		
-
-		for ( let i = 0; i < ( this.textureWidth * this.textureHeight ); i ++ ) {
-
-				const theta = ThreeMath.randFloat( 0, Math.PI * 2 );
-				const phi = ThreeMath.randFloat( 0, Math.PI * 2 );
-
-				const pos = sphericalToCartesians( this.particleSettings.radius, theta, phi );
-				
-				// const pos = randomPointInSphere( 1 );
-
-				posData[ 4 * i + 0 ] = pos.x;
-				posData[ 4 * i + 1 ] = pos.y;
-				posData[ 4 * i + 2 ] = pos.z;
-				posData[ 4 * i + 3 ] = 1.0;
-
-				const minAge = this.particleSettings.lifeRange[0];
-				const maxAge = this.particleSettings.lifeRange[1];
-
-				particleData[ 4 * i + 0 ] = minAge + Math.random() * ( maxAge - minAge );
-				particleData[ 4 * i + 1 ] = theta;
-				particleData[ 4 * i + 2 ] = phi;
-				particleData[ 4 * i + 3 ] = 0;
-
-
-		}
 
 
 		const initPosBuffer = new DataTexture( posData, this.textureWidth, this.textureHeight, RGBAFormat, FloatType );
@@ -225,12 +164,8 @@ export default class App {
 		this.gpuScene.add( this.screenMesh );
 
 
-		// Create life buffer data
-
-
 		// GPGPU		
-		
-		this.density = 1.0;
+	
 
 		this.initProgram = new ShaderMaterial({
 
@@ -303,23 +238,6 @@ export default class App {
 		});
 
 		this.initFrameBuffers();
-
-		this.renderScene = new RenderPass( this.scene, this.camera );
-
-		this.bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
-		this.bloomPass.threshold = params.bloomThreshold;
-		this.bloomPass.strength = params.bloomStrength;
-		this.bloomPass.radius = params.bloomRadius;
-
-		this.fxaaPass = new ShaderPass( FXAAShader );
-
-		this.fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * this.renderer.getPixelRatio() );
-		this.fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * this.renderer.getPixelRatio() );
-
-
-		this.composer = new EffectComposer( this.renderer );
-		this.composer.addPass( this.renderScene );
-		this.composer.addPass( this.bloomPass );
 		
 
 	}
@@ -341,7 +259,7 @@ export default class App {
 
 		if ( displayHelper ) {
 
-			//this.fbohelper.attach( fbo, displayName );
+			this.fbohelper.attach( fbo, displayName );
 
 		}
 
@@ -455,20 +373,7 @@ export default class App {
 
 	setupScene() {
 
-		this.camera.position.set( 0, 0, 2 );
-
-		// Add Particles
-
-		this.particles = new PointParticles( { 
-
-			particleCount: this.particleSettings.count * this.particleSettings.count,
-			settings: this.particleSettings
-
-		 } );
-
-		 this.particles.setUniforms( 'uResolution', new Vector2( this.particleSettings.count, this.particleSettings.count ) );
-
-		 this.scene.add( this.particles );
+		this.camera.position.set( 0, 0, 4 );
 
 	}
 
@@ -519,36 +424,29 @@ export default class App {
 		
 		
 
-		this.position.swap();
+		// this.position.swap();
 
-		this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
-		this.positionProgram.uniforms.uTexturePosition.value = this.position.write.fbo.texture;
-		this.positionProgram.uniforms.uTextureParticle.value = this.particle.fbo.texture;
-		this.positionProgram.uniforms.uMouse.value = this.mouse;
-		this.positionProgram.uniforms.time.value = time;
-		this.positionProgram.uniforms.dt.value = dt;
+		// this.positionProgram.uniforms.uTextureVelocity.value = this.velocity.read.fbo.texture;
+		// this.positionProgram.uniforms.uTexturePosition.value = this.position.write.fbo.texture;
+		// this.positionProgram.uniforms.uTextureParticle.value = this.particle.fbo.texture;
+		// this.positionProgram.uniforms.uMouse.value = this.mouse;
+		// this.positionProgram.uniforms.time.value = time;
+		// this.positionProgram.uniforms.dt.value = dt;
+
+
+		this.globe.material.uniforms.uTime.value = time;
 
 
 		this.renderPass( this.positionProgram, this.position.read.fbo );
-		
 
+		this.renderer.render( this.scene, this.camera );
 
-		this.particles.setUniforms( 'uTexturePosition', this.position.read.fbo.texture );
-		this.particles.setUniforms( 'uTextureVelocity', this.velocity.read.fbo.texture );
-		this.particles.setUniforms( 'uTextureParticle', this.particle.fbo.texture );
-		
-
-		//this.displayProgram.uniforms.uTexture.value = this.position.write.fbo.texture;
-
-		//this.screenMesh.material = this.displayProgram;
-
-		//this.renderer.render( this.scene, this.camera );
-
-		this.composer.render();
+		this.postProcessing.render();
 	
 		this.fbohelper.update();
 
 		// Display
+
 		this.camera.lookAt( 0, 0, 0 );
 		this.controls.update();
 
