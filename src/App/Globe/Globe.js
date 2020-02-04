@@ -20,4 +20,10 @@ export default class Globe extends Mesh {
 
 	}
 
+	update( dt ) {
+
+		this.rotation.y += 0.02;
+
+	}
+
 }

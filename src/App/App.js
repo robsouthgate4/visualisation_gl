@@ -435,6 +435,7 @@ export default class App {
 
 
 		this.globe.material.uniforms.uTime.value = time;
+		this.globe.update();
 
 
 		this.renderPass( this.positionProgram, this.position.read.fbo );

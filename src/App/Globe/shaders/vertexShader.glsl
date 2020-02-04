@@ -32,7 +32,7 @@ varying vec3 n;
 #define PI 3.14159265359
 #define TwoPI 6.28
 
-float numSeg = 2.0;
+float numSeg = 10.0;
 
 varying vec3 vWorldPos;
 varying vec3 vWorldNormal;
@@ -71,19 +71,22 @@ void main() {
 
     vWorldPos = mat3( modelMatrix ) * position;
 
-    vWorldNormal = normalize( mat3( modelMatrix ) * normalize( normal ) );
+    
 
     vNormal = normal;
 
-    vNoise = cnoise( 1.0 * position + ( uTime * 0.1 ) ) * 0.5;
+    vNoise = cnoise( 1.5 * position + ( uTime * 0.1 ) ) * 0.2;
 
     vec3 newPos = position + normal * vNoise;
 
-    
+    vWorldNormal = normalize( mat3( modelMatrix ) * normalize( vNormal ) );
+         
 
     vec4 mvPos = modelViewMatrix * vec4( newPos , 1.0);
 
 	gl_Position = projectionMatrix * mvPos;
 
     vWorldPos = mat3( modelMatrix ) * position + normal * vNoise;
+    
 }
+

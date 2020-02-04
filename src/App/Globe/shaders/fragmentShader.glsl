@@ -43,6 +43,8 @@ vec2 envMapEquirect(vec3 wcNormal) {
 }
 
 
+
+
 void main() {
 
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
@@ -52,16 +54,18 @@ void main() {
     
 
     vec3 I = normalize(vWorldPos - cameraPosition.xyz);
-	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 6.0);
+	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 12.0);
 
 
     vec3 envColor = texture2D( uTextureMatCap, envMapEquirect( vWorldNormal ) ).rgb;
 
     
-	gl_FragColor = vec4( mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
 
-    vec3 norm = normalize( vNormal );
+    
+	//gl_FragColor = vec4( mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
 
-    //gl_FragColor = vec4( vec3( vNoise ), 1.0);
+    vec3 norm = vNormal;
+
+    gl_FragColor = vec4( mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
 
 }
