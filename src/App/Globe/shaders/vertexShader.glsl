@@ -96,11 +96,7 @@ void main() {
 
     vNormal = normal;
 
-    vNoise = cnoise( 1.5 * position + ( uTime * 0.1 ) ) * 0.2;
-
-    vec3 newPos = position + normal * vNoise;
-
-   
+    vNoise = cnoise( 1.5 * position + ( uTime * 0.1 ) ) * 0.2;   
 
     float freq = 30.0;
 
@@ -111,14 +107,17 @@ void main() {
     pos = pos + normal * sin( angle ) * amp;
     
 
-    //pos = pos + normal * vNoise;
+    //pos = pos + normal * vNoise;s
 
     vNoiseWave = pos + normal * sin( angle ) * amp;
 
     vWorldPos = mat3( modelMatrix ) * pos + normal * sin( angle ) * amp;
 
     e = normalize( vec3( modelViewMatrix * vec4( pos, 1.0 ) ) );
+
     n = normalize( normalMatrix * normal + sin( angle ) * amp );
+
+
     vWorldNormal = normalize( mat3( modelMatrix ) * normalize( vNormal ) );
 
          
