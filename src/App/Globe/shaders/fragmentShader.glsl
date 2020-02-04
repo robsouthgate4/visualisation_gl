@@ -23,6 +23,8 @@ varying vec3 n;
 
 varying vec3 vWorldPos;
 varying vec3 vWorldNormal;
+varying vec3 vUpdatedNormal;
+varying float vNoise;
 
 #define PI 3.14159265359
 #define TwoPI 6.28
@@ -47,18 +49,19 @@ void main() {
 
     vec4 pos = texture2D( uTexturePosition, vOffset.xy );
     vec3 vel = texture2D( uTextureVelocity, vOffset.xy ).rgb;
-
     
 
     vec3 I = normalize(vWorldPos - cameraPosition.xyz);
-
 	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 6.0);
+
 
     vec3 envColor = texture2D( uTextureMatCap, envMapEquirect( vWorldNormal ) ).rgb;
 
     
-	//gl_FragColor = vec4( envColor + mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
+	gl_FragColor = vec4( mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
 
-    gl_FragColor = vec4( vWorldNormal, 1.0);
+    vec3 norm = normalize( vNormal );
+
+    //gl_FragColor = vec4( vec3( vNoise ), 1.0);
 
 }

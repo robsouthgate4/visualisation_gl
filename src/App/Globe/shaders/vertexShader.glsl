@@ -1,3 +1,5 @@
+#pragma glslify: cnoise = require(glsl-noise/classic/3d)
+
 attribute float pindex;
 attribute vec3 position;
 attribute vec3 normal;
@@ -30,10 +32,12 @@ varying vec3 n;
 #define PI 3.14159265359
 #define TwoPI 6.28
 
-float numSeg = 5.0;
+float numSeg = 2.0;
 
 varying vec3 vWorldPos;
 varying vec3 vWorldNormal;
+varying vec3 vUpdatedNormal;
+varying float vNoise;
 
 vec3 getPosition( vec3 values ) {
 
@@ -62,17 +66,24 @@ void main() {
 
     vPosition = pos.xyz;
 
-    vec3 newPos = getPosition( pos );
 
     // pos.y += sin( uTime * pos.x );
 
-    vWorldPos = mat3( modelMatrix ) * position;//careful here
+    vWorldPos = mat3( modelMatrix ) * position;
 
     vWorldNormal = normalize( mat3( modelMatrix ) * normalize( normal ) );
 
     vNormal = normal;
 
-    vec4 mvPos = modelViewMatrix * vec4( pos , 1.0);
+    vNoise = cnoise( 1.0 * position + ( uTime * 0.1 ) ) * 0.5;
+
+    vec3 newPos = position + normal * vNoise;
+
+    
+
+    vec4 mvPos = modelViewMatrix * vec4( newPos , 1.0);
 
 	gl_Position = projectionMatrix * mvPos;
+
+    vWorldPos = mat3( modelMatrix ) * position + normal * vNoise;
 }
