@@ -25,6 +25,7 @@ varying vec3 vWorldPos;
 varying vec3 vWorldNormal;
 varying vec3 vUpdatedNormal;
 varying float vNoise;
+varying vec3 vNoiseWave;
 
 #define PI 3.14159265359
 #define TwoPI 6.28
@@ -47,6 +48,10 @@ vec2 envMapEquirect(vec3 wcNormal) {
 
 void main() {
 
+    vec3 ref = reflect( e, n );
+    float m = 2. * sqrt( pow( ref.x, 2. ) + pow( ref.y, 2. ) + pow( ref.z + 1., 2. ) );
+    vec2 vN = ref.xy / m + .5;
+
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
     vec4 pos = texture2D( uTexturePosition, vOffset.xy );
@@ -54,18 +59,25 @@ void main() {
     
 
     vec3 I = normalize(vWorldPos - cameraPosition.xyz);
-	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 12.0);
+	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 8.0);
 
 
-    vec3 envColor = texture2D( uTextureMatCap, envMapEquirect( vWorldNormal ) ).rgb;
+    //vec3 envColor = texture2D( uTextureMatCap, envMapEquirect( vWorldNormal ) ).rgb;
 
-    
+    //vN += vNormal.xy * 0.05;
 
-    
-	//gl_FragColor = vec4( mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
+    vec3 envColor = texture2D( uTextureMatCap, vN ).rgb;
 
-    vec3 norm = vNormal;
 
-    gl_FragColor = vec4( mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
+
+	//gl_FragColor = vec4( envColor * 0.5 + mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
+
+    envColor *= length(vNoiseWave);
+
+    vec3 color = mix( envColor, vec3(1.0), pow(length(vNoiseWave) * 0.6, 40.0));
+
+    color += mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r);
+
+    gl_FragColor = vec4( color, 1.0);
 
 }

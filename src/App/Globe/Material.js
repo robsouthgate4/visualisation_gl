@@ -14,7 +14,7 @@ export default class Material extends RawShaderMaterial {
 			uSize: { value: 0.0 },
 			uTexturePosition: { value: null },
 			uTextureVelocity: { value: null },
-			uTextureMatCap: { value: new TextureLoader().load( 'assets/images/env/00-1.jpg' ) },
+			uTextureMatCap: { value: new TextureLoader().load( 'assets/images/matcapHD.png' ) },
 			uResolution: { value: null },
 		};
 

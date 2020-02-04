@@ -38,6 +38,7 @@ varying vec3 vWorldPos;
 varying vec3 vWorldNormal;
 varying vec3 vUpdatedNormal;
 varying float vNoise;
+varying vec3 vNoiseWave;
 
 vec3 getPosition( vec3 values ) {
 
@@ -54,7 +55,27 @@ vec3 getPosition( vec3 values ) {
 
 }
 
+vec3 getWaveHeight(vec3 pos, vec3 rCenter, float wH, float wF, float wL) {
+
+    float dist = distance(pos, rCenter);
+    float distWave = distance(dist, wF);
+    float rOffset = 0.0;
+
+    if(distWave < wL) {
+    
+        float t = (dist - wF + wL)/wL; // 0 ~ waveLength * 2.0;
+        rOffset = -cos(t*PI) + 1.0;
+    }
+
+    // rOffset = smoothstep(0.0, 1.0, rOffset);
+
+    vec3 tmpPos = normalize(pos) * 1.0;
+    return tmpPos * rOffset * wH;
+}
+
 void main() {
+
+   
 
     vUv = uv;
 
@@ -79,14 +100,37 @@ void main() {
 
     vec3 newPos = position + normal * vNoise;
 
+   
+
+    float freq = 30.0;
+
+    float amp = 0.02;
+
+    float angle = ( ( uTime * 0.3) + position.z ) * freq;
+
+    pos = pos + normal * sin( angle ) * amp;
+    
+
+    //pos = pos + normal * vNoise;
+
+    vNoiseWave = pos + normal * sin( angle ) * amp;
+
+    vWorldPos = mat3( modelMatrix ) * pos + normal * sin( angle ) * amp;
+
+    e = normalize( vec3( modelViewMatrix * vec4( pos, 1.0 ) ) );
+    n = normalize( normalMatrix * normal + sin( angle ) * amp );
     vWorldNormal = normalize( mat3( modelMatrix ) * normalize( vNormal ) );
+
          
 
-    vec4 mvPos = modelViewMatrix * vec4( newPos , 1.0);
+    vec4 mvPos = modelViewMatrix * vec4( pos , 1.0);
+
+
+   
 
 	gl_Position = projectionMatrix * mvPos;
 
-    vWorldPos = mat3( modelMatrix ) * position + normal * vNoise;
+    
     
 }
 

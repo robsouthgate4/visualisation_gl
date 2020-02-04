@@ -151,18 +151,22 @@ vec3 getFinalPos(vec3 pos) {
 void main() {
     
     vec3 pos = getPosition(position.x, position.y, position.z);
+
     vec3 p0  = getPosition(position.x+1.0, position.y, position.z);
+
     vec3 p1  = getPosition(position.x, position.y+1.0, position.z);
 
     // vec3 posRippleCenter = rippleCenter;
     
     vec3 finalPos  = getFinalPos(pos);
+
     vec3 finalPos0 = getFinalPos(p0);
+
     vec3 finalPos1 = getFinalPos(p1);
     
     vec3 v0 = finalPos0 - finalPos;
-    vec3 v1 = finalPos1 - finalPos;
-    
+
+    vec3 v1 = finalPos1 - finalPos;    
     
 
     if(length(v0) == 0.0) {
@@ -204,7 +208,7 @@ uniform float exportNormal;
 void main() {
     vec3 color = vNormal;
 
-vec3 r = reflect( eye, vNormal );
+v   ec3 r = reflect( eye, vNormal );
     float m = 2. * sqrt( pow( r.x, 2. ) + pow( r.y, 2. ) + pow( r.z + 1., 2. ) );
     vec2 vN = r.xy / m + .5;
 
