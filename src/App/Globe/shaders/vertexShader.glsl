@@ -18,6 +18,8 @@ uniform float uRandom;
 uniform float uDepth;
 uniform float uSize;
 
+uniform vec3 uPoint;
+
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTextureVelocity;
 
@@ -39,6 +41,8 @@ varying vec3 vWorldNormal;
 varying vec3 vUpdatedNormal;
 varying float vNoise;
 varying vec3 vNoiseWave;
+
+varying float vDist;
 
 vec3 getPosition( vec3 values ) {
 
@@ -88,6 +92,8 @@ void main() {
     vPosition = pos.xyz;
 
 
+    vDist = distance( uPoint, pos ); 
+
     // pos.y += sin( uTime * pos.x );
 
     vWorldPos = mat3( modelMatrix ) * position;
@@ -96,7 +102,7 @@ void main() {
 
     vNormal = normal;
 
-    vNoise = cnoise( 1.5 * position + ( uTime * 0.1 ) ) * 0.2;
+    vNoise = cnoise( 1.5 * position + ( uTime * 0.1 ) ) * 0.05;
 
     vec3 newPos = position + normal * vNoise;
 
@@ -104,21 +110,26 @@ void main() {
 
     float freq = 30.0;
 
-    float amp = 0.02;
+    float amp = 0.06;
 
     float angle = ( ( uTime * 0.3) + position.z ) * freq;
 
-    pos = pos + normal * sin( angle ) * amp;
+    //pos = pos + normal * sin( angle ) * amp;
     
 
-    //pos = pos + normal * vNoise;
+    pos = pos + normal * vNoise;
+
+    // vNoiseWave = pos + normal * sin( angle ) * amp;
 
     vNoiseWave = pos + normal * sin( angle ) * amp;
 
     vWorldPos = mat3( modelMatrix ) * pos + normal * sin( angle ) * amp;
 
     e = normalize( vec3( modelViewMatrix * vec4( pos, 1.0 ) ) );
+    
     n = normalize( normalMatrix * normal + sin( angle ) * amp );
+    //n = normalize( normalMatrix * normal );
+
     vWorldNormal = normalize( mat3( modelMatrix ) * normalize( vNormal ) );
 
          

@@ -52,9 +52,6 @@ export default class App {
 
 	constructor() {
 
-		
-
-
 		this.renderer = new WebGLRenderer( { antialias: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
@@ -90,7 +87,7 @@ export default class App {
 
 		// Create Sphere geo
 
-		this.globe = new Globe( {} );
+		this.globe = new Globe( { camera: this.camera, scene: this.scene } );
 		this.scene.add( this.globe );
 
 		// Particle settings 
@@ -116,9 +113,7 @@ export default class App {
 		} );
 
 		this.tapPosition = new Vector2();
-		this.clock = new Clock();
-
-		
+		this.clock = new Clock();		
 
 		this.init();
 

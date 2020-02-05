@@ -26,6 +26,7 @@ varying vec3 vWorldNormal;
 varying vec3 vUpdatedNormal;
 varying float vNoise;
 varying vec3 vNoiseWave;
+varying float vDist;
 
 #define PI 3.14159265359
 #define TwoPI 6.28
@@ -72,11 +73,13 @@ void main() {
 
 	//gl_FragColor = vec4( envColor * 0.5 + mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
 
-    envColor *= length(vNoiseWave);
+    envColor *= length(n);
 
-    vec3 color = mix( envColor, vec3(1.0), pow(length(vNoiseWave) * 0.6, 40.0));
+    vec3 color = mix( envColor, vec3(1.0), pow(length(n) * 0.6, 40.0));
 
     color += mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r);
+
+    //color += vDist;
 
     gl_FragColor = vec4( color, 1.0);
 

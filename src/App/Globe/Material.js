@@ -1,4 +1,4 @@
-import { RawShaderMaterial, DoubleSide, AdditiveBlending, ShaderMaterial, FrontSide, TextureLoader } from "three";
+import { RawShaderMaterial, DoubleSide, AdditiveBlending, ShaderMaterial, FrontSide, TextureLoader, Vector3 } from "three";
 import vertexShader from './shaders/vertexShader.glsl';
 import fragmentShader from './shaders/fragmentShader.glsl';
 
@@ -16,6 +16,7 @@ export default class Material extends RawShaderMaterial {
 			uTextureVelocity: { value: null },
 			uTextureMatCap: { value: new TextureLoader().load( 'assets/images/matcapHD.png' ) },
 			uResolution: { value: null },
+			uPoint: { value: new Vector3() }
 		};
 
 		super( { uniforms, vertexShader, fragmentShader, depthTest: true, depthFunc: true, transparent: true, side: FrontSide } );
