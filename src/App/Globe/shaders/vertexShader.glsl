@@ -113,7 +113,7 @@ void main() {
 
     vec3 newPos = position + normal * vNoise;   
 
-    float freq = 2.0 / ( uWaveTime * 0.3 ) * 0.1;
+    float freq = 4.0 / ( uWaveTime * 0.3 ) * 0.1;
 
     float amp = uAmp * vDist;
 
@@ -131,7 +131,7 @@ void main() {
 
     e = normalize( vec3( modelViewMatrix * vec4( pos, 1.0 ) ) );
     
-    n = normalize( normalMatrix * normal + sin( angle ) * amp * 1.5 );
+    n = normalize( normalMatrix * normal + sin( angle ) * amp * 0.4 );
 
     //n = normalize( normalMatrix * normal );
 

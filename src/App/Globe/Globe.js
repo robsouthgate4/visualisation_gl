@@ -43,7 +43,7 @@ export default class Globe extends Mesh {
 
 				this.setUniforms( 'uPoint', point );
 				
-				this.amplitude = 0.3;
+				this.amplitude = 0.6;
 				this.waveTime = 0;
 				this.triggerWaveTime = true;
 
@@ -82,7 +82,7 @@ export default class Globe extends Mesh {
 
 		}
 
-		if ( this.waveTime >= 6.0 ) {
+		if ( this.waveTime >= 3.0 ) {
 
 			this.waveTime = 0.0;
 
@@ -92,13 +92,13 @@ export default class Globe extends Mesh {
 
 		if ( this.amplitude > 0.01 ) {
 
-			this.amplitude *= 0.98;
+			this.amplitude *= 0.99;
 
 		 }
 
 		 if ( this.waveTime > 0.01 ) {
 
-			this.waveTime *= 0.98;
+			this.waveTime *= 0.92;
 
 		 }
 

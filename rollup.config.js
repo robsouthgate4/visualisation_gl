@@ -56,7 +56,7 @@ export default {
 			contentBase: 'dist',
 			// Options used in setting up server
 			host: '0.0.0.0',
-			port: 4000,
+			port: 9000,
 			headers: {
 				'Access-Control-Allow-Origin': '*'
 			}

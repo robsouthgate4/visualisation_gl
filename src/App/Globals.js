@@ -1,3 +1,5 @@
-export default Globals = {
-    camera: null
+const Globals = {
+    renderer: null
 };
+
+export default Globals;
