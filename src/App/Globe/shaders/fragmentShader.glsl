@@ -69,8 +69,6 @@ void main() {
 
     vec3 envColor = texture2D( uTextureMatCap, vN ).rgb;
 
-
-
 	//gl_FragColor = vec4( envColor * 0.5 + mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
 
     envColor *= length(n);

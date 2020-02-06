@@ -1,5 +1,5 @@
 {
-  "name": "lays_champions_league",
+  "name": "visualisation_gl",
   "description": "THREE.js rollup project",
   "engines": {
     "node": ">=6.9.0"

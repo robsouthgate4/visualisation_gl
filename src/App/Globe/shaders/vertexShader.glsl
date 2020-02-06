@@ -19,7 +19,8 @@ uniform float uDepth;
 uniform float uSize;
 
 uniform vec3 uPoint;
-
+uniform float uAmp;
+uniform float uWaveTime;
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTextureVelocity;
 
@@ -98,24 +99,27 @@ void main() {
 
     vWorldPos = mat3( modelMatrix ) * position;
 
-    
+    // Sawtooth function to pulse from centre.
+
+    float offset = (( uTime - floor( uTime ) ) / uTime) * 3.0;
+
+	float currentTIme = uWaveTime;   
 
     vNormal = normal;
 
-    vNoise = cnoise( 1.5 * position + ( uTime * 0.1 ) ) * 0.05;
+    vNoise = cnoise( 1.5 * position + ( uTime * 0.3 ) ) * 0.05;
 
-    vec3 newPos = position + normal * vNoise;
+    vNoise += ( uAmp * uWaveTime * 0.1);
 
-   
+    vec3 newPos = position + normal * vNoise;   
 
-    float freq = 30.0;
+    float freq = 2.0 / ( uWaveTime * 0.3 ) * 0.1;
 
-    float amp = 0.06;
+    float amp = uAmp * vDist;
 
-    float angle = ( ( uTime * 0.3) + position.z ) * freq;
+    float angle = ( ( currentTIme * 0.1 ) - vDist ) * freq;
 
-    //pos = pos + normal * sin( angle ) * amp;
-    
+    //pos = pos + normal * sin( angle ) * amp;    
 
     pos = pos + normal * vNoise;
 
@@ -127,7 +131,8 @@ void main() {
 
     e = normalize( vec3( modelViewMatrix * vec4( pos, 1.0 ) ) );
     
-    n = normalize( normalMatrix * normal + sin( angle ) * amp );
+    n = normalize( normalMatrix * normal + sin( angle ) * amp * 1.5 );
+
     //n = normalize( normalMatrix * normal );
 
     vWorldNormal = normalize( mat3( modelMatrix ) * normalize( vNormal ) );

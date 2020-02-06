@@ -5,10 +5,6 @@ import livereload from 'rollup-plugin-livereload'
 import glslify from 'rollup-plugin-glslify'
 import copy from 'rollup-plugin-copy'
 import htmlTemplate from 'rollup-plugin-generate-html-template'
-import del from 'rollup-plugin-delete'
-import path from 'path'
-import scss from 'rollup-plugin-scss'
-import fs from 'fs'
 
 export default {
 	input: './src/index.js',

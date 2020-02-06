@@ -16,7 +16,9 @@ export default class Material extends RawShaderMaterial {
 			uTextureVelocity: { value: null },
 			uTextureMatCap: { value: new TextureLoader().load( 'assets/images/matcapHD.png' ) },
 			uResolution: { value: null },
-			uPoint: { value: new Vector3() }
+			uPoint: { value: new Vector3() },
+			uAmp: { value: 0 },
+			uWaveTime: { value: 0 }
 		};
 
 		super( { uniforms, vertexShader, fragmentShader, depthTest: true, depthFunc: true, transparent: true, side: FrontSide } );

@@ -18,6 +18,9 @@ export default class Globe extends Mesh {
 		this.raycaster = new Raycaster();
 		this.mouse = new Vector2();
 
+		this.amplitude = 0;
+		this.waveTime = 0;
+
 		window.addEventListener( 'mousedown', ( e ) => {
 
 			this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
@@ -27,7 +30,6 @@ export default class Globe extends Mesh {
 			this.raycaster.setFromCamera( this.mouse, this.camera );
 
 			const intersects = this.raycaster.intersectObjects( this.scene.children );
-			
 
 			const mesh = intersects[ 0 ];
 
@@ -40,6 +42,10 @@ export default class Globe extends Mesh {
 				const point = mesh.point;
 
 				this.setUniforms( 'uPoint', point );
+				
+				this.amplitude = 0.3;
+				this.waveTime = 0;
+				this.triggerWaveTime = true;
 
 				// const vertices = mesh.object.geometry.vertices;
 				// const v = new Vector3();
@@ -69,8 +75,36 @@ export default class Globe extends Mesh {
 	}
 
 	update( dt ) {
+		
+		if ( this.triggerWaveTime ) {
 
-		//this.rotation.y += 0.02;
+			this.waveTime += 0.01;
+
+		}
+
+		if ( this.waveTime >= 6.0 ) {
+
+			this.waveTime = 0.0;
+
+			this.triggerWaveTime = false;
+
+		}
+
+		if ( this.amplitude > 0.01 ) {
+
+			this.amplitude *= 0.98;
+
+		 }
+
+		 if ( this.waveTime > 0.01 ) {
+
+			this.waveTime *= 0.98;
+
+		 }
+
+		 this.setUniforms( 'uAmp', this.amplitude );
+		 this.setUniforms( 'uWaveTime', this.waveTime );
+		
 
 	}
 
