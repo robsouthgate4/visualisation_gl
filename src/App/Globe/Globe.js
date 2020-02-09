@@ -37,8 +37,6 @@ export default class Globe extends Mesh {
 
 			if ( mesh ) {
 
-				console.log( mesh );
-
 				const face = mesh.face;
 
 				const point = mesh.point;
@@ -48,17 +46,6 @@ export default class Globe extends Mesh {
 				this.amplitude = 0.6;
 				this.waveTime = 0;
 				this.triggerWaveTime = true;
-
-				// const vertices = mesh.object.geometry.vertices;
-				// const v = new Vector3();
-
-				
-
-				// v.x = ( vertices[face.a].x + vertices[face.b].x + vertices[face.c].x ) / 3;
-				// v.y = ( vertices[face.a].y + vertices[face.b].y + vertices[face.c].y ) / 3;
-				// v.z = ( vertices[face.a].z + vertices[face.b].z + vertices[face.c].z ) / 3;
-
-				// console.log( v );
 
 			}
 

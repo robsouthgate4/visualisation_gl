@@ -9,7 +9,7 @@ import triangleFragment from '../shaders/screenTriangle/triangleFrag.glsl'
 const defaultVertex = triangleVertex;
 const defaultFragment = triangleFragment;
 
-import copyFragment from '../shaders/copyFragment.glsl'
+import brightnessFragment from '../shaders/brightnessFragment.glsl'
 import blurFragment from '../shaders/blurFragment.glsl'
 import mixFragment from '../shaders/mixFragment.glsl'
 import fxaaFragment from '../shaders/fxaaFragment.glsl'
@@ -32,9 +32,9 @@ export default class PostProcess {
         this.resolution = new Vector2();
         this.renderer.getDrawingBufferSize( this.resolution );
 
-       this.fboHelper.setSize( this.resolution.x, this.resolution.y );
+       this.fboHelper.setSize( window.innerWidth, window.innerHeight );
 
-        this.target = new WebGLRenderTarget( this.resolution.x, this.resolution.y, {
+        this.target = new WebGLRenderTarget( window.innerWidth, window.innerHeight, {
 
             format: RGBFormat,
             stencilBuffer: false,
@@ -48,17 +48,17 @@ export default class PostProcess {
             vertexShader: defaultVertex,
             uniforms: {
                 uTexture: { value: this.target.texture },
-                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) }
+                uResolution: { value: new Vector2( window.innerWidth, window.innerHeight ) }
             }
 
         } );
 
-        this.copyMaterial = new ShaderMaterial( {
+        this.brightnessMaterial = new ShaderMaterial( {
             vertexShader: defaultVertex,
-            fragmentShader: copyFragment,
+            fragmentShader: brightnessFragment,
             uniforms: {
                 uTexture: { value: null },
-                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) }
+                uResolution: { value: new Vector2( window.innerWidth, window.innerHeight ) }
             }
         } );
 
@@ -67,7 +67,7 @@ export default class PostProcess {
             fragmentShader: blurFragment,
             uniforms: {
                 uTexture: { value: null },
-                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) },
+                uResolution: { value: new Vector2( window.innerWidth, window.innerHeight ) },
                 uDelta: { value: new Vector2() }
             }
         } );
@@ -78,7 +78,7 @@ export default class PostProcess {
             uniforms: {
                 uTexture1: { value: null },
                 uTexture2: { value: null },
-                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) },
+                uResolution: { value: new Vector2( window.innerWidth, window.innerHeight ) },
             }
         } );
 
@@ -87,7 +87,7 @@ export default class PostProcess {
             fragmentShader: fxaaFragment,
             uniforms: {
                 uTexture: { value: null },
-                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) },
+                uResolution: { value: new Vector2( window.innerWidth, window.innerHeight ) },
             }
         } );
 
@@ -140,16 +140,16 @@ export default class PostProcess {
         this.renderer.render( this.scene, this.dummyCamera );
         this.renderer.setRenderTarget( null );
 
-        this.copyMaterial.uniforms.uTexture.value = this.rtPost0.texture;
+        this.brightnessMaterial.uniforms.uTexture.value = this.rtPost0.texture;
         
-        this.mesh.material = this.copyMaterial;
+        this.mesh.material = this.brightnessMaterial;
 
         this.renderer.setRenderTarget( this.rtPost2 );
         this.renderer.render( this.scene, this.dummyCamera );
         this.renderer.setRenderTarget( null );        
         
 
-        for ( var i = 0; i < 8; i ++ ) {
+        for ( var i = 0; i < 16; i ++ ) {
 
             // Horizontal blur
 
@@ -169,16 +169,16 @@ export default class PostProcess {
 
             this.mesh.material = this.blurMaterial;
 
-            this.renderer.setRenderTarget( this.rtPost2 )
+            this.renderer.setRenderTarget( this.rtPost2 );
             this.renderer.render( this.scene, this.dummyCamera);
             this.renderer.setRenderTarget( null );           
 
         }
 
-        // Composite bloom
+        // Composite
 
-        this.compositeMaterial.uniforms.uTexture1.value = this.rtPost0.texture;
-        this.compositeMaterial.uniforms.uTexture2.value = this.rtPost2.texture;
+        this.compositeMaterial.uniforms.uTexture1.value = this.rtPost0.texture; // fxaa
+        this.compositeMaterial.uniforms.uTexture2.value = this.rtPost2.texture; // combined blur
 
         this.mesh.material = this.compositeMaterial;
 

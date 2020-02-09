@@ -61,6 +61,8 @@ export default class App {
 
 		} );
 
+		window.addEventListener( 'resize', this.onWindowResize.bind(this) )
+
 		this.tapPosition = new Vector2();
 		this.clock = new Clock();		
 
