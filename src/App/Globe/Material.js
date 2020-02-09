@@ -8,7 +8,7 @@ export default class Material extends RawShaderMaterial {
 	constructor( particleCount ) {
 
 		const uniforms = {
-			uTime: { value: 0 },
+			uTime: { value: 0.01 },
 			uRandom: { value: 1.0 },
 			uDepth: { value: 2.0 },
 			uSize: { value: 0.0 },
@@ -16,9 +16,9 @@ export default class Material extends RawShaderMaterial {
 			uTextureVelocity: { value: null },
 			uTextureMatCap: { value: new TextureLoader().load( 'assets/images/matcapHD.png' ) },
 			uResolution: { value: null },
-			uPoint: { value: new Vector3() },
-			uAmp: { value: 0 },
-			uWaveTime: { value: 0 }
+			uPoint: { value: new Vector3(1,1,1) },
+			uAmp: { value: 0.01 },
+			uWaveTime: { value: 0.01 }
 		};
 
 		super( { uniforms, vertexShader, fragmentShader, depthTest: true, depthFunc: true, transparent: true, side: FrontSide } );

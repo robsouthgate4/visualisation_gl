@@ -20,6 +20,8 @@ export default class Globe extends Mesh {
 
 		this.amplitude = 0;
 		this.waveTime = 0;
+		this.triggerWaveTime = true;
+
 
 		window.addEventListener( 'mousedown', ( e ) => {
 

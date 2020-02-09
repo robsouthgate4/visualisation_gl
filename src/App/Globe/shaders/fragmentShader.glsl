@@ -53,11 +53,7 @@ void main() {
     float m = 2. * sqrt( pow( ref.x, 2. ) + pow( ref.y, 2. ) + pow( ref.z + 1., 2. ) );
     vec2 vN = ref.xy / m + .5;
 
-    vec2 uv = gl_FragCoord.xy / uResolution.xy;
-
-    vec4 pos = texture2D( uTexturePosition, vOffset.xy );
-    vec3 vel = texture2D( uTextureVelocity, vOffset.xy ).rgb;
-    
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;    
 
     vec3 I = normalize(vWorldPos - cameraPosition.xyz);
 	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 8.0);
@@ -68,8 +64,6 @@ void main() {
     //vN += vNormal.xy * 0.05;
 
     vec3 envColor = texture2D( uTextureMatCap, vN ).rgb;
-
-	//gl_FragColor = vec4( envColor * 0.5 + mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r), 1.0);
 
     envColor *= length(n);
 

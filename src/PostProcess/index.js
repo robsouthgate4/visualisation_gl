@@ -1,7 +1,7 @@
 import FBOHelper from '../libs/THREE.FBOHelper';
 
 import Triangle from '../Triangle'
-import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene  } from 'three';
+import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter } from 'three';
 
 import triangleVertex from '../shaders/screenTriangle/triangleVert.glsl'
 import triangleFragment from '../shaders/screenTriangle/triangleFrag.glsl'
@@ -9,160 +9,182 @@ import triangleFragment from '../shaders/screenTriangle/triangleFrag.glsl'
 const defaultVertex = triangleVertex;
 const defaultFragment = triangleFragment;
 
-export default class PostProcessing {
+import copyFragment from '../shaders/copyFragment.glsl'
+import blurFragment from '../shaders/blurFragment.glsl'
+import mixFragment from '../shaders/mixFragment.glsl'
+import fxaaFragment from '../shaders/fxaaFragment.glsl'
 
-    constructor( { renderer, screenGeo = new Triangle(), targetOnly = null } ) {
-        
+
+export default class PostProcess {
+
+    constructor( renderer ) {       
+
         this.renderer = renderer;
+       
+        this.fboHelper = new FBOHelper( this.renderer );
 
-        this.targetOnly = targetOnly;
+        this.scene =  new Scene();
 
-        this.passes = [];
+        this.dummyCamera = new OrthographicCamera();
 
-        this.screenGeometry = screenGeo;
+        this.geometry = new Triangle();
 
-        this.camera = new OrthographicCamera();
-        this.scene = new Scene();
+        this.resolution = new Vector2();
+        this.renderer.getDrawingBufferSize( this.resolution );
 
-        const rendererSize = new Vector2();
-        this.renderer.getDrawingBufferSize( rendererSize );
+       this.fboHelper.setSize( this.resolution.x, this.resolution.y );
 
-        this.width = rendererSize.x;
-        this.height = rendererSize.y;
+        this.target = new WebGLRenderTarget( this.resolution.x, this.resolution.y, {
 
-        this.fbo = this.createDoubleFBO();
-        this.fbo.read.flipY = true;
-        this.fbo.write.flipY = true;
-
-        this.uniform = { value: null };
-
-    }
-
-    addPass( { 
-
-        name = '',
-        scene,
-        vertex = defaultVertex,
-        fragment = defaultFragment,
-        uniforms = {},
-        textureUniform = 'tMap',
-        enabled = true
-
-    } ) {
-
-        // FBO Helper
-
-		this.fbohelper = new FBOHelper( this.renderer );
-		this.fbohelper.setSize( this.width, this.height );
-
-        uniforms[ textureUniform ] = { value: this.fbo.read.texture };
-
-        const material = new ShaderMaterial( { 
-
-            vertexShader: vertex,
-            fragmentShader: fragment,
-            uniforms
+            format: RGBFormat,
+            stencilBuffer: false,
+            depthBuffer: true
 
         } );
 
-        
+        this.material = new ShaderMaterial( {
 
-        const mesh = new Mesh( this.screenGeometry, material );
-        mesh.frustumCulled = false;
-
-        const pass = {
-
-            mesh,
-            material,
-            uniforms,
-            enabled,
-            textureUniform,
-            scene
-        };
-
-        this.passes.push( pass );
-
-        this.fbohelper.attach( this.fbo.write, name )
-
-        return pass;
-
-    }
-
-    createDoubleFBO() {
-
-        return {
-
-            read: new WebGLRenderTarget( this.width, this.height, { depthBuffer: false, stencilBuffer: false  } ),
-            write: new WebGLRenderTarget( this.width, this.height, { depthBuffer: false, stencilBuffer: false } ),
-
-            swap: () => {
-
-                let temp = this.read;
-                this.read = this.write;
-                this.write = temp;
-
+            fragmentShader: defaultFragment,
+            vertexShader: defaultVertex,
+            uniforms: {
+                uTexture: { value: this.target.texture },
+                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) }
             }
 
-        }
+        } );
+
+        this.copyMaterial = new ShaderMaterial( {
+            vertexShader: defaultVertex,
+            fragmentShader: copyFragment,
+            uniforms: {
+                uTexture: { value: null },
+                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) }
+            }
+        } );
+
+        this.blurMaterial = new ShaderMaterial( {
+            vertexShader: defaultVertex,
+            fragmentShader: blurFragment,
+            uniforms: {
+                uTexture: { value: null },
+                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) },
+                uDelta: { value: new Vector2() }
+            }
+        } );
+
+        this.compositeMaterial = new ShaderMaterial( {
+            vertexShader: defaultVertex,
+            fragmentShader: mixFragment,
+            uniforms: {
+                uTexture1: { value: null },
+                uTexture2: { value: null },
+                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) },
+            }
+        } );
+
+        this.fxaaMaterial = new ShaderMaterial( {
+            vertexShader: defaultVertex,
+            fragmentShader: fxaaFragment,
+            uniforms: {
+                uTexture: { value: null },
+                uResolution: { value: new Vector2( this.resolution.x, this.resolution.y ) },
+            }
+        } );
+
+        this.mesh = new Mesh( this.geometry, this.material );
+
+        this.scene.add( this.mesh );
+
+        this.rtPost0 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+        this.rtPost0.texture.generateMipmaps = false;
+
+        this.rtPost1 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+        this.rtPost1.texture.generateMipmaps = false;
+
+        this.rtPost2 = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
+        this.rtPost2.texture.generateMipmaps = false;
+
+        this.rtPost3 = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
+        this.rtPost3.texture.generateMipmaps = false;
+
+        this.fboHelper.attach( this.rtPost1, 'Scene' );
+        this.fboHelper.attach( this.rtPost2, 'H blur' );
+        this.fboHelper.attach( this.rtPost3, 'V blur' );
+        this.fboHelper.attach( this.rtPost0, 'fxaa' )
 
     }
 
-    resize( { width, height, dpr } ) {
+    resize() {
 
-        if ( dpr ) this.dpr = dpr;
+        this.rtPost0.setSize( window.innerWidth, window.innerHeight );
+        this.rtPost1.setSize( window.innerWidth, window.innerHeight );
+        this.rtPost2.setSize( window.innerWidth / 8, window.innerHeight / 8 );
+        this.rtPost3.setSize( window.innerWidth / 8, window.innerHeight / 8 );
 
-        if ( width ) {
-
-            this.width = width;
-            this.height = height || width;
-
-        }
-
-        dpr = this.dpr || this.renderer.getPixelRatio();
-        width = ( this.width || this.renderer.width ) * dpr;
-        height = ( this.height || this.renderer.height ) * dpr;
-
-        this.fbo.read.setSize( width, height );
-        this.fbo.write.setSize( width, height );
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
 
     }
 
-    render( {
-
-        scene,
-        camera,
-        target = null,
-        update = true,
-        sort = true,
-        frustumCull = true
-
-    } ) {
-
-        const enabledPasses = this.passes.filter( pass => pass.enabled );
-
-        //this.renderer.setRenderTarget( this.fbo.write );
+    render ( scene, camera ) {        
         
-        //this.renderer.setRenderTarget( null );
 
-        this.fbo.swap();
-        
-        // enabledPasses.forEach( ( pass, i ) => {
-
-        //     pass.mesh.material.uniforms[ pass.textureUniform ].value = this.fbo.read.texture;
-
-        //     this.renderer.setRenderTarget( this.fbo.write )
-        //     this.renderer.render( pass.scene, camera );
-        //     this.renderer.setRenderTarget( null );
-
-        //     this.fbo.swap();
-
-        // } );
-
+        this.renderer.setRenderTarget( this.rtPost1 );
         this.renderer.render( scene, camera );
+        this.renderer.setRenderTarget( null );
 
-        this.fbohelper.update();
+        this.fxaaMaterial.uniforms.uTexture.value = this.rtPost1.texture;
+        
+        this.mesh.material = this.fxaaMaterial;
 
-        this.uniform.value = this.fbo.read.texture;
+        this.renderer.setRenderTarget( this.rtPost0 );
+        this.renderer.render( this.scene, this.dummyCamera );
+        this.renderer.setRenderTarget( null );
+
+        this.copyMaterial.uniforms.uTexture.value = this.rtPost0.texture;
+        
+        this.mesh.material = this.copyMaterial;
+
+        this.renderer.setRenderTarget( this.rtPost2 );
+        this.renderer.render( this.scene, this.dummyCamera );
+        this.renderer.setRenderTarget( null );        
+        
+
+        for ( var i = 0; i < 8; i ++ ) {
+
+            // Horizontal blur
+
+            this.blurMaterial.uniforms.uTexture.value = this.rtPost2.texture;
+            this.blurMaterial.uniforms.uDelta.value = new Vector2( 1 / this.rtPost2.width, 0 );
+
+            this.mesh.material = this.blurMaterial;
+
+            this.renderer.setRenderTarget( this.rtPost3 )
+            this.renderer.render( this.scene, this.dummyCamera);
+            this.renderer.setRenderTarget( null );
+
+            // Verical blur
+
+            this.blurMaterial.uniforms.uTexture.value = this.rtPost3.texture;
+            this.blurMaterial.uniforms.uDelta.value = new Vector2( 0, 1 / this.rtPost2.height );
+
+            this.mesh.material = this.blurMaterial;
+
+            this.renderer.setRenderTarget( this.rtPost2 )
+            this.renderer.render( this.scene, this.dummyCamera);
+            this.renderer.setRenderTarget( null );           
+
+        }
+
+        // Composite bloom
+
+        this.compositeMaterial.uniforms.uTexture1.value = this.rtPost0.texture;
+        this.compositeMaterial.uniforms.uTexture2.value = this.rtPost2.texture;
+
+        this.mesh.material = this.compositeMaterial;
+
+        this.renderer.render( this.scene, this.dummyCamera );        
+
+        this.fboHelper.update();
 
     }
 

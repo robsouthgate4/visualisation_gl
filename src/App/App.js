@@ -52,24 +52,8 @@ export default class App {
 
 
 		// Post processing
-
-		const fxaa = new FXAA();
 		
-		this.postProcess = new PostProcess( { renderer: this.renderer } );
-
-		this.postProcess.addPass( {
-
-			name: 'fxaa',
-			fragment: fxaa.fragment,
-			scene: fxaa.scene,
-			uniforms: {
-				uResolution: new Vector2( this.resolution.x, this.resolution.y )
-			}
-
-		} );
-
-		this.postProcess.resize( { width: this.resolution.x, height: this.resolution.y } );
-
+		this.postProcess = new PostProcess( this.renderer );
 
 		window.addEventListener( 'mousemove', ( e ) => {
 
@@ -97,6 +81,8 @@ export default class App {
 		this.camera.aspect = window.innerWidth / window.innerHeight;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
+
+		this.postProcess.resize();
 
 	}
 
@@ -127,8 +113,9 @@ export default class App {
 		this.camera.lookAt( 0, 0, 0 );
 		this.controls.update();
 
+		//this.renderer.render( this.scene, this.camera )
 
-		this.postProcess.render( { scene: this.scene, camera: this.camera } )
+		this.postProcess.render( this.scene, this.camera );
 
 		
 		requestAnimationFrame( this.render.bind( this ) );

@@ -78,6 +78,7 @@ vec3 getWaveHeight(vec3 pos, vec3 rCenter, float wH, float wF, float wL) {
     return tmpPos * rOffset * wH;
 }
 
+
 void main() {
 
    
