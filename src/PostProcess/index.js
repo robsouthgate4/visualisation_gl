@@ -34,20 +34,12 @@ export default class PostProcess {
 
        this.fboHelper.setSize( window.innerWidth, window.innerHeight );
 
-        this.target = new WebGLRenderTarget( window.innerWidth, window.innerHeight, {
-
-            format: RGBFormat,
-            stencilBuffer: false,
-            depthBuffer: true
-
-        } );
-
         this.material = new ShaderMaterial( {
 
             fragmentShader: defaultFragment,
             vertexShader: defaultVertex,
             uniforms: {
-                uTexture: { value: this.target.texture },
+                uTexture: { value: null },
                 uResolution: { value: new Vector2( window.innerWidth, window.innerHeight ) }
             }
 
@@ -127,6 +119,7 @@ export default class PostProcess {
 
     render ( scene, camera ) {        
         
+        // Render initial scene
 
         this.renderer.setRenderTarget( this.rtPost1 );
         this.renderer.render( scene, camera );
@@ -136,6 +129,8 @@ export default class PostProcess {
         
         this.mesh.material = this.fxaaMaterial;
 
+        // Render FXAA
+
         this.renderer.setRenderTarget( this.rtPost0 );
         this.renderer.render( this.scene, this.dummyCamera );
         this.renderer.setRenderTarget( null );
@@ -143,6 +138,8 @@ export default class PostProcess {
         this.brightnessMaterial.uniforms.uTexture.value = this.rtPost0.texture;
         
         this.mesh.material = this.brightnessMaterial;
+
+        // Render brightness
 
         this.renderer.setRenderTarget( this.rtPost2 );
         this.renderer.render( this.scene, this.dummyCamera );
