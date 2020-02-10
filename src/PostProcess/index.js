@@ -102,7 +102,7 @@ export default class PostProcess {
         this.fboHelper.attach( this.rtPost1, 'Scene' );
         this.fboHelper.attach( this.rtPost2, 'H blur' );
         this.fboHelper.attach( this.rtPost3, 'V blur' );
-        this.fboHelper.attach( this.rtPost0, 'fxaa' )
+        this.fboHelper.attach( this.rtPost0, 'fxaa' );
 
     }
 
