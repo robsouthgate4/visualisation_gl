@@ -1,15 +1,13 @@
 precision highp float;
 uniform float uTime;
-uniform sampler2D uTextureVelocity;
-// Default texture uniform for GPGPU pass is 'uTexture'.
-// Can use the textureUniform parameter to update.
-uniform sampler2D uTexture;
-varying vec2 vUv;
+uniform sampler2D uTexturePosition;
 
 void main() {
 
-    vec4 position = texture2D(uTexture, vUv);
-    vec4 velocity = texture2D(uTextureVelocity, vUv);
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+    vec4 position = texture2D(uTexturePosition, uv);
+    vec4 velocity = texture2D(uTextureVelocity, uv);
 
     // position.xy += velocity.xy * 0.01;
                     

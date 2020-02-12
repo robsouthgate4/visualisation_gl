@@ -82,7 +82,7 @@ export default class App {
 		const initialPositionData = new Float32Array(numParticles * 4);
 		const initialVelocityData = new Float32Array(numParticles * 4);
 
-		const random = new Float32Array(numParticles * 4);
+		const random = new Float32Array(numParticles * 4);		
 
 		for (let i = 0; i < numParticles; i++) {
 
@@ -104,33 +104,12 @@ export default class App {
 
 		}
 
-		const time = 0;
-		const mouse = new Vector2();
+		this.gpgpu = new GPGPU( {
 
-		this.positionCompute = new GPGPU( { data: initialPositionData, renderer: this.renderer, name: 'position', fboHelper: this.fboHelper } );
-		this.velocityCompute = new GPGPU( { data: initialVelocityData, renderer: this.renderer, name: 'velocity', fboHelper: this.fboHelper } );
+			numParticles,
+			renderer: this.renderer
 
-		// Add the simulation shaders as passes to each GPGPU class
-		this.positionCompute.addPass({
-
-			fragment: positionFragment,
-			uniforms: {
-				uTime: time,
-				uTextureVelocity: this.velocityCompute.dataTexture,
-			},
-
-		});
-
-		this.velocityCompute.addPass({
-
-			fragment: velocityFragment,
-			uniforms: {
-				uTime: time,
-				uMouse: mouse,
-				tPosition: this.positionCompute.dataTexture,
-			}
-			
-		});
+		} );
 
 
 	}
@@ -168,11 +147,8 @@ export default class App {
 		this.camera.lookAt( 0, 0, 0 );
 		this.controls.update();
 
-		//this.renderer.render( this.scene, this.camera )
-
-		this.positionCompute.render();
-		this.velocityCompute.render();
-
+		this.gpgpu.compute( dt, time );
+		
 		this.postProcess.render( this.scene, this.camera );
 
 		
