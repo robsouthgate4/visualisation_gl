@@ -3,25 +3,25 @@ import FBOHelper from '../libs/THREE.FBOHelper';
 import Triangle from '../Triangle'
 import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter } from 'three';
 
-import triangleVertex from '../shaders/screenTriangle/triangleVert.glsl'
-import triangleFragment from '../shaders/screenTriangle/triangleFrag.glsl'
+import triangleVertex from '../shaders/screenTriangle/triangleVert.glsl';
+import triangleFragment from '../shaders/screenTriangle/triangleFrag.glsl';
 
 const defaultVertex = triangleVertex;
 const defaultFragment = triangleFragment;
 
-import brightnessFragment from '../shaders/brightnessFragment.glsl'
-import blurFragment from '../shaders/blurFragment.glsl'
-import mixFragment from '../shaders/mixFragment.glsl'
-import fxaaFragment from '../shaders/fxaaFragment.glsl'
+import brightnessFragment from '../shaders/brightnessFragment.glsl';
+import blurFragment from '../shaders/blurFragment.glsl';
+import mixFragment from '../shaders/mixFragment.glsl';
+import fxaaFragment from '../shaders/fxaaFragment.glsl';
 
 
 export default class PostProcess {
 
-    constructor( renderer ) {       
+    constructor( renderer, fboHelper ) {       
 
         this.renderer = renderer;
        
-        this.fboHelper = new FBOHelper( this.renderer );
+        //this.fboHelper = new FBOHelper( this.renderer );
 
         this.scene =  new Scene();
 
@@ -32,7 +32,7 @@ export default class PostProcess {
         this.resolution = new Vector2();
         this.renderer.getDrawingBufferSize( this.resolution );
 
-       this.fboHelper.setSize( window.innerWidth, window.innerHeight );
+       //this.fboHelper.setSize( window.innerWidth, window.innerHeight );
 
         this.material = new ShaderMaterial( {
 
@@ -99,10 +99,10 @@ export default class PostProcess {
         this.rtPost3 = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
         this.rtPost3.texture.generateMipmaps = false;
 
-        this.fboHelper.attach( this.rtPost1, 'Scene' );
-        this.fboHelper.attach( this.rtPost2, 'H blur' );
-        this.fboHelper.attach( this.rtPost3, 'V blur' );
-        this.fboHelper.attach( this.rtPost0, 'fxaa' );
+        // this.fboHelper.attach( this.rtPost1, 'Scene' );
+        // this.fboHelper.attach( this.rtPost2, 'H blur' );
+        // this.fboHelper.attach( this.rtPost3, 'V blur' );
+        // this.fboHelper.attach( this.rtPost0, 'fxaa' );
 
     }
 
@@ -181,7 +181,7 @@ export default class PostProcess {
 
         this.renderer.render( this.scene, this.dummyCamera );        
 
-        this.fboHelper.update();
+        //this.fboHelper.update();
 
     }
 

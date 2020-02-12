@@ -9,11 +9,13 @@ import {
 	Color} from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
-import Globe from './Globe/Globe';
 import PostProcess from '../PostProcess';
-import FXAA from '../PostProcess/FXAA';
+import positionFragment from '../GPGPU/shaders/positionFragment.glsl'
+import velocityFragment from '../GPGPU/shaders/velocityFragment.glsl'
 
+import FBOHelper from '../libs/THREE.FBOHelper';
+
+import GPGPU from '../GPGPU'
 
 export default class App {
 
@@ -27,6 +29,8 @@ export default class App {
 
 		this.resolution = new Vector2();
 		this.renderer.getDrawingBufferSize( this.resolution );
+
+		this.fboHelper = new FBOHelper( this.renderer );
 
 		// Scene
 
@@ -44,11 +48,6 @@ export default class App {
 		this.controls.enableDamping = true;
 		this.controls.dampingFactor = 0.1;
 		this.mouse = new Vector2();
-
-		// Create Sphere geo
-
-		this.globe = new Globe( { camera: this.camera, scene: this.scene } );
-		this.scene.add( this.globe );
 
 
 		// Post processing
@@ -75,6 +74,64 @@ export default class App {
 		this.setupScene();
 		requestAnimationFrame( this.render.bind( this ) );
 		this.onWindowResize();
+
+		// Init GPGPUU
+
+		const numParticles = 65536;
+
+		const initialPositionData = new Float32Array(numParticles * 4);
+		const initialVelocityData = new Float32Array(numParticles * 4);
+
+		const random = new Float32Array(numParticles * 4);
+
+		for (let i = 0; i < numParticles; i++) {
+
+			initialPositionData.set([
+				( Math.random() - 0.5 ) * 2.0,
+				( Math.random() - 0.5 ) * 2.0,
+				0,
+				1,
+			], i * 4);
+
+			initialVelocityData.set([0, 0, 0, 1], i * 4);
+
+			random.set([
+				Math.random(),
+				Math.random(),
+				Math.random(),
+				Math.random(),
+			], i * 4);
+
+		}
+
+		const time = 0;
+		const mouse = new Vector2();
+
+		this.positionCompute = new GPGPU( { data: initialPositionData, renderer: this.renderer, name: 'position', fboHelper: this.fboHelper } );
+		this.velocityCompute = new GPGPU( { data: initialVelocityData, renderer: this.renderer, name: 'velocity', fboHelper: this.fboHelper } );
+
+		// Add the simulation shaders as passes to each GPGPU class
+		this.positionCompute.addPass({
+
+			fragment: positionFragment,
+			uniforms: {
+				uTime: time,
+				uTextureVelocity: this.velocityCompute.dataTexture,
+			},
+
+		});
+
+		this.velocityCompute.addPass({
+
+			fragment: velocityFragment,
+			uniforms: {
+				uTime: time,
+				uMouse: mouse,
+				tPosition: this.positionCompute.dataTexture,
+			}
+			
+		});
+
 
 	}
 
@@ -105,10 +162,6 @@ export default class App {
 		const dt = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
-		this.globe.material.uniforms.uTime.value = time;
-		this.globe.update();
-	
-		
 
 		// Display
 
@@ -116,6 +169,9 @@ export default class App {
 		this.controls.update();
 
 		//this.renderer.render( this.scene, this.camera )
+
+		this.positionCompute.render();
+		this.velocityCompute.render();
 
 		this.postProcess.render( this.scene, this.camera );
 
