@@ -16,7 +16,6 @@ export default class GPGPU {
         this.renderer = renderer;
 
         this.fboHelper = new FBOHelper( this.renderer );
-
         this.fboHelper.setSize( window.innerWidth, window.innerHeight );
 
         this.gpuCompute = new GPUComputationRenderer( Math.sqrt( numParticles ), Math.sqrt( numParticles ), this.renderer );
@@ -91,15 +90,18 @@ export default class GPGPU {
 
     }
 
+    getRenderTexture( variableName ) {
+
+        return this.gpuCompute.getCurrentRenderTarget( variableName ).texture;
+
+    }
+
     compute( dt, time ) {
 
         this.positionUniforms[ "uTime" ].value = time;
         this.positionUniforms[ "uDelta" ].value = dt;
         this.velocityUniforms[ "uTime" ].value = time;
         this.velocityUniforms[ "uDelta" ].value = dt;
-
-        // geoUniforms[ "texturePosition" ].value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
-        // geoUniforms[ "textureVelocity" ].value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
         
         this.fboHelper.update();
                 

@@ -18,15 +18,13 @@ export default class App {
 	constructor() {
 
 		this.renderer = new WebGLRenderer( );
-		this.renderer.setPixelRatio( window.devicePixelRatio );
+		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
-		this.renderer.setClearColor( new Color( 'rgb(0,0,0)' ), 1.0 );
+		this.renderer.setClearColor( new Color( 'rgb( 50, 50, 50 )' ), 1.0 );
 		document.body.appendChild( this.renderer.domElement );
 
 		this.resolution = new Vector2();
-		this.renderer.getDrawingBufferSize( this.resolution );
-
-		
+		this.renderer.getDrawingBufferSize( this.resolution );		
 
 		// Scene
 
@@ -71,7 +69,7 @@ export default class App {
 		requestAnimationFrame( this.render.bind( this ) );
 		this.onWindowResize();
 
-		// Init GPGPUU
+		// Init GPGPU
 
 		const numParticles = 65536;		
 
