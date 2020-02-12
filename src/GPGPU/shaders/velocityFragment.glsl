@@ -1,7 +1,6 @@
 precision highp float;
 uniform float uTime;
 uniform vec2 uMouse;
-uniform sampler2D uTexturePosition;
 
 void main() {
 
@@ -16,7 +15,12 @@ void main() {
     // velocity.xy += strength * normalize(toMouse) * 0.5;
 
     // // Friction
-    // velocity.xy *= 0.98;
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+
+    velocity = vec4(0.0);
+
+    //
+
+
+    gl_FragColor = velocity;
 
 }

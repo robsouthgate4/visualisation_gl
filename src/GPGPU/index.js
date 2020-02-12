@@ -3,24 +3,66 @@
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer';
 import velocityFragment from './shaders/velocityFragment.glsl';
 import positionFragment from './shaders/positionFragment.glsl';
-import { ClampToEdgeWrapping } from 'three';
+import { ClampToEdgeWrapping, RepeatWrapping, IcosahedronGeometry } from 'three';
+import { GeometryUtils } from 'three/examples/jsm/utils/GeometryUtils';
+
+import FBOHelper from '../libs/THREE.FBOHelper';
+
 
 export default class GPGPU {
 
-    constructor( { numParticles, renderer } ) {
+    constructor( { numParticles, renderer, fboHelper } ) {
 
         this.renderer = renderer;
 
-        this.gpuCompute = new GPUComputationRenderer( Math.sqrt( numParticles ), Math.sqrt( numParticles ), renderer );
+        this.fboHelper = new FBOHelper( this.renderer );
 
-        const dtPosition = this.gpuCompute.createTexture();
-        const dtVelocity = this.gpuCompute.createTexture();
+        this.fboHelper.setSize( window.innerWidth, window.innerHeight );
 
-        this.velocityVariable = this.gpuCompute.addVariable( "uTextureVelocity", velocityFragment, dtVelocity );
-        this.positionVariable = this.gpuCompute.addVariable( "texturePosition", positionFragment, dtPosition );
+        this.gpuCompute = new GPUComputationRenderer( Math.sqrt( numParticles ), Math.sqrt( numParticles ), this.renderer );
 
-        this.gpuCompute.setVariableDependencies( this.velocityVariable, [ this.positionVariable, this.velocityVariable ] );
-        this.gpuCompute.setVariableDependencies( this.positionVariable, [ this.positionVariable, this.velocityVariable ] );
+        this.dtPosition = this.gpuCompute.createTexture();
+		const posArray = this.dtPosition.image.data;
+
+		this.dtVelocity = this.gpuCompute.createTexture();
+		const velArray = this.dtVelocity.image.data;
+
+		// Position data
+
+		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 0.4, 4 ), posArray.length );
+
+		for ( let i = 0, l = posArray.length; i < l; i += 4 ) {
+
+			const x = shapePointCloud[ i ].x;
+			const y = shapePointCloud[ i ].y;
+            const z = shapePointCloud[ i ].z;
+            
+			posArray[ i + 0 ] = x;
+			posArray[ i + 1 ] = y;
+			posArray[ i + 2 ] = z;
+			posArray[ i + 3 ] = 0;
+
+		}
+
+		// Velocity data
+
+		for ( let i = 0, l = velArray.length; i < l; i += 4 ) {
+
+			const x = 0;
+			const y = 0;
+			const z = 0;
+			velArray[ i + 0 ] = x;
+			velArray[ i + 1 ] = y;
+			velArray[ i + 2 ] = z;
+			velArray[ i + 3 ] = 1;
+
+		}
+
+        this.positionVariable = this.gpuCompute.addVariable( "uTexturePosition", positionFragment, this.dtPosition );
+        this.velocityVariable = this.gpuCompute.addVariable( "uTextureVelocity", velocityFragment, this.dtVelocity );        
+
+        this.gpuCompute.setVariableDependencies( this.velocityVariable, [ this.velocityVariable, this.positionVariable ] );
+        this.gpuCompute.setVariableDependencies( this.positionVariable, [ this.velocityVariable, this.positionVariable ] );
 
         this.positionUniforms = this.positionVariable.material.uniforms;
         this.velocityUniforms = this.velocityVariable.material.uniforms;
@@ -35,6 +77,7 @@ export default class GPGPU {
         this.positionVariable.wrapS = ClampToEdgeWrapping;
         this.positionVariable.wrapT = ClampToEdgeWrapping;
 
+
         var error = this.gpuCompute.init();
 
         if ( error !== null ) {
@@ -43,10 +86,8 @@ export default class GPGPU {
 
         }
 
-    }
-
-    addPass() {
-
+        this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'position' );
+        this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ), 'velocity' );
 
     }
 
@@ -59,8 +100,11 @@ export default class GPGPU {
 
         // geoUniforms[ "texturePosition" ].value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
         // geoUniforms[ "textureVelocity" ].value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
+        
+        this.fboHelper.update();
                 
-        this.gpuCompute.compute();
+        this.gpuCompute.compute();       
+        
 
     }
 

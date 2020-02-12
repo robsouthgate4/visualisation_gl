@@ -1,4 +1,3 @@
-import FBOHelper from '../libs/THREE.FBOHelper';
 
 import Triangle from '../Triangle'
 import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter } from 'three';

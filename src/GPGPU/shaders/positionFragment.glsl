@@ -1,6 +1,5 @@
 precision highp float;
 uniform float uTime;
-uniform sampler2D uTexturePosition;
 
 void main() {
 
@@ -15,6 +14,9 @@ void main() {
     // vec2 limits = vec2(1);
     // position.xy += (1.0 - step(-limits.xy, position.xy)) * limits.xy * 2.0;
     // position.xy -= step(limits.xy, position.xy) * limits.xy * 2.0;
+
+    position.xyz += velocity.xyz;
+
     gl_FragColor = position;
 
 }

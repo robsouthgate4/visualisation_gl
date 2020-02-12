@@ -10,10 +10,6 @@ import {
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import PostProcess from '../PostProcess';
-import positionFragment from '../GPGPU/shaders/positionFragment.glsl'
-import velocityFragment from '../GPGPU/shaders/velocityFragment.glsl'
-
-import FBOHelper from '../libs/THREE.FBOHelper';
 
 import GPGPU from '../GPGPU'
 
@@ -30,7 +26,7 @@ export default class App {
 		this.resolution = new Vector2();
 		this.renderer.getDrawingBufferSize( this.resolution );
 
-		this.fboHelper = new FBOHelper( this.renderer );
+		
 
 		// Scene
 
@@ -77,32 +73,7 @@ export default class App {
 
 		// Init GPGPUU
 
-		const numParticles = 65536;
-
-		const initialPositionData = new Float32Array(numParticles * 4);
-		const initialVelocityData = new Float32Array(numParticles * 4);
-
-		const random = new Float32Array(numParticles * 4);		
-
-		for (let i = 0; i < numParticles; i++) {
-
-			initialPositionData.set([
-				( Math.random() - 0.5 ) * 2.0,
-				( Math.random() - 0.5 ) * 2.0,
-				0,
-				1,
-			], i * 4);
-
-			initialVelocityData.set([0, 0, 0, 1], i * 4);
-
-			random.set([
-				Math.random(),
-				Math.random(),
-				Math.random(),
-				Math.random(),
-			], i * 4);
-
-		}
+		const numParticles = 65536;		
 
 		this.gpgpu = new GPGPU( {
 
@@ -145,12 +116,11 @@ export default class App {
 		// Display
 
 		this.camera.lookAt( 0, 0, 0 );
-		this.controls.update();
-
-		this.gpgpu.compute( dt, time );
+		this.controls.update();		
 		
 		this.postProcess.render( this.scene, this.camera );
 
+		this.gpgpu.compute( dt, time );
 		
 		requestAnimationFrame( this.render.bind( this ) );
 
