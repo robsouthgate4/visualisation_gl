@@ -6,12 +6,22 @@ import {
 	WebGLRenderer,
 	Vector2,
 	Clock,
-	Color} from 'three';
+	Color,
+	DirectionalLight,
+	PCFSoftShadowMap,
+	PlaneGeometry,
+	MeshStandardMaterial,
+	Mesh,
+	Vector3,
+	DoubleSide,
+	MeshBasicMaterial,
+	Math as Math3} from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import PostProcess from '../PostProcess';
 
 import GPGPU from '../GPGPU'
+import Particles from "./Particles/Particles";
 
 export default class App {
 
@@ -21,6 +31,8 @@ export default class App {
 		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setClearColor( new Color( 'rgb( 50, 50, 50 )' ), 1.0 );
+		this.renderer.shadowMap.enabled = true;
+		this.renderer.shadowMap.type = PCFSoftShadowMap;
 		document.body.appendChild( this.renderer.domElement );
 
 		this.resolution = new Vector2();
@@ -80,6 +92,12 @@ export default class App {
 
 		} );
 
+		this.particles = new Particles( { particleCount: numParticles } );
+
+		this.particles.setUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
+
+		this.scene.add( this.particles );
+
 
 	}
 
@@ -103,6 +121,25 @@ export default class App {
 
 		this.camera.position.set( 0, 0, 4 );
 
+		this.floorGeo = new PlaneGeometry( 1000, 1000);
+		this.floorMaterial = new MeshBasicMaterial( { color: new Color( 'rgb( 150, 150, 150 )' ) } );
+		this.floorMaterial.side = DoubleSide;
+		this.floorMesh = new Mesh( this.floorGeo, this.floorMaterial );
+		this.floorMesh.rotateX( Math3.degToRad( 90 ) );
+		this.floorMesh.position.set( 0, -1, 0 );
+		this.floorMesh.receiveShadow = true;
+		this.scene.add( this.floorMesh );
+
+		this.directional = new DirectionalLight( 0xffffff, 1.0 );
+		this.directional.castShadow = true;
+
+		this.directional.shadow.mapSize.width = 512;  // default
+		this.directional.shadow.mapSize.height = 512; // default
+		this.directional.shadow.camera.near = 0.5;    // default
+		this.directional.shadow.camera.far = 500;     // default
+
+		this.scene.add( this.directional );
+
 	}
 
 	render( now ) {
@@ -118,7 +155,7 @@ export default class App {
 		
 		this.postProcess.render( this.scene, this.camera );
 
-		this.gpgpu.compute( dt, time );
+		this.gpgpu.compute( dt, time );	
 		
 		requestAnimationFrame( this.render.bind( this ) );
 
