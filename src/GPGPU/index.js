@@ -28,7 +28,7 @@ export default class GPGPU {
 
 		// Position data
 
-		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 0.4, 4 ), posArray.length );
+		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 2, 4 ), posArray.length );
 
 		for ( let i = 0, l = posArray.length; i < l; i += 4 ) {
 
@@ -36,9 +36,9 @@ export default class GPGPU {
 			const y = shapePointCloud[ i ].y;
             const z = shapePointCloud[ i ].z;
             
-			posArray[ i + 0 ] = x;
-			posArray[ i + 1 ] = y;
-			posArray[ i + 2 ] = z;
+			posArray[ i + 0 ] = (Math.random() * 2.0 - 1.0) * 1.0;
+			posArray[ i + 1 ] = (Math.random() * 2.0 - 1.0) * 1.0;
+			posArray[ i + 2 ] = (Math.random() * 2.0 - 1.0) * 1.0;
 			posArray[ i + 3 ] = 0;
 
 		}

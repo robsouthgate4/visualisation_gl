@@ -1,7 +1,11 @@
-import { Points } from "three";
+import { Points, ShaderMaterial, ShaderLib } from "three";
 
 import Material from './Material'
 import Geometry from './Geometry'
+
+import particleDepthFragment from './shaders/particleDepthFragment.glsl'
+
+import particleDepthVertex from './shaders/particleDepthVertex.glsl'
 
 export default class Particles extends Points {
 
@@ -15,6 +19,14 @@ export default class Particles extends Points {
         this.frustumCulled = false;
         this.receiveShadow = true;
         this.castShadow = true;
+
+        this.customDepthMaterial = new ShaderMaterial( {
+
+            vertexShader: particleDepthVertex, 
+            fragmentShader: particleDepthFragment,
+            uniforms: mat.uniforms
+
+        });
 
     }
 

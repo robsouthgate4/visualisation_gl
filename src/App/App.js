@@ -15,7 +15,8 @@ import {
 	Vector3,
 	DoubleSide,
 	MeshBasicMaterial,
-	Math as Math3} from 'three';
+	Math as Math3,
+	SphereGeometry} from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import PostProcess from '../PostProcess';
@@ -44,9 +45,7 @@ export default class App {
 		window.scene = this.scene;
 		
 		this.canvas = document.getElementById( 'canvas' );
-		this.camera = new PerspectiveCamera( ( 70, window.innerWidth / window.innerHeight, 0.01, 50 ) );
-		this.camera.near = 0.01;
-		this.camera.far = 10;		
+		this.camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
 
 		// Controls
 
@@ -93,10 +92,23 @@ export default class App {
 		} );
 
 		this.particles = new Particles( { particleCount: numParticles } );
+		this.particles.position.set( 0, 2, 0 );
 
 		this.particles.setUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 
 		this.scene.add( this.particles );
+
+
+		const sphereGeo =  new SphereGeometry( 1, 24, 24 );
+		const mat = new MeshStandardMaterial( {
+			color: new Color( 'rgb( 155, 155, 155 )' )
+		} );
+		const sphereMesh = new Mesh( sphereGeo, mat );
+		sphereMesh.position.set( 0, 1, 0 );
+		sphereMesh.castShadow = true;
+		//this.scene.add( sphereMesh );
+
+		this.camera.lookAt( sphereMesh.position.clone().add( new Vector3( 0, 1, 0 )) )
 
 
 	}
@@ -119,24 +131,27 @@ export default class App {
 
 	setupScene() {
 
-		this.camera.position.set( 0, 0, 4 );
+		this.camera.position.set( 0, 3, 6 );		
 
-		this.floorGeo = new PlaneGeometry( 1000, 1000);
-		this.floorMaterial = new MeshBasicMaterial( { color: new Color( 'rgb( 150, 150, 150 )' ) } );
+		this.floorGeo = new PlaneGeometry( 10, 10);
+		this.floorMaterial = new MeshStandardMaterial( { color: new Color( 'rgb( 150, 150, 150 )' ) } );
+		this.floorMaterial.roughness = 0.5;
+		this.floorMaterial.metalness = 0.2;
 		this.floorMaterial.side = DoubleSide;
 		this.floorMesh = new Mesh( this.floorGeo, this.floorMaterial );
 		this.floorMesh.rotateX( Math3.degToRad( 90 ) );
-		this.floorMesh.position.set( 0, -1, 0 );
+		this.floorMesh.position.set( 0, 0, 0 );
 		this.floorMesh.receiveShadow = true;
 		this.scene.add( this.floorMesh );
 
 		this.directional = new DirectionalLight( 0xffffff, 1.0 );
+		this.directional.position.set( 0, 300, 0 );
 		this.directional.castShadow = true;
 
-		this.directional.shadow.mapSize.width = 512;  // default
-		this.directional.shadow.mapSize.height = 512; // default
-		this.directional.shadow.camera.near = 0.5;    // default
-		this.directional.shadow.camera.far = 500;     // default
+		this.directional.shadow.mapSize.width = 2048;  // default
+		this.directional.shadow.mapSize.height = 2048; // default
+		this.directional.shadow.camera.near = 1;    // default
+		this.directional.shadow.camera.far = 1000;     // default
 
 		this.scene.add( this.directional );
 
@@ -147,15 +162,19 @@ export default class App {
 		const dt = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
+		// this.directional.position.x = Math.sin( time * 0.1 ) * 10.0;
+		// this.directional.position.z = Math.cos( time * 0.1 ) * 10.0;
 
 		// Display
 
-		this.camera.lookAt( 0, 0, 0 );
 		this.controls.update();		
 		
 		this.postProcess.render( this.scene, this.camera );
 
 		this.gpgpu.compute( dt, time );	
+
+		this.particles.setUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
+        this.particles.setUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );
 		
 		requestAnimationFrame( this.render.bind( this ) );
 

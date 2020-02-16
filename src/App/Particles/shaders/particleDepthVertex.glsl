@@ -22,7 +22,7 @@ void main() {
 
     vec4 mvPosition = modelViewMatrix * vec4( tPosition.xyz, 1.0 );
 
-    gl_PointSize = 5. * ( 2.5 / -mvPosition.z );
+    gl_PointSize = 0.0001 * ( 2.5 / -mvPosition.z );
     
     gl_Position = projectionMatrix * mvPosition;
 
@@ -32,7 +32,7 @@ void main() {
 
     #include <shadowmap_vertex>
 
-   // vWorldPosition = worldPosition;
+    //vWorldPosition = worldPosition;
 
     #include <fog_vertex>
 
