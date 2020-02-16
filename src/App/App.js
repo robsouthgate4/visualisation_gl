@@ -16,7 +16,10 @@ import {
 	DoubleSide,
 	MeshBasicMaterial,
 	Math as Math3,
-	SphereGeometry} from 'three';
+	SphereGeometry,
+	PointLight,
+	PointLightHelper,
+	AmbientLight} from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import PostProcess from '../PostProcess';
@@ -28,12 +31,14 @@ export default class App {
 
 	constructor() {
 
-		this.renderer = new WebGLRenderer( );
+		this.renderer = new WebGLRenderer( { logarithmicDepthBuffer: true } );
 		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
-		this.renderer.setClearColor( new Color( 'rgb( 50, 50, 50 )' ), 1.0 );
+		this.renderer.setClearColor( new Color( 'rgb( 90, 90, 90 )' ), 1.0 );
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = PCFSoftShadowMap;
+		
+		
 		document.body.appendChild( this.renderer.domElement );
 
 		this.resolution = new Vector2();
@@ -94,7 +99,8 @@ export default class App {
 		this.particles = new Particles( { particleCount: numParticles } );
 		this.particles.position.set( 0, 2, 0 );
 
-		this.particles.setUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
+		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
+		this.particles.setMaterialDistancehUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 
 		this.scene.add( this.particles );
 
@@ -133,10 +139,10 @@ export default class App {
 
 		this.camera.position.set( 0, 3, 6 );		
 
-		this.floorGeo = new PlaneGeometry( 10, 10);
-		this.floorMaterial = new MeshStandardMaterial( { color: new Color( 'rgb( 150, 150, 150 )' ) } );
-		this.floorMaterial.roughness = 0.5;
-		this.floorMaterial.metalness = 0.2;
+		this.floorGeo = new PlaneGeometry( 400, 400 );
+		this.floorMaterial = new MeshStandardMaterial( { color: new Color( 'rgb( 170, 160, 150 )' ) } );
+		this.floorMaterial.roughness = 0.7;
+		this.floorMaterial.metalness = 1.0;
 		this.floorMaterial.side = DoubleSide;
 		this.floorMesh = new Mesh( this.floorGeo, this.floorMaterial );
 		this.floorMesh.rotateX( Math3.degToRad( 90 ) );
@@ -144,16 +150,33 @@ export default class App {
 		this.floorMesh.receiveShadow = true;
 		this.scene.add( this.floorMesh );
 
-		this.directional = new DirectionalLight( 0xffffff, 1.0 );
-		this.directional.position.set( 0, 300, 0 );
+		this.directional = new DirectionalLight( 0xffffff, 0.5 );
+		this.directional.position.set( 500, 500, 0 );
 		this.directional.castShadow = true;
 
 		this.directional.shadow.mapSize.width = 2048;  // default
 		this.directional.shadow.mapSize.height = 2048; // default
 		this.directional.shadow.camera.near = 1;    // default
-		this.directional.shadow.camera.far = 1000;     // default
+		this.directional.shadow.camera.far = 700;     // default
 
-		this.scene.add( this.directional );
+		this.pointLight = new PointLight( 0xffffff, 1, 1000 );
+		this.pointLight.castShadow = true;
+		this.pointLight.position.set(0, 5, 0);
+
+		this.pointLight.shadow.mapSize.width = 2048; 
+		this.pointLight.shadow.mapSize.height = 2048;
+		this.pointLight.shadow.camera.near = 1;   
+		this.pointLight.shadow.camera.far = 1000;    
+		this.pointLight.shadow.bias = 0.0001;
+
+		//this.pointLight.shadow.bias = 0.0001;
+		this.pointLight.shadow.radius= 1;
+
+		const helper = new PointLightHelper( this.pointLight, 1, new Color(0xffffff) );
+
+		this.ambient = new AmbientLight( 0x333333 );
+
+		this.scene.add( this.pointLight, helper, this.ambient, this.directional );
 
 	}
 
@@ -163,7 +186,7 @@ export default class App {
 		const time = this.clock.getElapsedTime();
 
 		// this.directional.position.x = Math.sin( time * 0.1 ) * 10.0;
-		// this.directional.position.z = Math.cos( time * 0.1 ) * 10.0;
+		//this.pointLight.position.z = Math.cos( time * 0.1 ) * 10.0;
 
 		// Display
 
@@ -173,8 +196,11 @@ export default class App {
 
 		this.gpgpu.compute( dt, time );	
 
-		this.particles.setUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
-        this.particles.setUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );
+		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
+		this.particles.setMaterialUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );
+		
+		this.particles.setMaterialDistancehUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
+		this.particles.setMaterialDistancehUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );
 		
 		requestAnimationFrame( this.render.bind( this ) );
 

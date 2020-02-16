@@ -22,7 +22,7 @@ void main() {
 
     vec3 sceneColor = color1 + color2 * 2.0;
 
-    //sceneColor.rgb = mix(sceneColor.rgb, sceneColor.rgb * vignette, 0.5);
+    sceneColor.rgb = mix(sceneColor.rgb, sceneColor.rgb * vignette, 0.5);
 
     gl_FragColor = vec4( sceneColor, 1.0 );
 }

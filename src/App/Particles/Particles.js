@@ -1,11 +1,13 @@
-import { Points, ShaderMaterial, ShaderLib } from "three";
+import { Points, ShaderMaterial, ShaderLib, NoBlending, BackSide } from "three";
 
 import Material from './Material'
 import Geometry from './Geometry'
 
 import particleDepthFragment from './shaders/particleDepthFragment.glsl'
-
 import particleDepthVertex from './shaders/particleDepthVertex.glsl'
+
+import particleDistanceFragment from './shaders/particleDistanceFragment.glsl'
+import particleDistanceVertex from './shaders/particleDistanceVertex.glsl'
 
 export default class Particles extends Points {
 
@@ -16,7 +18,7 @@ export default class Particles extends Points {
 
         super( geo, mat );        
 
-        this.frustumCulled = false;
+        //this.frustumCulled = false;
         this.receiveShadow = true;
         this.castShadow = true;
 
@@ -24,15 +26,32 @@ export default class Particles extends Points {
 
             vertexShader: particleDepthVertex, 
             fragmentShader: particleDepthFragment,
-            uniforms: mat.uniforms
+            uniforms: mat.uniforms,
+            blending: NoBlending,
+            side: BackSide
+        });
 
+        this.customDistanceMaterial = new ShaderMaterial( {
+
+            vertexShader: particleDistanceVertex, 
+            fragmentShader: particleDistanceFragment,
+            uniforms: mat.uniforms,
+            blending: NoBlending,
+            side: BackSide
         });
 
     }
 
-    setUniforms( uniformName, value ) {
+    setMaterialUniforms( uniformName, value ) {
 
 		this.material.uniforms[ uniformName ].value = value;
+
+    }
+    
+    setMaterialDistancehUniforms( uniformName, value ) {
+
+        this.customDistanceMaterial.uniforms[ uniformName ].value = value;
+        this.customDepthMaterial.uniforms[ uniformName ].value = value;
 
 	}
 

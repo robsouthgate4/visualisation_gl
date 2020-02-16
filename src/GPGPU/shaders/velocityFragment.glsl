@@ -127,7 +127,7 @@ void main() {
 
     // // Friction
 
-    velocity.xyz = curlNoise( position.xyz * 10.0 ) * 0.001;
+     velocity.xyz = curlNoise( position.xyz * 5.0 ) * 0.0005;
 
 
 

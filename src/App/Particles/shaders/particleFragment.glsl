@@ -14,13 +14,25 @@ varying vec3 vNormal;
 
 void main() {
 
-    vec3 finalColor = vec3(1, 1, 1);
-    vec3 shadowColor = vec3(0, 0, 0);
-    float shadowPower = 0.8;   
+     vec3 N;
+
+    N.xy = gl_PointCoord * 2.0 - vec2(1.0);
+
+    float mag = dot(N.xy, N.xy);
+
+    if (mag > 1.0) discard;   // kill pixels outside circle
+
+    N.z = sqrt(1.0-mag);
+
+    vec3 finalColor = vec3(1.0, 1.0, 1.0);
+    vec3 shadowColor = vec3(0.01, 0.01, 0.01);
+    float shadowPower = 0.9;   
 
     // it just mixes the shadow color with the frag color
 
-    gl_FragColor = vec4( mix(finalColor, shadowColor, (1.0 - getShadowMask() ) * shadowPower), 1.0);
+    float shadow = ( 1.0 - getShadowMask() ) * shadowPower;
+
+    gl_FragColor = vec4( mix(finalColor, shadowColor, shadow), 1.0);
 
 
 

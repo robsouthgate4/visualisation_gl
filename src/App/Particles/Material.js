@@ -1,4 +1,4 @@
-import { ShaderMaterial, DoubleSide } from "three";
+import { ShaderMaterial, DoubleSide, NoBlending } from "three";
 
 import { UniformsLib } from 'three/src/renderers/shaders/UniformsLib';
 import { mergeUniforms } from 'three/src/renderers/shaders/UniformsUtils';
@@ -33,14 +33,15 @@ export default class Material extends ShaderMaterial {
             uniforms,
             vertexShader,
             fragmentShader,
-            depthTest: true,
-            depthFunc: true,
+            depthTest: false,
+            depthFunc: false,
             transparent: true,
             side: DoubleSide,
             fog: true,
             lights: true,
-            dithering: true
-
+            dithering: true,
+            blending: NoBlending,
+            depthWrite: false
         } );
 
 	}
