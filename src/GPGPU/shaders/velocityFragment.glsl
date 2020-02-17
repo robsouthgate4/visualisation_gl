@@ -3,6 +3,10 @@ uniform float uTime;
 uniform float uDelta;
 uniform vec2 uMouse;
 
+#pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
+
+const float PI = 3.141592653;
+
 float rand( vec2 co ){
     return fract( sin( dot( co.xy, vec2(12.9898,78.233) ) ) * 43758.5453 );
 }
@@ -113,6 +117,13 @@ vec3 curlNoise( vec3 p ){
 
 }
 
+vec2 rotate(vec2 v, float a) {
+    float s = sin(a);
+  float c = cos(a);
+  mat2 m = mat2(c, -s, s, c);
+  return m * v;
+}
+
 void main() {
 
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -127,12 +138,20 @@ void main() {
 
     // // Friction
 
-     velocity.xyz = curlNoise( position.xyz * 5.0 ) * 0.0005;
+     //velocity.xyz = curlNoise( position.xyz * 5.0 ) * 0.0005;
 
+    float xAcc          = snoise3( vec3( position.x, position.y, uTime * 0.1 ) );
+    float yAcc          = snoise3( vec3( position.y, position.z, uTime * 0.1 ) );
+    float zAcc          = snoise3( vec3( position.z, position.x, uTime * 0.1 ) );
 
+    //velocity.xyz = vec3( 0.0 );
 
-    //
+    vec3 acc = vec3( xAcc, yAcc, zAcc ) * 0.1;
 
+    //acc -= length( position.xyz ) * uDelta;
+
+    //velocity.xyz += acc * uDelta;
+    
 
     gl_FragColor = velocity;
 

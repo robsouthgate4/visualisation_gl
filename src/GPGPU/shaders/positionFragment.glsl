@@ -1,5 +1,6 @@
 precision highp float;
 uniform float uTime;
+uniform float uDelta;
 
 void main() {
 
@@ -15,7 +16,7 @@ void main() {
     // position.xy += (1.0 - step(-limits.xy, position.xy)) * limits.xy * 2.0;
     // position.xy -= step(limits.xy, position.xy) * limits.xy * 2.0;
 
-    position.xyz += velocity.xyz;
+    position.xyz += velocity.xyz * uDelta;
 
     gl_FragColor = position;
 

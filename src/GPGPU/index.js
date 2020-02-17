@@ -36,9 +36,9 @@ export default class GPGPU {
 			const y = shapePointCloud[ i ].y;
             const z = shapePointCloud[ i ].z;
             
-			posArray[ i + 0 ] = (Math.random() * 2.0 - 1.0) * 1.0;
-			posArray[ i + 1 ] = (Math.random() * 2.0 - 1.0) * 1.0;
-			posArray[ i + 2 ] = (Math.random() * 2.0 - 1.0) * 1.0;
+			posArray[ i + 0 ] = (Math.random() * 2.0 - 1.0) * 0.5;
+			posArray[ i + 1 ] = (Math.random() * 2.0 - 1.0) * 0.5;
+			posArray[ i + 2 ] = (Math.random() * 2.0 - 1.0) * 0.5;
 			posArray[ i + 3 ] = 0;
 
 		}

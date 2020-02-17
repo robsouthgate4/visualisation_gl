@@ -7,11 +7,11 @@
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTextureVelocity;
 
-attribute vec3 aOffset;
+attribute vec3 aColor;
 
 varying vec4 vWorldPosition;
 varying vec3 vNormal;
-
+varying vec3 vColor;
 
 void main() {
 
@@ -25,7 +25,7 @@ void main() {
 
     vec4 mvPosition = viewMatrix * worldPosition;
 
-    gl_PointSize = 12.0 / length( mvPosition.xyz );
+    gl_PointSize = 10.0 / length( mvPosition.xyz );
 
     vWorldPosition = worldPosition;
     
@@ -36,6 +36,8 @@ void main() {
     #include <shadowmap_vertex>
 
     #include <fog_vertex>
+
+    vColor = aColor;
 
 }
   

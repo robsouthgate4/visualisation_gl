@@ -21,7 +21,7 @@ void main() {
 
    #else
 
-       gl_FragData[ 0 ] = pack_depth( gl_FragCoord.z + 1.0);
+       gl_FragData[ 0 ] = pack_depth( gl_FragCoord.z + 1.);
 
    #endif
 

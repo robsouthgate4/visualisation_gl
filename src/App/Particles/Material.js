@@ -41,7 +41,7 @@ export default class Material extends ShaderMaterial {
             lights: true,
             dithering: true,
             blending: NoBlending,
-            depthWrite: false
+            depthWrite: true
         } );
 
 	}
