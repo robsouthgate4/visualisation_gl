@@ -142,16 +142,24 @@ void main() {
 
     //velocity.xyz = vec3( 0.0 );
 
-    vec3 acc = curlNoise( position.xyz + uTime * 10. ) * 0.1;
+    vec3 acc = curlNoise( position.xyz + uTime ) * 0.1;
 
     vec2 dir = normalize( position.xz );
     dir = rotate(dir, PI * 0.6);
 
-    //acc.xz  += dir * 0.02;
+    acc.xz += dir * 0.02;
 
     //acc -= length( position.xyz ) * uDelta;
 
-    velocity.xyz += acc * 0.8 * uDelta;
+    velocity.xyz += acc * 0.02;
+
+    float dist = length( position.xyz );
+    float radius = 2.0;
+
+    if(dist > radius) {
+      float f = 0.01;
+      velocity.xyz -= normalize( position.xyz ) * f;
+    }
     
 
     gl_FragColor = velocity;
