@@ -25,9 +25,9 @@ void main() {
 
     N.z = sqrt(1.0-mag);
 
-    vec3 finalColor = vec3(0.8, 0.8, 0.8);
+    vec3 finalColor = vec3(0.9, 0.9, 0.9);
     vec3 shadowColor = vec3(0.01, 0.01, 0.01);
-    float shadowPower = 0.8;   
+    float shadowPower = 1.0;   
 
     // it just mixes the shadow color with the frag color
 

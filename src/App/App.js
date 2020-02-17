@@ -87,7 +87,7 @@ export default class App {
 
 		// Init GPGPU
 
-		const numParticles = 65536;		
+		const numParticles = 262144;		
 
 		this.gpgpu = new GPGPU( {
 

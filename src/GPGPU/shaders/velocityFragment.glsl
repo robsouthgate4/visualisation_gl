@@ -119,9 +119,9 @@ vec3 curlNoise( vec3 p ){
 
 vec2 rotate(vec2 v, float a) {
     float s = sin(a);
-  float c = cos(a);
-  mat2 m = mat2(c, -s, s, c);
-  return m * v;
+    float c = cos(a);
+    mat2 m = mat2(c, -s, s, c);
+    return m * v;
 }
 
 void main() {
@@ -138,19 +138,20 @@ void main() {
 
     // // Friction
 
-     //velocity.xyz = curlNoise( position.xyz * 5.0 ) * 0.0005;
-
-    float xAcc          = snoise3( vec3( position.x, position.y, uTime * 0.1 ) );
-    float yAcc          = snoise3( vec3( position.y, position.z, uTime * 0.1 ) );
-    float zAcc          = snoise3( vec3( position.z, position.x, uTime * 0.1 ) );
+     //velocity.xyz = curlNoise( position.xyz * 5.0 ) * 0.0005
 
     //velocity.xyz = vec3( 0.0 );
 
-    vec3 acc = vec3( xAcc, yAcc, zAcc ) * 0.1;
+    vec3 acc = curlNoise( position.xyz + uTime * 10. ) * 0.1;
+
+    vec2 dir = normalize( position.xz );
+    dir = rotate(dir, PI * 0.6);
+
+    //acc.xz  += dir * 0.02;
 
     //acc -= length( position.xyz ) * uDelta;
 
-    //velocity.xyz += acc * uDelta;
+    velocity.xyz += acc * 0.8 * uDelta;
     
 
     gl_FragColor = velocity;
