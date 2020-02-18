@@ -13,6 +13,12 @@ export default class GPGPU {
 
     constructor( { numParticles, renderer, fboHelper } ) {
 
+        this.settings = {
+
+            uDieSpeed: 0.01
+
+        }
+
         this.renderer = renderer;
 
         this.fboHelper = new FBOHelper( this.renderer );
@@ -35,11 +41,12 @@ export default class GPGPU {
 			const x = shapePointCloud[ i ].x;
 			const y = shapePointCloud[ i ].y;
             const z = shapePointCloud[ i ].z;
+            const w = ( Math.random() + 1 ) * 3; // life
             
-			posArray[ i + 0 ] = (Math.random() * 2.0 - 1.0) * 0.5;
-			posArray[ i + 1 ] = (Math.random() * 2.0 - 1.0) * 0.5;
-			posArray[ i + 2 ] = (Math.random() * 2.0 - 1.0) * 0.5;
-			posArray[ i + 3 ] = 0;
+			posArray[ i + 0 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
+			posArray[ i + 1 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
+			posArray[ i + 2 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
+			posArray[ i + 3 ] = w;
 
 		}
 
@@ -68,6 +75,8 @@ export default class GPGPU {
 
         this.positionUniforms[ "uTime" ] = { value: 0.0 };
         this.positionUniforms[ "uDelta" ] = { value: 0.0 };
+        this.positionUniforms[ "uTexturePositionOrigin" ] = { value: this.dtPosition }
+        this.positionUniforms[ "uDieSpeed" ] = { value: this.settings.uDieSpeed }
         this.velocityUniforms[ "uTime" ] = { value: 0.0 };
         this.velocityUniforms[ "uDelta" ] = { value: 0.0 };
 

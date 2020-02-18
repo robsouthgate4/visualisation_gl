@@ -159,9 +159,9 @@ export default class App {
 		this.directional.shadow.camera.near = 1;    // default
 		this.directional.shadow.camera.far = 700;     // default
 
-		this.pointLight = new PointLight( 0xffffff, 1, 1000 );
+		this.pointLight = new PointLight( 0xffffff, 1);
 		this.pointLight.castShadow = true;
-		this.pointLight.position.set(0, 5, 0);
+		this.pointLight.position.set(0, 5.3, 0);
 
 		this.pointLight.shadow.mapSize.width = 2048; 
 		this.pointLight.shadow.mapSize.height = 2048;

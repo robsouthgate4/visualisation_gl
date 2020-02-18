@@ -21,6 +21,7 @@ export default class Particles extends Points {
         //this.frustumCulled = false;
         this.receiveShadow = true;
         this.castShadow = true;
+        
 
         this.customDepthMaterial = new ShaderMaterial( {
 

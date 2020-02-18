@@ -25,9 +25,9 @@ void main() {
 
     N.z = sqrt(1.0-mag);
 
-    vec3 finalColor = vec3(0.9, 0.9, 0.9);
+    vec3 finalColor = vec3(0.7, 0.7, 0.7);
     vec3 shadowColor = vec3(0.01, 0.01, 0.01);
-    float shadowPower = 1.0;   
+    float shadowPower = 0.9;   
 
     // it just mixes the shadow color with the frag color
 
@@ -35,7 +35,7 @@ void main() {
 
     //gl_FragColor = vec4(vColor, 1.0);
 
-    gl_FragColor = vec4( mix(finalColor, shadowColor, shadow), 1.0);
+    gl_FragColor = vec4( mix( finalColor, shadowColor, shadow ), 1.0);
 
 
 
