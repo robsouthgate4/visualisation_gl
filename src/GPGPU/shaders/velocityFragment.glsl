@@ -138,21 +138,24 @@ void main() {
 
     // // Friction
 
-     //velocity.xyz = curlNoise( position.xyz * 5.0 ) * 0.0005
+    velocity.xyz += curlNoise( position.xyz * 2.0 ) * 0.005;
 
-    //velocity.xyz = vec3( 0.0 );
 
-    vec3 acc = curlNoise( position.xyz * 1.0 ) * 0.01;
 
-    vec2 dir = normalize( position.xz );
+    velocity.xyz *= 0.98;
+
     
-    // dir = rotate( dir, PI * 0.6 );
+    // vec3 acc = curlNoise( position.xyz * 5.0 ) * 0.0005;
 
-    // acc.xz += dir * 0.2;
+    // vec2 dir = normalize( position.xz );
+    
+    // dir = rotate( dir, PI * 0.3 );
 
-    // acc -= length( position.xyz ) * uDelta;
+    //acc.xz += dir * (1.0 - length( position ));
 
-    // velocity.xyz += acc * 0.02;
+    //acc -= length( position.xyz ) * uDelta;
+
+    //velocity.xyz += acc * 0.02;
 
     // float dist = length( position.xyz );
     // float radius = 2.0;

@@ -13,13 +13,15 @@ varying vec4 vWorldPosition;
 varying vec3 vNormal;
 varying vec3 vColor;
 
+varying float vLife;
+
 void main() {
 
 
     vec4 tPosition = texture2D( uTexturePosition, position.xy );
     vec4 tVelocity = texture2D( uTextureVelocity, position.xy );
 
-    
+    vLife = tPosition.w;
 
     vec4 worldPosition = modelMatrix * vec4( tPosition.xyz, 1.0 );
 

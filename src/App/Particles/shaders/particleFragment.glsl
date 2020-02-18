@@ -12,6 +12,7 @@ const vec3 lightPosition = vec3( 100., 10., 0. );
 varying vec4 vWorldPosition;
 varying vec3 vNormal;
 varying vec3 vColor;
+varying float vLife;
 
 void main() {
 
@@ -27,7 +28,7 @@ void main() {
 
     vec3 finalColor = vec3(0.7, 0.7, 0.7);
     vec3 shadowColor = vec3(0.01, 0.01, 0.01);
-    float shadowPower = 0.9;   
+    float shadowPower = 0.5;   
 
     // it just mixes the shadow color with the frag color
 
@@ -35,7 +36,11 @@ void main() {
 
     //gl_FragColor = vec4(vColor, 1.0);
 
-    gl_FragColor = vec4( mix( finalColor, shadowColor, shadow ), 1.0);
+    //finalColor *= N:
+
+    gl_FragColor = vec4( mix( finalColor, shadowColor, shadow ), vLife - 1.0 );
+
+    
 
 
 
