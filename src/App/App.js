@@ -19,7 +19,8 @@ import {
 	SphereGeometry,
 	PointLight,
 	PointLightHelper,
-	AmbientLight} from 'three';
+	AmbientLight,
+	ShadowMaterial} from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import PostProcess from '../PostProcess';
@@ -147,8 +148,17 @@ export default class App {
 		this.floorMesh = new Mesh( this.floorGeo, this.floorMaterial );
 		this.floorMesh.rotateX( Math3.degToRad( 90 ) );
 		this.floorMesh.position.set( 0, 0, 0 );
-		this.floorMesh.receiveShadow = true;
-		this.scene.add( this.floorMesh );
+		//this.floorMesh.receiveShadow = true;
+		//this.scene.add( this.floorMesh );
+
+		this.shadowPlaneGeo = this.floorGeo.clone();
+		this.shadowPlaneMaterial = new ShadowMaterial();
+		this.shadowPlaneMaterial.opacity = 0.2;
+		this.shadowPlaneMesh = new Mesh( this.shadowPlaneGeo, this.shadowPlaneMaterial );
+		this.shadowPlaneMesh.rotateX( Math3.degToRad( -90 ) );
+		this.shadowPlaneMesh.position.set( 0, 0, 0 );
+		this.shadowPlaneMesh.receiveShadow = true;
+		this.scene.add( this.shadowPlaneMesh );
 
 		this.directional = new DirectionalLight( 0xffffff, 0.5 );
 		this.directional.position.set( 500, 500, 0 );
@@ -163,14 +173,14 @@ export default class App {
 		this.pointLight.castShadow = true;
 		this.pointLight.position.set(0, 5.3, 0);
 
-		this.pointLight.shadow.mapSize.width = 2048; 
-		this.pointLight.shadow.mapSize.height = 2048;
+		this.pointLight.shadow.mapSize.width = 1024; 
+		this.pointLight.shadow.mapSize.height = 1024;
 		this.pointLight.shadow.camera.near = 1;   
 		this.pointLight.shadow.camera.far = 1000;    
-		this.pointLight.shadow.bias = 0.0001;
+		this.pointLight.shadow.bias = 0.00005;
 
 		//this.pointLight.shadow.bias = 0.0001;
-		this.pointLight.shadow.radius= 1;
+		this.pointLight.shadow.radius= 4;
 
 		const helper = new PointLightHelper( this.pointLight, 1, new Color(0xffffff) );
 
@@ -187,6 +197,8 @@ export default class App {
 
 		// this.directional.position.x = Math.sin( time * 0.1 ) * 10.0;
 		//this.pointLight.position.z = Math.cos( time * 0.1 ) * 10.0;
+
+		//this.pointLight.position.z = 5.3 + Math.sin( uTime * )
 
 		// Display
 
