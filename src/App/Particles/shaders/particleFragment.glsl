@@ -7,7 +7,7 @@
 #include <shadowmask_pars_fragment>
 #include <dithering_pars_fragment>
 
-const vec3 lightPosition = vec3( 100., 10., 0. );
+const vec3 lightPosition = vec3( 0., -10., 0. );
 
 varying vec4 vWorldPosition;
 varying vec3 vNormal;
@@ -26,7 +26,7 @@ void main() {
 
     N.z = sqrt(1.0-mag);
 
-    vec3 finalColor = vec3(0.9, 0.9, 0.9);
+    vec3 finalColor = vec3(0.7, 0.7, 0.7);
     vec3 shadowColor = vec3(0.01, 0.01, 0.01);
     float shadowPower = 0.7;   
 
@@ -36,9 +36,16 @@ void main() {
 
     //gl_FragColor = vec4(vColor, 1.0);
 
-    //finalColor *= N:
+    vec3 lightDir = normalize( lightPosition - vWorldPosition.xyz );
 
-    gl_FragColor = vec4( mix( finalColor, shadowColor, shadow ), vLife - 1.0 );
+    float diff = max( dot( N, lightDir ), 0.0 );
+    vec3 diffuse = diff * vec3( 0.8 );
+
+
+
+    finalColor += ( diffuse * 0.5);
+
+    gl_FragColor = vec4( mix( finalColor, shadowColor, shadow ), 1.0);
 
     
 

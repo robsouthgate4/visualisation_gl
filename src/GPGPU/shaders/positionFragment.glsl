@@ -20,7 +20,7 @@ void main() {
 
         positionBuffer = texture2D( uTexturePositionOrigin, uv );
         position = positionBuffer.xyz;
-        life = positionBuffer.w + sin( uTime );
+        life = positionBuffer.w;
 
     } else {
 

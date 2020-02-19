@@ -88,7 +88,7 @@ export default class App {
 
 		// Init GPGPU
 
-		const numParticles = 262144;		
+		const numParticles = 65536;		
 
 		this.gpgpu = new GPGPU( {
 
@@ -115,7 +115,10 @@ export default class App {
 		sphereMesh.castShadow = true;
 		//this.scene.add( sphereMesh );
 
-		this.camera.lookAt( sphereMesh.position.clone().add( new Vector3( 0, 1, 0 )) )
+		this.camera.position.set( 0, 6, 4 );	
+		//this.camera.lookAt( this.particles.position );
+
+		this.controls.update();
 
 
 	}
@@ -136,9 +139,7 @@ export default class App {
 		this.mouse.y =  - ( e.clientY  / window.innerHeight ) + 1;
 	}
 
-	setupScene() {
-
-		this.camera.position.set( 0, 3, 6 );		
+	setupScene() {			
 
 		this.floorGeo = new PlaneGeometry( 400, 400 );
 		this.floorMaterial = new MeshStandardMaterial( { color: new Color( 'rgb( 170, 160, 150 )' ) } );
@@ -171,7 +172,7 @@ export default class App {
 
 		this.pointLight = new PointLight( 0xffffff, 1);
 		this.pointLight.castShadow = true;
-		this.pointLight.position.set(0, 5.3, 0);
+		this.pointLight.position.set(0, 5.0, 0);
 
 		this.pointLight.shadow.mapSize.width = 1024; 
 		this.pointLight.shadow.mapSize.height = 1024;

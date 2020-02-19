@@ -138,11 +138,11 @@ void main() {
 
     // // Friction
 
-    velocity.xyz += curlNoise( position.xyz * 2.0 + ( uTime * 0.1) ) * 0.005;
+    velocity.xyz += curlNoise( position.xyz + uTime ) * 0.0011;
 
 
 
-    velocity.xyz *= 0.98;
+    //velocity.xyz *= 0.98;
 
     
     // vec3 acc = curlNoise( position.xyz * 5.0 ) * 0.0005;

@@ -41,11 +41,16 @@ export default class GPGPU {
 			const x = shapePointCloud[ i ].x;
 			const y = shapePointCloud[ i ].y;
             const z = shapePointCloud[ i ].z;
-            const w = ( Math.random() + 1 ) * 3; // life
+            const w = Math.random() * 1; // life
             
-			posArray[ i + 0 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
-			posArray[ i + 1 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
-			posArray[ i + 2 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
+			// posArray[ i + 0 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
+			// posArray[ i + 1 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
+            // posArray[ i + 2 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
+            
+            posArray[ i + 0 ] = x * 0.1;
+			posArray[ i + 1 ] = y * 0.1;
+            posArray[ i + 2 ] = z * 0.1;
+            
 			posArray[ i + 3 ] = w;
 
 		}
@@ -56,7 +61,7 @@ export default class GPGPU {
 
 			const x = 0;
 			const y = 0;
-			const z = 0;
+			const z = - Math.random() * 3;
 			velArray[ i + 0 ] = x;
 			velArray[ i + 1 ] = y;
 			velArray[ i + 2 ] = z;
