@@ -23,7 +23,7 @@ export default class Material extends ShaderMaterial {
                 uTexturePosition: { value: null },
                 uTextureVelocity: { value: null },
                 uTextureParticle: { value: null },
-                uTextureMatCap: { value: new TextureLoader().load( '/assets/images/matcap4.jpg' ) },
+                uTextureMatCap: { value: null },
                 uResolution: { value: null }
             }
 

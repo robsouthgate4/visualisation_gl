@@ -15,9 +15,13 @@ varying vec3 vWorldNormal;
 varying vec3 vColor;
 
 varying float vLife;
+varying vec3 e;
+varying vec3 n;
+varying vec3 vPosition;
 
 void main() {
 
+    vPosition = position;
 
     vec4 tPosition = texture2D( uTexturePosition, position.xy );
     vec4 tVelocity = texture2D( uTextureVelocity, position.xy );
@@ -38,7 +42,9 @@ void main() {
     
     vNormal = normal;
 
-    //vWorldNormal = normalize( mat3( modelMatrix ) * normalize( normal ) );
+    e = normalize( vec3( modelViewMatrix * vec4( tPosition.xyz, 1.0 ) ) );
+
+    n = normalize( normalMatrix * normal );
 
     #include <shadowmap_vertex>
 

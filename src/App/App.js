@@ -20,7 +20,8 @@ import {
 	PointLight,
 	PointLightHelper,
 	AmbientLight,
-	ShadowMaterial} from 'three';
+	ShadowMaterial,
+	TextureLoader} from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import PostProcess from '../PostProcess';
@@ -102,6 +103,9 @@ export default class App {
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 		this.particles.setMaterialDistancehUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
+
+
+		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap5.png' ));
 
 		this.scene.add( this.particles );
 
