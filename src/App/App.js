@@ -162,13 +162,13 @@ export default class App {
 		this.scene.add( this.shadowPlaneMesh );
 
 		this.directional = new DirectionalLight( 0xffffff, 0.5 );
-		this.directional.position.set( 500, 500, 0 );
+		this.directional.position.set(0, 100, 0 );
 		this.directional.castShadow = true;
 
-		this.directional.shadow.mapSize.width = 2048;  // default
-		this.directional.shadow.mapSize.height = 2048; // default
-		this.directional.shadow.camera.near = 1;    // default
-		this.directional.shadow.camera.far = 700;     // default
+		this.directional.shadow.mapSize.width = 1024; 
+		this.directional.shadow.mapSize.height = 1024;
+		this.directional.shadow.camera.near = 1;   
+		this.directional.shadow.camera.far = 1000;    
 
 		this.pointLight = new PointLight( 0xffffff, 1);
 		this.pointLight.castShadow = true;
@@ -179,6 +179,13 @@ export default class App {
 		this.pointLight.shadow.camera.near = 1;   
 		this.pointLight.shadow.camera.far = 1000;    
 		this.pointLight.shadow.bias = 0.00005;
+
+		const d = 300;
+
+		this.pointLight.shadow.camera.left = - d;
+		this.pointLight.shadow.camera.right = d;
+		this.pointLight.shadow.camera.top = d;
+		this.pointLight.shadow.camera.bottom = - d;
 
 		//this.pointLight.shadow.bias = 0.0001;
 		this.pointLight.shadow.radius= 4;

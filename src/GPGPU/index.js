@@ -15,7 +15,7 @@ export default class GPGPU {
 
         this.settings = {
 
-            uDieSpeed: 0.01
+            uDieSpeed: 0.005
 
         }
 

@@ -7,114 +7,120 @@ uniform vec2 uMouse;
 
 const float PI = 3.141592653;
 
-float rand( vec2 co ){
-    return fract( sin( dot( co.xy, vec2(12.9898,78.233) ) ) * 43758.5453 );
+const float range = 3.0;
+
+
+const int OCTAVES =  1;
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
-
-float snoise(vec3 v){ 
-  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
-  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
-
-// First corner
-  vec3 i  = floor(v + dot(v, C.yyy) );
-  vec3 x0 =   v - i + dot(i, C.xxx) ;
-
-// Other corners
-  vec3 g = step(x0.yzx, x0.xyz);
-  vec3 l = 1.0 - g;
-  vec3 i1 = min( g.xyz, l.zxy );
-  vec3 i2 = max( g.xyz, l.zxy );
-
-  //  x0 = x0 - 0. + 0.0 * C 
-  vec3 x1 = x0 - i1 + 1.0 * C.xxx;
-  vec3 x2 = x0 - i2 + 2.0 * C.xxx;
-  vec3 x3 = x0 - 1. + 3.0 * C.xxx;
-
-// Permutations
-  i = mod(i, 289.0 ); 
-  vec4 p = permute( permute( permute( 
-             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
-           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
-
-// Gradients
-// ( N*N points uniformly over a square, mapped onto an octahedron.)
-  float n_ = 1.0/7.0; // N=7
-  vec3  ns = n_ * D.wyz - D.xzx;
-
-  vec4 j = p - 49.0 * floor(p * ns.z *ns.z);  //  mod(p,N*N)
-
-  vec4 x_ = floor(j * ns.z);
-  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
-
-  vec4 x = x_ *ns.x + ns.yyyy;
-  vec4 y = y_ *ns.x + ns.yyyy;
-  vec4 h = 1.0 - abs(x) - abs(y);
-
-  vec4 b0 = vec4( x.xy, y.xy );
-  vec4 b1 = vec4( x.zw, y.zw );
-
-  vec4 s0 = floor(b0)*2.0 + 1.0;
-  vec4 s1 = floor(b1)*2.0 + 1.0;
-  vec4 sh = -step(h, vec4(0.0));
-
-  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
-  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
-
-  vec3 p0 = vec3(a0.xy,h.x);
-  vec3 p1 = vec3(a0.zw,h.y);
-  vec3 p2 = vec3(a1.xy,h.z);
-  vec3 p3 = vec3(a1.zw,h.w);
-
-//Normalise gradients
-  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-  p0 *= norm.x;
-  p1 *= norm.y;
-  p2 *= norm.z;
-  p3 *= norm.w;
-
-// Mix final noise value
-  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-  m = m * m;
-  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
-                                dot(p2,x2), dot(p3,x3) ) );
+vec4 mod289(vec4 x) {
+   return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
 
-vec3 snoiseVec3( vec3 x ){
-
-  float s  = snoise(vec3( x ));
-  float s1 = snoise(vec3( x.y - 19.1 , x.z + 33.4 , x.x + 47.2 ));
-  float s2 = snoise(vec3( x.z + 74.2 , x.x - 124.5 , x.y + 99.4 ));
-  vec3 c = vec3( s , s1 , s2 );
-  return c;
-
+float mod289(float x) {
+   return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
 
+vec4 permute(vec4 x) {
+   return mod289(((x*34.0)+1.0)*x);
+}
 
-vec3 curlNoise( vec3 p ){
-  
-  const float e = .1;
-  vec3 dx = vec3( e   , 0.0 , 0.0 );
-  vec3 dy = vec3( 0.0 , e   , 0.0 );
-  vec3 dz = vec3( 0.0 , 0.0 , e   );
+float permute(float x) {
+   return mod289(((x*34.0)+1.0)*x);
+}
 
-  vec3 p_x0 = snoiseVec3( p - dx );
-  vec3 p_x1 = snoiseVec3( p + dx );
-  vec3 p_y0 = snoiseVec3( p - dy );
-  vec3 p_y1 = snoiseVec3( p + dy );
-  vec3 p_z0 = snoiseVec3( p - dz );
-  vec3 p_z1 = snoiseVec3( p + dz );
+vec4 taylorInvSqrt(vec4 r) {
+   return 1.79284291400159 - 0.85373472095314 * r;
+}
 
-  float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;
-  float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;
-  float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;
+float taylorInvSqrt(float r) {
+   return 1.79284291400159 - 0.85373472095314 * r;
+}
 
-  const float divisor = 1.0 / ( 2.0 * e );
-  return normalize( vec3( x , y , z ) * divisor );
+vec4 grad4(float j, vec4 ip) {
+   const vec4 ones = vec4(1.0, 1.0, 1.0, -1.0);
+   vec4 p,s;
 
+   p.xyz = floor( fract (vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;
+   p.w = 1.5 - dot(abs(p.xyz), ones.xyz);
+   s = vec4(lessThan(p, vec4(0.0)));
+   p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www; 
+
+   return p;
+}
+
+#define F4 0.309016994374947451
+
+vec4 simplexNoiseDerivatives (vec4 v) {
+   const vec4  C = vec4( 0.138196601125011,0.276393202250021,0.414589803375032,-0.447213595499958);
+
+   vec4 i  = floor(v + dot(v, vec4(F4)) );
+   vec4 x0 = v -   i + dot(i, C.xxxx);
+
+   vec4 i0;
+   vec3 isX = step( x0.yzw, x0.xxx );
+   vec3 isYZ = step( x0.zww, x0.yyz );
+   i0.x = isX.x + isX.y + isX.z;
+   i0.yzw = 1.0 - isX;
+   i0.y += isYZ.x + isYZ.y;
+   i0.zw += 1.0 - isYZ.xy;
+   i0.z += isYZ.z;
+   i0.w += 1.0 - isYZ.z;
+
+   vec4 i3 = clamp( i0, 0.0, 1.0 );
+   vec4 i2 = clamp( i0-1.0, 0.0, 1.0 );
+   vec4 i1 = clamp( i0-2.0, 0.0, 1.0 );
+
+   vec4 x1 = x0 - i1 + C.xxxx;
+   vec4 x2 = x0 - i2 + C.yyyy;
+   vec4 x3 = x0 - i3 + C.zzzz;
+   vec4 x4 = x0 + C.wwww;
+
+   i = mod289(i); 
+   float j0 = permute( permute( permute( permute(i.w) + i.z) + i.y) + i.x);
+   vec4 j1 = permute( permute( permute( permute (
+            i.w + vec4(i1.w, i2.w, i3.w, 1.0 ))
+          + i.z + vec4(i1.z, i2.z, i3.z, 1.0 ))
+          + i.y + vec4(i1.y, i2.y, i3.y, 1.0 ))
+          + i.x + vec4(i1.x, i2.x, i3.x, 1.0 ));
+
+
+   vec4 ip = vec4(1.0/294.0, 1.0/49.0, 1.0/7.0, 0.0) ;
+
+   vec4 p0 = grad4(j0,   ip);
+   vec4 p1 = grad4(j1.x, ip);
+   vec4 p2 = grad4(j1.y, ip);
+   vec4 p3 = grad4(j1.z, ip);
+   vec4 p4 = grad4(j1.w, ip);
+
+   vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+   p0 *= norm.x;
+   p1 *= norm.y;
+   p2 *= norm.z;
+   p3 *= norm.w;
+   p4 *= taylorInvSqrt(dot(p4,p4));
+
+   vec3 values0 = vec3(dot(p0, x0), dot(p1, x1), dot(p2, x2)); //value of contributions from each corner at point
+   vec2 values1 = vec2(dot(p3, x3), dot(p4, x4));
+
+   vec3 m0 = max(0.5 - vec3(dot(x0,x0), dot(x1,x1), dot(x2,x2)), 0.0); //(0.5 - x^2) where x is the distance
+   vec2 m1 = max(0.5 - vec2(dot(x3,x3), dot(x4,x4)), 0.0);
+
+   vec3 temp0 = -6.0 * m0 * m0 * values0;
+   vec2 temp1 = -6.0 * m1 * m1 * values1;
+
+   vec3 mmm0 = m0 * m0 * m0;
+   vec2 mmm1 = m1 * m1 * m1;
+
+   float dx = temp0[0] * x0.x + temp0[1] * x1.x + temp0[2] * x2.x + temp1[0] * x3.x + temp1[1] * x4.x + mmm0[0] * p0.x + mmm0[1] * p1.x + mmm0[2] * p2.x + mmm1[0] * p3.x + mmm1[1] * p4.x;
+   float dy = temp0[0] * x0.y + temp0[1] * x1.y + temp0[2] * x2.y + temp1[0] * x3.y + temp1[1] * x4.y + mmm0[0] * p0.y + mmm0[1] * p1.y + mmm0[2] * p2.y + mmm1[0] * p3.y + mmm1[1] * p4.y;
+   float dz = temp0[0] * x0.z + temp0[1] * x1.z + temp0[2] * x2.z + temp1[0] * x3.z + temp1[1] * x4.z + mmm0[0] * p0.z + mmm0[1] * p1.z + mmm0[2] * p2.z + mmm1[0] * p3.z + mmm1[1] * p4.z;
+   float dw = temp0[0] * x0.w + temp0[1] * x1.w + temp0[2] * x2.w + temp1[0] * x3.w + temp1[1] * x4.w + mmm0[0] * p0.w + mmm0[1] * p1.w + mmm0[2] * p2.w + mmm1[0] * p3.w + mmm1[1] * p4.w;
+
+   return vec4(dx, dy, dz, dw) * 49.0;
 }
 
 vec2 rotate(vec2 v, float a) {
@@ -131,6 +137,45 @@ void main() {
     vec4 position = texture2D(uTexturePosition, uv);
     vec4 velocity = texture2D(uTextureVelocity, uv);
 
+    float noiseTime = uTime * 0.6;
+    float noiseScale = 0.5;
+    float scale = 0.001;
+    float persistence = 2.0;
+
+    vec4 xNoisePotentialDerivatives = vec4(0.0);
+    vec4 yNoisePotentialDerivatives = vec4(0.0);
+    vec4 zNoisePotentialDerivatives = vec4(0.0);
+
+    vec3 noisePosition = position.xyz;
+
+    for (int i = 0; i < OCTAVES; ++i) {
+
+        float scale = (1.0 / 2.0) * pow(2.0, float(i));
+
+        float noiseScale = pow(persistence, float(i));
+
+        if (persistence == 0.0 && i == 0) {
+            noiseScale = 1.0;
+        }
+
+        xNoisePotentialDerivatives += simplexNoiseDerivatives(vec4(noisePosition * pow(2.0, float(i)), noiseTime)) * noiseScale * scale;
+        yNoisePotentialDerivatives += simplexNoiseDerivatives(vec4((noisePosition + vec3(123.4, 129845.6, -1239.1)) * pow(2.0, float(i)), noiseTime)) * noiseScale * scale;
+        zNoisePotentialDerivatives += simplexNoiseDerivatives(vec4((noisePosition + vec3(-9519.0, 9051.0, -123.0)) * pow(2.0, float(i)), noiseTime)) * noiseScale * scale;
+
+    }
+
+    // Compute curl noise
+
+    vec3 noiseVelocity = vec3(
+            zNoisePotentialDerivatives[1] - yNoisePotentialDerivatives[2],
+            xNoisePotentialDerivatives[2] - zNoisePotentialDerivatives[0],
+            yNoisePotentialDerivatives[0] - xNoisePotentialDerivatives[1]
+    ) * noiseScale;
+
+    vec3 newVelocity = vec3( 0., 0.0, -1.0 );
+    vec3 totalVelocity = newVelocity + noiseVelocity;
+
+
     // // Repulsion from mouse
     // vec2 toMouse = position.xy - uMouse;
     // float strength = smoothstep(0.3, 0.0, length(toMouse));
@@ -138,14 +183,11 @@ void main() {
 
     // // Friction
 
-    velocity.xyz += curlNoise( position.xyz + uTime ) * 0.0011;
+    //velocity.xyz += curlNoise( position.xyz + uTime ) * 0.0011;
 
 
 
     //velocity.xyz *= 0.98;
-
-    
-    // vec3 acc = curlNoise( position.xyz * 5.0 ) * 0.0005;
 
     // vec2 dir = normalize( position.xz );
     
@@ -155,7 +197,7 @@ void main() {
 
     //acc -= length( position.xyz ) * uDelta;
 
-    //velocity.xyz += acc * 0.02;
+    //elocity.xyz += acc * 0.01;
 
     // float dist = length( position.xyz );
     // float radius = 2.0;
@@ -166,6 +208,6 @@ void main() {
     // }
     
 
-    gl_FragColor = velocity;
+    gl_FragColor = vec4( totalVelocity, 1.0 );
 
 }

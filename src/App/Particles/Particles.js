@@ -1,4 +1,4 @@
-import { Points, ShaderMaterial, ShaderLib, NoBlending, BackSide } from "three";
+import { Points, ShaderMaterial, ShaderLib, NoBlending, BackSide, DoubleSide } from "three";
 
 import Material from './Material'
 import Geometry from './Geometry'
@@ -38,7 +38,7 @@ export default class Particles extends Points {
             fragmentShader: particleDistanceFragment,
             uniforms: mat.uniforms,
             blending: NoBlending,
-            side: BackSide
+            side: DoubleSide
         });
 
     }

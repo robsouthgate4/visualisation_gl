@@ -26,9 +26,9 @@ void main() {
 
     N.z = sqrt(1.0-mag);
 
-    vec3 finalColor = vec3(0.7, 0.7, 0.7);
+    vec3 finalColor = vec3(0.2, 0.2, 0.2);
     vec3 shadowColor = vec3(0.01, 0.01, 0.01);
-    float shadowPower = 0.7;   
+    float shadowPower = 0.2;   
 
     // it just mixes the shadow color with the frag color
 
@@ -39,7 +39,7 @@ void main() {
     vec3 lightDir = normalize( lightPosition - vWorldPosition.xyz );
 
     float diff = max( dot( N, lightDir ), 0.0 );
-    vec3 diffuse = diff * vec3( 0.8 );
+    vec3 diffuse = diff * vec3( 0.9 );
 
 
 
