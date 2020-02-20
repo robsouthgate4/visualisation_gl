@@ -18,6 +18,7 @@ varying float vLife;
 varying vec3 e;
 varying vec3 n;
 varying vec3 vPosition;
+varying vec3 vVelocity;
 
 void main() {
 
@@ -25,6 +26,8 @@ void main() {
 
     vec4 tPosition = texture2D( uTexturePosition, position.xy );
     vec4 tVelocity = texture2D( uTextureVelocity, position.xy );
+
+    vVelocity = tVelocity.xyz;
 
     vLife = tPosition.w;
 

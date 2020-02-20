@@ -1,13 +1,13 @@
 import { Points, ShaderMaterial, ShaderLib, NoBlending, BackSide, DoubleSide } from "three";
 
-import Material from './Material'
-import Geometry from './Geometry'
+import Material from './Material';
+import Geometry from './Geometry';
 
-import particleDepthFragment from './shaders/particleDepthFragment.glsl'
-import particleDepthVertex from './shaders/particleDepthVertex.glsl'
+import particleDepthFragment from './shaders/particleDepthFragment.glsl';
+import particleDepthVertex from './shaders/particleDepthVertex.glsl';
 
-import particleDistanceFragment from './shaders/particleDistanceFragment.glsl'
-import particleDistanceVertex from './shaders/particleDistanceVertex.glsl'
+import particleDistanceFragment from './shaders/particleDistanceFragment.glsl';
+import particleDistanceVertex from './shaders/particleDistanceVertex.glsl';
 
 export default class Particles extends Points {
 

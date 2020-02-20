@@ -26,7 +26,9 @@ varying float vLife;
 varying vec3 e;
 varying vec3 n;
 
+varying vec3 vVelocity;
 
+uniform vec3 shadowColor; // ms({ value: '#ff0000' })
 
 vec3 rgb( float r, float g, float b ) {
 
@@ -45,21 +47,23 @@ void main() {
     if (mag > 1.0) discard;   // kill pixels outside circle
 
     N.z = sqrt(1.0-mag);
-    
-    vec3 shadowColor = vec3( 0.01, 0.01, 0.01 );
 
-    float shadowPower = 0.1;
-    float specularStrength = 0.3;
+    float shadowPower = 0.2;
+    float specularStrength = 1.0;
 
     vec3 lightColor = vec3( 1.0 );
 
-    vec3 ref = reflect( e, n );
+    vec3 ref = reflect( e, N );
     float m = 2. * sqrt( pow( ref.x, 2. ) + pow( ref.y, 2. ) + pow( ref.z + 1., 2. ) );
     vec2 vN = ref.xy / m + .5;
 
-    vec3 envColor = texture2D( uTextureMatCap, gl_PointCoord ).rgb;
+    vec3 envColor = texture2D( uTextureMatCap, vN ).rgb;
+
+    // envColor.r += 0.1;
+
+    // envColor *= 0.7;
   
-    vec3 finalColor = envColor;//rgb( 25.0, 13.0, 0.0);
+    vec3 finalColor = mix( envColor, envColor * 0.8, length( vVelocity ) );//rgb( 25.0, 13.0, 0.0);
 
     // // it just mixes the shadow color with the frag color
 
@@ -75,12 +79,12 @@ void main() {
     // vec3 viewDir = normalize( cameraPosition - vWorldPosition.xyz );
     // vec3 reflectDir = reflect( -lightDir, N);  
 
-    // float spec = pow( max( dot( viewDir, reflectDir ), 0.0 ), 8. );
+    // float spec = pow( max( dot( viewDir, reflectDir ), 0.0 ), 32.0 );
     // vec3 specular = specularStrength * spec * lightColor;  
 
-    // finalColor += ( diffuse * 0.5) + specular;
+    // finalColor += ( diffuse * 0.1) + specular;
 
-    gl_FragColor = vec4( finalColor, 1.0);
+    gl_FragColor = vec4( mix( finalColor, shadowColor, shadow ), 1.0);
 
     
 

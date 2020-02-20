@@ -124,10 +124,19 @@ vec4 simplexNoiseDerivatives (vec4 v) {
 }
 
 vec2 rotate(vec2 v, float a) {
+
     float s = sin(a);
     float c = cos(a);
     mat2 m = mat2(c, -s, s, c);
     return m * v;
+
+}
+
+float sdSphere( vec3 p, float s )
+{
+
+  return length( p ) - s;
+
 }
 
 void main() {
@@ -174,6 +183,15 @@ void main() {
 
     vec3 newVelocity = vec3( 0., 0.0, -1.0 );
     vec3 totalVelocity = newVelocity + noiseVelocity;
+
+
+   // float sdf = sdSphere( position.xyz + vec3( sin( uTime * 0.1 ) * 4., 0.0, 0.0 ), 1.0 );
+
+   // if ( sdf <= 1.0 ) {
+
+   //    totalVelocity += vec3(0.0, 10.0, 0.0);
+
+   // }
 
 
     // // Repulsion from mouse
