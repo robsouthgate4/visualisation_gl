@@ -11,6 +11,7 @@ attribute vec3 aColor;
 
 varying vec4 vWorldPosition;
 varying vec3 vNormal;
+varying vec3 vWorldNormal;
 varying vec3 vColor;
 
 varying float vLife;
@@ -23,7 +24,9 @@ void main() {
 
     vLife = tPosition.w;
 
-    vec4 worldPosition = modelMatrix * vec4( tPosition.xyz, 1.0 );
+    vec4 worldPosition = modelMatrix * vec4( tPosition.xyz, 1.0 ); 
+
+    
 
     vec4 mvPosition = viewMatrix * worldPosition;
 
@@ -34,6 +37,8 @@ void main() {
     gl_Position = projectionMatrix * mvPosition;
     
     vNormal = normal;
+
+    //vWorldNormal = normalize( mat3( modelMatrix ) * normalize( normal ) );
 
     #include <shadowmap_vertex>
 

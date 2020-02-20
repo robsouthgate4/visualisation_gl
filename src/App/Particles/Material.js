@@ -1,4 +1,4 @@
-import { ShaderMaterial, DoubleSide, NoBlending } from "three";
+import { ShaderMaterial, DoubleSide, NoBlending, TextureLoader } from "three";
 
 import { UniformsLib } from 'three/src/renderers/shaders/UniformsLib';
 import { mergeUniforms } from 'three/src/renderers/shaders/UniformsUtils';
@@ -23,6 +23,7 @@ export default class Material extends ShaderMaterial {
                 uTexturePosition: { value: null },
                 uTextureVelocity: { value: null },
                 uTextureParticle: { value: null },
+                uTextureMatCap: { value: new TextureLoader().load( '/assets/images/matcap4.jpg' ) },
                 uResolution: { value: null }
             }
 

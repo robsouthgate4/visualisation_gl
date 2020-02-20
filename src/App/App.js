@@ -35,7 +35,7 @@ export default class App {
 		this.renderer = new WebGLRenderer( { logarithmicDepthBuffer: true } );
 		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
-		this.renderer.setClearColor( new Color( 'rgb( 90, 90, 90 )' ), 1.0 );
+		this.renderer.setClearColor( new Color( 'rgb( 30, 30, 30 )' ), 1.0 );
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = PCFSoftShadowMap;
 		
