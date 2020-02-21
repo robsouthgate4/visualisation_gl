@@ -31,13 +31,11 @@ void main() {
 
     vLife = tPosition.w;
 
-    vec4 worldPosition = modelMatrix * vec4( tPosition.xyz, 1.0 ); 
-
-    
+    vec4 worldPosition = modelMatrix * vec4( tPosition.xyz, 1.0 );     
 
     vec4 mvPosition = viewMatrix * worldPosition;
 
-    gl_PointSize = 40.0 / length( mvPosition.xyz );
+    gl_PointSize = 0.2 * ( 150.0 / -mvPosition.z );
 
     vWorldPosition = worldPosition;
     

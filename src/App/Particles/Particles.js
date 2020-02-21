@@ -18,7 +18,7 @@ export default class Particles extends Points {
 
         super( geo, mat );        
 
-        //this.frustumCulled = false;
+        this.frustumCulled = false;
         this.receiveShadow = true;
         this.castShadow = true;
         
@@ -28,7 +28,7 @@ export default class Particles extends Points {
             vertexShader: particleDepthVertex, 
             fragmentShader: particleDepthFragment,
             uniforms: mat.uniforms,
-            blending: NoBlending,
+            //blending: NoBlending,
             side: BackSide
         });
 
@@ -37,7 +37,7 @@ export default class Particles extends Points {
             vertexShader: particleDistanceVertex, 
             fragmentShader: particleDistanceFragment,
             uniforms: mat.uniforms,
-            blending: NoBlending,
+            //blending: NoBlending,
             side: DoubleSide
         });
 

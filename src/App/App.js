@@ -36,7 +36,7 @@ export default class App {
 		this.renderer = new WebGLRenderer( { logarithmicDepthBuffer: true } );
 		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
-		this.renderer.setClearColor( new Color( 'rgb( 30, 30, 30 )' ), 1.0 );
+		this.renderer.setClearColor( new Color( 'rgb( 20, 20, 20 )' ), 1.0 );
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = PCFSoftShadowMap;
 		
@@ -52,7 +52,7 @@ export default class App {
 		window.scene = this.scene;
 		
 		this.canvas = document.getElementById( 'canvas' );
-		this.camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
+		this.camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.01, 1000 );
 
 		// Controls
 
@@ -110,14 +110,20 @@ export default class App {
 		this.scene.add( this.particles );
 
 
-		const sphereGeo =  new SphereGeometry( 1, 24, 24 );
+		const sphereGeo =  new SphereGeometry( 0.1, 24, 24, );
+		
 		const mat = new MeshStandardMaterial( {
-			color: new Color( 'rgb( 155, 155, 155 )' )
+			color: new Color( 'rgb( 10, 10, 10 )' )
 		} );
+
 		const sphereMesh = new Mesh( sphereGeo, mat );
-		sphereMesh.position.set( 0, 1, 0 );
+
+		sphereMesh.position.set( 0, 2, -0.5 );
 		sphereMesh.castShadow = true;
-		//this.scene.add( sphereMesh );
+		sphereMesh.receiveShadow = true;
+		sphereMesh.frustumCulled = false
+
+		this.scene.add( sphereMesh );
 
 		this.camera.position.set( 0, 6, 4 );	
 		//this.camera.lookAt( this.particles.position );

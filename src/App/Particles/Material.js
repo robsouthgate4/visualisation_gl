@@ -40,11 +40,12 @@ export default class Material extends ShaderMaterial {
             depthFunc: true,
             transparent: true,
             side: DoubleSide,
-            fog: true,
+            fog: false,
             lights: true,
-            dithering: true,
+            dithering: false,
             blending: NoBlending,
             depthWrite: true
+
         } );
 
 	}

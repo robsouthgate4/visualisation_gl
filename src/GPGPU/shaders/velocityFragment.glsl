@@ -185,13 +185,15 @@ void main() {
     vec3 totalVelocity = newVelocity + noiseVelocity;
 
 
-   // float sdf = sdSphere( position.xyz + vec3( sin( uTime * 0.1 ) * 4., 0.0, 0.0 ), 1.0 );
+   float sdf = sdSphere( position.xyz + vec3( 0.0, 0.0, 0.5), 0.1 );
 
-   // if ( sdf <= 1.0 ) {
+   if ( sdf <= 0.1 ) {
 
-   //    totalVelocity += vec3(0.0, 10.0, 0.0);
+      //totalVelocity *= -1.0;
 
-   // }
+      totalVelocity.xyz *= normalize( position.xyz ) * 1.0;
+
+   }
 
 
     // // Repulsion from mouse
