@@ -33,7 +33,7 @@ export default class App {
 
 	constructor() {
 
-		this.renderer = new WebGLRenderer( { logarithmicDepthBuffer: true } );
+		this.renderer = new WebGLRenderer( );
 		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.setClearColor( new Color( 'rgb( 20, 20, 20 )' ), 1.0 );
@@ -103,11 +103,9 @@ export default class App {
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 		this.particles.setMaterialDistancehUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
-
-
 		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap5.png' ));
 
-		this.scene.add( this.particles );
+		this.scene.add( this.particles );		
 
 
 		const sphereGeo =  new SphereGeometry( 0.2, 24, 24, );
@@ -125,6 +123,7 @@ export default class App {
 		//sphereMesh.frustumCulled = false;
 
 		this.scene.add( sphereMesh );
+		
 
 		this.camera.position.set( 0, 6, 4 );	
 		//this.camera.lookAt( this.particles.position );
@@ -222,6 +221,8 @@ export default class App {
 		// Display
 
 		this.controls.update();		
+
+		//this.renderer.render( this.scene, this.camera );
 		
 		this.postProcess.render( this.scene, this.camera );
 
