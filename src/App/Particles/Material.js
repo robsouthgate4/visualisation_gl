@@ -1,4 +1,4 @@
-import { ShaderMaterial, DoubleSide, NoBlending, TextureLoader } from "three";
+import { ShaderMaterial, DoubleSide, NormalBlending, TextureLoa, NormalBlendingder, BackSide, FrontSide } from "three";
 
 
 
@@ -38,14 +38,13 @@ export default class Material extends ShaderMaterial {
             fragmentShader,
             depthTest: true,
             depthFunc: true,
-            transparent: true,
-            side: DoubleSide,
-            fog: false,
+            transparent: false,
+            side: FrontSide,
+            fog: true,
             lights: true,
             dithering: false,
-            blending: NoBlending,
+            blending: NormalBlending,
             depthWrite: true
-
         } );
 
 	}

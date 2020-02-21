@@ -110,7 +110,7 @@ export default class App {
 		this.scene.add( this.particles );
 
 
-		const sphereGeo =  new SphereGeometry( 0.1, 24, 24, );
+		const sphereGeo =  new SphereGeometry( 0.2, 24, 24, );
 		
 		const mat = new MeshStandardMaterial( {
 			color: new Color( 'rgb( 10, 10, 10 )' )
@@ -118,10 +118,11 @@ export default class App {
 
 		const sphereMesh = new Mesh( sphereGeo, mat );
 
-		sphereMesh.position.set( 0, 2, -0.5 );
+		sphereMesh.position.set( 0, 2, 0 );
 		sphereMesh.castShadow = true;
 		sphereMesh.receiveShadow = true;
-		sphereMesh.frustumCulled = false
+		
+		//sphereMesh.frustumCulled = false;
 
 		this.scene.add( sphereMesh );
 

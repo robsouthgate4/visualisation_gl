@@ -185,9 +185,9 @@ void main() {
     vec3 totalVelocity = newVelocity + noiseVelocity;
 
 
-   float sdf = sdSphere( position.xyz + vec3( 0.0, 0.0, 0.5), 0.1 );
+   float sdf = sdSphere( position.xyz + vec3( 0.0, 0.0, 0.5), 0.2 );
 
-   if ( sdf <= 0.1 ) {
+   if ( sdf <= 0.01 ) {
 
       //totalVelocity *= -1.0;
 

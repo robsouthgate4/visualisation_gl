@@ -22,7 +22,7 @@ varying vec3 vVelocity;
 
 void main() {
 
-    vPosition = position;
+    
 
     vec4 tPosition = texture2D( uTexturePosition, position.xy );
     vec4 tVelocity = texture2D( uTextureVelocity, position.xy );
@@ -37,9 +37,8 @@ void main() {
 
     gl_PointSize = 0.2 * ( 150.0 / -mvPosition.z );
 
-    vWorldPosition = worldPosition;
+    vWorldPosition = worldPosition;   
     
-    gl_Position = projectionMatrix * mvPosition;
     
     vNormal = normal;
 
@@ -47,11 +46,15 @@ void main() {
 
     n = normalize( normalMatrix * normal );
 
+    vPosition = position;
+
     #include <shadowmap_vertex>
 
     #include <fog_vertex>
 
     vColor = aColor;
+
+    gl_Position = projectionMatrix * mvPosition;
 
 }
   

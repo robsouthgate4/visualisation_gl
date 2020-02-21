@@ -18,27 +18,29 @@ export default class Particles extends Points {
 
         super( geo, mat );        
 
-        this.frustumCulled = false;
+        //this.frustumCulled = false;
         this.receiveShadow = true;
         this.castShadow = true;
-        
+        // this.customDepthMaterial = new ShaderMaterial( {
 
-        this.customDepthMaterial = new ShaderMaterial( {
-
-            vertexShader: particleDepthVertex, 
-            fragmentShader: particleDepthFragment,
-            uniforms: mat.uniforms,
-            //blending: NoBlending,
-            side: BackSide
-        });
+        //     vertexShader: particleDepthVertex, 
+        //     fragmentShader: particleDepthFragment,
+        //     uniforms: mat.uniforms,
+        //     depthTest: true,
+        //     depthWrite: true,
+        //     //blending: NoBlending,
+        //     side: BackSide
+        // });
 
         this.customDistanceMaterial = new ShaderMaterial( {
 
             vertexShader: particleDistanceVertex, 
             fragmentShader: particleDistanceFragment,
             uniforms: mat.uniforms,
-            //blending: NoBlending,
-            side: DoubleSide
+            depthTest: true,
+            depthWrite: true,
+            blending: NoBlending,
+            side: BackSide
         });
 
     }
@@ -52,7 +54,7 @@ export default class Particles extends Points {
     setMaterialDistancehUniforms( uniformName, value ) {
 
         this.customDistanceMaterial.uniforms[ uniformName ].value = value;
-        this.customDepthMaterial.uniforms[ uniformName ].value = value;
+        //this.customDepthMaterial.uniforms[ uniformName ].value = value;
 
 	}
 
