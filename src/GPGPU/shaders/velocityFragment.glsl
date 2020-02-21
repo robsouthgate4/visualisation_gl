@@ -139,6 +139,15 @@ float sdSphere( vec3 p, float s )
 
 }
 
+// vec3 calcNormal( in vec3 p ) // for function f(p)
+// {
+//     const float eps = 0.0001; // or some other value
+//     const vec2 h = vec2(eps,0);
+//     return normalize( vec3(f(p+h.xyy) - f(p-h.xyy),
+//                            f(p+h.yxy) - f(p-h.yxy),
+//                            f(p+h.yyx) - f(p-h.yyx) ) );
+// }
+
 void main() {
 
     vec2 uv = gl_FragCoord.xy / resolution.xy;

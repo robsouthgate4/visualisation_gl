@@ -116,7 +116,7 @@ export default class App {
 
 		const sphereMesh = new Mesh( sphereGeo, mat );
 
-		sphereMesh.position.set( 0, 2, 0 );
+		sphereMesh.position.set( 0, 2, -0.5 );
 		sphereMesh.castShadow = true;
 		sphereMesh.receiveShadow = true;
 		
