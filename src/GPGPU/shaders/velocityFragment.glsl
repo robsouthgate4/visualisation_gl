@@ -2,6 +2,7 @@ precision highp float;
 uniform float uTime;
 uniform float uDelta;
 uniform vec2 uMouse;
+uniform vec3 uSpherePosition;
 
 #pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
 
@@ -194,13 +195,13 @@ void main() {
     vec3 totalVelocity = newVelocity + noiseVelocity;
 
 
-   float sdf = sdSphere( position.xyz + vec3( 0.0, 0.0, 0.5), 0.2 );
+   float sdf = sdSphere( position.xyz - vec3( uSpherePosition.x, 0.0, uSpherePosition.z ) ,  0.2 );
 
    if ( sdf <= 0.01 ) {
 
-      //totalVelocity *= -1.0;
+      //totalVelocity = vec3(0.0);
 
-      totalVelocity.xyz *= normalize( position.xyz ) * 1.0;
+      totalVelocity.xyz *= normalize( position.xyz ) * 2.0;
 
    }
 

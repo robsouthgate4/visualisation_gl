@@ -3,7 +3,7 @@
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer';
 import velocityFragment from './shaders/velocityFragment.glsl';
 import positionFragment from './shaders/positionFragment.glsl';
-import { ClampToEdgeWrapping, RepeatWrapping, IcosahedronGeometry } from 'three';
+import { ClampToEdgeWrapping, RepeatWrapping, IcosahedronGeometry, Vector3 } from 'three';
 import { GeometryUtils } from 'three/examples/jsm/utils/GeometryUtils';
 
 import FBOHelper from '../libs/THREE.FBOHelper';
@@ -15,7 +15,7 @@ export default class GPGPU {
 
         this.settings = {
 
-            uDieSpeed: 0.005
+            uDieSpeed: 0.002
 
         }
 
@@ -84,6 +84,7 @@ export default class GPGPU {
         this.positionUniforms[ "uDieSpeed" ] = { value: this.settings.uDieSpeed }
         this.velocityUniforms[ "uTime" ] = { value: 0.0 };
         this.velocityUniforms[ "uDelta" ] = { value: 0.0 };
+        this.velocityUniforms[ "uSpherePosition" ] = { value: new Vector3() };
 
         this.velocityVariable.wrapS = ClampToEdgeWrapping;
         this.velocityVariable.wrapT = ClampToEdgeWrapping;
@@ -99,8 +100,8 @@ export default class GPGPU {
 
         }
 
-        this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'position' );
-        this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ), 'velocity' );
+        // this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'position' );
+        // this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ), 'velocity' );
 
     }
 
@@ -109,13 +110,15 @@ export default class GPGPU {
         return this.gpuCompute.getCurrentRenderTarget( variableName ).texture;
 
     }
-
     compute( dt, time ) {
 
         this.positionUniforms[ "uTime" ].value = time;
         this.positionUniforms[ "uDelta" ].value = dt;
         this.velocityUniforms[ "uTime" ].value = time;
         this.velocityUniforms[ "uDelta" ].value = dt;
+
+
+        console.log(this.velocityUniforms[ "uSpherePosition" ])
         
         this.fboHelper.update();
                 
