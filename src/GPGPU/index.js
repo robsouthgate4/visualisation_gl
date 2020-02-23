@@ -32,24 +32,15 @@ export default class GPGPU {
 		this.dtVelocity = this.gpuCompute.createTexture();
 		const velArray = this.dtVelocity.image.data;
 
-		// Position data
-
-		const shapePointCloud = GeometryUtils.randomPointsInGeometry( new IcosahedronGeometry( 2, 4 ), posArray.length );
+        // Position data
 
 		for ( let i = 0, l = posArray.length; i < l; i += 4 ) {
 
-			const x = shapePointCloud[ i ].x;
-			const y = shapePointCloud[ i ].y;
-            const z = shapePointCloud[ i ].z;
             const w = Math.random() * 1; // life
             
-			// posArray[ i + 0 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
-			// posArray[ i + 1 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
-            // posArray[ i + 2 ] = ( Math.random() * 2.0 - 1.0 ) * 0.3;
-            
-            posArray[ i + 0 ] = x * 0.1;
-			posArray[ i + 1 ] = y * 0.1;
-            posArray[ i + 2 ] = z * 0.1;
+			posArray[ i + 0 ] = ( Math.random() * 2.0 - 1.0 ) * 0.15;
+			posArray[ i + 1 ] = ( Math.random() * 2.0 - 1.0 ) * 0.15;
+            posArray[ i + 2 ] = ( Math.random() * 2.0 - 1.0 ) * 0.15;
             
 			posArray[ i + 3 ] = w;
 

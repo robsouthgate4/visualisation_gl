@@ -2,16 +2,16 @@
 import Triangle from '../Triangle'
 import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter } from 'three';
 
-import triangleVertex from '../shaders/screenTriangle/triangleVert.glsl';
-import triangleFragment from '../shaders/screenTriangle/triangleFrag.glsl';
+import triangleVertex from './shaders/screenTriangle/triangleVert.glsl';
+import triangleFragment from './shaders/screenTriangle/triangleFrag.glsl';
 
 const defaultVertex = triangleVertex;
 const defaultFragment = triangleFragment;
 
-import brightnessFragment from '../shaders/brightnessFragment.glsl';
-import blurFragment from '../shaders/blurFragment.glsl';
-import mixFragment from '../shaders/mixFragment.glsl';
-import fxaaFragment from '../shaders/fxaaFragment.glsl';
+import brightnessFragment from './shaders/brightnessFragment.glsl';
+import blurFragment from './shaders/blurFragment.glsl';
+import mixFragment from './shaders/mixFragment.glsl';
+import fxaaFragment from './shaders/fxaaFragment.glsl';
 
 
 export default class PostProcess {

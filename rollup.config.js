@@ -52,7 +52,7 @@ export default {
 		}),
 		serve({
 			open: true,
-			verbose: true,
+			verbose: false,
 			contentBase: 'dist',
 			// Options used in setting up server
 			host: '0.0.0.0',

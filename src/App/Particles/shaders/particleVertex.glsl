@@ -20,6 +20,10 @@ varying vec3 n;
 varying vec3 vPosition;
 varying vec3 vVelocity;
 
+
+uniform mat4 prevProjectionMatrix;
+uniform mat4 prevModelViewMatrix;
+
 void main() {
 
     
