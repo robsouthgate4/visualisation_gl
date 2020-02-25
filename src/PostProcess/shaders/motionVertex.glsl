@@ -5,6 +5,7 @@
 #include <shadowmap_pars_vertex>
 
 uniform sampler2D uTexturePosition;
+uniform sampler2D uTexturePrevPosition;
 uniform sampler2D uTextureVelocity;
 
 attribute vec3 aColor;
@@ -31,6 +32,7 @@ void main() {
     
 
     vec4 tPosition = texture2D( uTexturePosition, position.xy );
+    vec4 tPrevPosition = texture2D( uTexturePrevPosition, position.xy );
     vec4 tVelocity = texture2D( uTextureVelocity, position.xy );
 
     vVelocity = tVelocity.xyz;
@@ -54,13 +56,10 @@ void main() {
 
     // For motion blur
 
+    vPrevPosition = projectionMatrix * uPrevModelViewMatrix * vec4( tPrevPosition.xyz, 1.0 );
+
     vPosition = projectionMatrix * modelViewMatrix * vec4( tPosition.xyz, 1.0 );
-
-    vPrevPosition = projectionMatrix * uPrevModelViewMatrix * vec4( tPosition.xyz, 1.0 );
-
-    #include <shadowmap_vertex>
-
-    #include <fog_vertex>
+    
 
     vColor = aColor;
 

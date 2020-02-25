@@ -107,9 +107,6 @@ export default class GPGPU {
         this.positionUniforms[ "uDelta" ].value = dt;
         this.velocityUniforms[ "uTime" ].value = time;
         this.velocityUniforms[ "uDelta" ].value = dt;
-
-
-        console.log(this.velocityUniforms[ "uSpherePosition" ])
         
         this.fboHelper.update();
                 

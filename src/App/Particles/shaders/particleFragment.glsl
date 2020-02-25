@@ -21,7 +21,7 @@ varying vec4 vWorldPosition;
 varying vec3 vNormal;
 varying vec3 vColor;
 varying vec3 vWorldNormal;
-varying vec3 vPosition;
+varying vec4 vPosition;
 varying float vLife;
 varying vec3 e;
 varying vec3 n;

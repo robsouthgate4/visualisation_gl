@@ -15,8 +15,6 @@ export default class Geometry extends BufferGeometry {
 		const scales = new Float32Array( particleCount );
         const lifes = new Float32Array( particleCount );
 		const positions = new Float32Array( particleCount * 3 );
-		
-		console.log( Math.sqrt( particleCount ) )
 
 		for ( let i = 0; i < particleCount; i ++ ) {
 
