@@ -1,6 +1,6 @@
 
 import Triangle from '../Triangle'
-import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter, ShadowMaterial } from 'three';
+import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter, ShadowMaterial, Color } from 'three';
 
 import triangleVertex from './shaders/screenTriangle/triangleVert.glsl';
 import triangleFragment from './shaders/screenTriangle/triangleFrag.glsl';
@@ -89,24 +89,33 @@ export default class PostProcess {
 
         this.baseSceneRT = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
         this.baseSceneRT.texture.generateMipmaps = false;
+        this.baseSceneRT.flipY = true;     
 
         this.fxaaRT = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
-        this.fxaaRT.texture.generateMipmaps = false;        
+        this.fxaaRT.texture.generateMipmaps = false;
+        this.fxaaRT.flipY = true;          
 
         this.hBlurRT = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
         this.hBlurRT.texture.generateMipmaps = false;
+        this.hBlurRT.flipY = true;  
 
         this.vBlurRT = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
         this.vBlurRT.texture.generateMipmaps = false;
+        this.vBlurRT.flipY = true;  
 
         this.motionRT = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
-        this.motionRT.texture.generateMipmaps = false;        
+        this.motionRT.texture.generateMipmaps = false;
+        this.motionRT.flipY = true;        
 
         this.fboHelper.attach( this.baseSceneRT, 'Scene' );
         this.fboHelper.attach( this.hBlurRT, 'H blur' );
         this.fboHelper.attach( this.vBlurRT, 'V blur' );
         this.fboHelper.attach( this.fxaaRT, 'fxaa' );
         this.fboHelper.attach( this.motionRT, 'motion' );
+
+
+
+        this.oldClearColor  = new Color();
 
     }
 
@@ -133,64 +142,94 @@ export default class PostProcess {
         
         this.mesh.material = this.fxaaMaterial;
 
-        // Render FXAA
+        // // Render FXAA
 
-        this.renderer.setRenderTarget( this.fxaaRT );
-        this.renderer.render( this.scene, this.dummyCamera );
-        this.renderer.setRenderTarget( null );
-
-        // this.particles.material = this.particles.motionMaterial;
-
-        // this.renderer.setRenderTarget( this.motionRT );
+        // this.renderer.setRenderTarget( this.fxaaRT );
         // this.renderer.render( this.scene, this.dummyCamera );
         // this.renderer.setRenderTarget( null );
 
+        this.particles.tmpMaterial = this.particles.material;
 
-        this.brightnessMaterial.uniforms.uTexture.value = this.fxaaRT.texture;
-        
-        this.mesh.material = this.brightnessMaterial;
-
-        // Render brightness
-
-        this.renderer.setRenderTarget( this.hBlurRT );
-        this.renderer.render( this.scene, this.dummyCamera );
-        this.renderer.setRenderTarget( null );        
+        t//his.particles.material = this.particles.motionMaterial;
         
 
-        for ( var i = 0; i < 16; i ++ ) {
+        this.oldClearColor.copy( this.renderer.getClearColor() );
+        var oldClearAlpha = this.renderer.getClearAlpha();
+		var oldAutoClear = this.renderer.autoClear;
+        
+        this.renderer.setClearColor( 0xffffff );
+        
 
-            // Horizontal blur
+        this.renderer.setRenderTarget( this.motionRT );
+        this.renderer.render( scene, camera );
+        this.renderer.setRenderTarget( null );
 
-            this.blurMaterial.uniforms.uTexture.value = this.hBlurRT.texture;
-            this.blurMaterial.uniforms.uDelta.value = new Vector2( 1 / this.hBlurRT.width, 0 );
+        
+        
 
-            this.mesh.material = this.blurMaterial;
+        // if ( this.particles.motionMaterial ) {
 
-            this.renderer.setRenderTarget( this.vBlurRT )
-            this.renderer.render( this.scene, this.dummyCamera);
-            this.renderer.setRenderTarget( null );
+        //     this.particles.material = this.particles.tmpMaterial;
+        //     this.particles.tmpMaterial = null;
 
-            // Verical blur
+        // } else {
 
-            this.blurMaterial.uniforms.uTexture.value = this.vBlurRT.texture;
-            this.blurMaterial.uniforms.uDelta.value = new Vector2( 0, 1 / this.hBlurRT.height );
+        //     this.particles.visible = true;
 
-            this.mesh.material = this.blurMaterial;
+        // }
 
-            this.renderer.setRenderTarget( this.hBlurRT );
-            this.renderer.render( this.scene, this.dummyCamera);
-            this.renderer.setRenderTarget( null );           
 
-        }
+        // this.brightnessMaterial.uniforms.uTexture.value = this.fxaaRT.texture;
+        
+        // this.mesh.material = this.brightnessMaterial;
 
-        // Composite
+        // // Render brightness
 
-        this.compositeMaterial.uniforms.uTexture1.value = this.fxaaRT.texture; // fxaa
-        this.compositeMaterial.uniforms.uTexture2.value = this.hBlurRT.texture; // combined blur
+        // this.renderer.setRenderTarget( this.hBlurRT );
+        // this.renderer.render( this.scene, this.dummyCamera );
+        // this.renderer.setRenderTarget( null );        
+        
 
-        this.mesh.material = this.compositeMaterial;
+        // for ( var i = 0; i < 16; i ++ ) {
+
+        //     // Horizontal blur
+
+        //     this.blurMaterial.uniforms.uTexture.value = this.hBlurRT.texture;
+        //     this.blurMaterial.uniforms.uDelta.value = new Vector2( 1 / this.hBlurRT.width, 0 );
+
+        //     this.mesh.material = this.blurMaterial;
+
+        //     this.renderer.setRenderTarget( this.vBlurRT )
+        //     this.renderer.render( this.scene, this.dummyCamera);
+        //     this.renderer.setRenderTarget( null );
+
+        //     // Verical blur
+
+        //     this.blurMaterial.uniforms.uTexture.value = this.vBlurRT.texture;
+        //     this.blurMaterial.uniforms.uDelta.value = new Vector2( 0, 1 / this.hBlurRT.height );
+
+        //     this.mesh.material = this.blurMaterial;
+
+        //     this.renderer.setRenderTarget( this.hBlurRT );
+        //     this.renderer.render( this.scene, this.dummyCamera);
+        //     this.renderer.setRenderTarget( null );           
+
+        // }
+
+        // // Composite
+
+        // this.compositeMaterial.uniforms.uTexture1.value = this.fxaaRT.texture; // fxaa
+        // this.compositeMaterial.uniforms.uTexture2.value = this.hBlurRT.texture; // combined blur
+
+        //this.mesh.material = this.compositeMaterial;
+
+        this.renderer.setClearColor( this.oldClearColor );
+        this.particles.material = this.particles.tmpMaterial;
 
         this.renderer.render( this.scene, this.dummyCamera );
+
+
+        this.fboHelper.update();
 
     }
 

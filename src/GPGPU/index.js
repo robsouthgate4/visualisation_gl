@@ -105,9 +105,8 @@ export default class GPGPU {
         this.positionUniforms[ "uTime" ].value = time;
         this.positionUniforms[ "uDelta" ].value = dt;
         this.velocityUniforms[ "uTime" ].value = time;
-        this.velocityUniforms[ "uDelta" ].value = dt;
+        this.velocityUniforms[ "uDelta" ].value = dt;        
         
-        this.fboHelper.update();
                 
         this.gpuCompute.compute();       
         
