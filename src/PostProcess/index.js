@@ -113,8 +113,6 @@ export default class PostProcess {
         this.fboHelper.attach( this.fxaaRT, 'fxaa' );
         this.fboHelper.attach( this.motionRT, 'motion' );
 
-
-
         this.oldClearColor  = new Color();
 
     }
@@ -144,13 +142,13 @@ export default class PostProcess {
 
         // // Render FXAA
 
-        // this.renderer.setRenderTarget( this.fxaaRT );
-        // this.renderer.render( this.scene, this.dummyCamera );
-        // this.renderer.setRenderTarget( null );
+        this.renderer.setRenderTarget( this.fxaaRT );
+        this.renderer.render( this.scene, this.dummyCamera );
+        this.renderer.setRenderTarget( null );
 
-        this.particles.tmpMaterial = this.particles.material;
+        this.particles.material.needsUpdate = true;
 
-        t//his.particles.material = this.particles.motionMaterial;
+        this.particles.material = this.particles.motionMaterial;
         
 
         this.oldClearColor.copy( this.renderer.getClearColor() );
@@ -165,70 +163,57 @@ export default class PostProcess {
         this.renderer.setRenderTarget( null );
 
         
+        this.particles.material = this.particles.particleMaterial;   
+
+
+        this.brightnessMaterial.uniforms.uTexture.value = this.fxaaRT.texture;
+        
+        this.mesh.material = this.brightnessMaterial;
+
+        // Render brightness
+
+        this.renderer.setRenderTarget( this.hBlurRT );
+        this.renderer.render( this.scene, this.dummyCamera );
+        this.renderer.setRenderTarget( null );        
         
 
-        // if ( this.particles.motionMaterial ) {
+        for ( var i = 0; i < 16; i ++ ) {
 
-        //     this.particles.material = this.particles.tmpMaterial;
-        //     this.particles.tmpMaterial = null;
+            // Horizontal blur
 
-        // } else {
+            this.blurMaterial.uniforms.uTexture.value = this.hBlurRT.texture;
+            this.blurMaterial.uniforms.uDelta.value = new Vector2( 1 / this.hBlurRT.width, 0 );
 
-        //     this.particles.visible = true;
+            this.mesh.material = this.blurMaterial;
 
-        // }
+            this.renderer.setRenderTarget( this.vBlurRT )
+            this.renderer.render( this.scene, this.dummyCamera);
+            this.renderer.setRenderTarget( null );
 
+            // Verical blur
 
-        // this.brightnessMaterial.uniforms.uTexture.value = this.fxaaRT.texture;
-        
-        // this.mesh.material = this.brightnessMaterial;
+            this.blurMaterial.uniforms.uTexture.value = this.vBlurRT.texture;
+            this.blurMaterial.uniforms.uDelta.value = new Vector2( 0, 1 / this.hBlurRT.height );
 
-        // // Render brightness
+            this.mesh.material = this.blurMaterial;
 
-        // this.renderer.setRenderTarget( this.hBlurRT );
-        // this.renderer.render( this.scene, this.dummyCamera );
-        // this.renderer.setRenderTarget( null );        
-        
+            this.renderer.setRenderTarget( this.hBlurRT );
+            this.renderer.render( this.scene, this.dummyCamera);
+            this.renderer.setRenderTarget( null );           
 
-        // for ( var i = 0; i < 16; i ++ ) {
-
-        //     // Horizontal blur
-
-        //     this.blurMaterial.uniforms.uTexture.value = this.hBlurRT.texture;
-        //     this.blurMaterial.uniforms.uDelta.value = new Vector2( 1 / this.hBlurRT.width, 0 );
-
-        //     this.mesh.material = this.blurMaterial;
-
-        //     this.renderer.setRenderTarget( this.vBlurRT )
-        //     this.renderer.render( this.scene, this.dummyCamera);
-        //     this.renderer.setRenderTarget( null );
-
-        //     // Verical blur
-
-        //     this.blurMaterial.uniforms.uTexture.value = this.vBlurRT.texture;
-        //     this.blurMaterial.uniforms.uDelta.value = new Vector2( 0, 1 / this.hBlurRT.height );
-
-        //     this.mesh.material = this.blurMaterial;
-
-        //     this.renderer.setRenderTarget( this.hBlurRT );
-        //     this.renderer.render( this.scene, this.dummyCamera);
-        //     this.renderer.setRenderTarget( null );           
-
-        // }
+        }
 
         // // Composite
 
-        // this.compositeMaterial.uniforms.uTexture1.value = this.fxaaRT.texture; // fxaa
-        // this.compositeMaterial.uniforms.uTexture2.value = this.hBlurRT.texture; // combined blur
+        this.compositeMaterial.uniforms.uTexture1.value = this.fxaaRT.texture; // fxaa
+        this.compositeMaterial.uniforms.uTexture2.value = this.hBlurRT.texture; // combined blur
 
-        //this.mesh.material = this.compositeMaterial;
+        this.mesh.material = this.compositeMaterial;
 
         this.renderer.setClearColor( this.oldClearColor );
-        this.particles.material = this.particles.tmpMaterial;
 
         this.renderer.render( this.scene, this.dummyCamera );
-
-
+        
         this.fboHelper.update();
 
     }

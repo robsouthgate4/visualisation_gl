@@ -25,12 +25,13 @@ export default class Particles extends Points {
         this.castShadow = true;
         this.fboHelper = fboHelper;
 
+        this.material.needsUpdate = true;
+
         this.motionMaterial = motionMaterial;
         this.motionMaterial.name = "motionMaterial"
 
         this.particleMaterial = particleMaterial;
         this.particleMaterial.name = "particleMaterial";
-
 
         this.customDistanceMaterial = new ShaderMaterial( {
 
