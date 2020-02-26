@@ -21,7 +21,9 @@ import {
 	PointLightHelper,
 	AmbientLight,
 	ShadowMaterial,
-	TextureLoader
+	TextureLoader,
+	WebGLRenderTarget,
+	LinearFilter
 } from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -29,6 +31,7 @@ import PostProcess from '../PostProcess';
 
 import GPGPU from '../GPGPU';
 import Particles from "./Particles/Particles";
+import FBOHelper from "../libs/THREE.FBOHelper";
 
 export default class App {
 
@@ -37,9 +40,12 @@ export default class App {
 		this.renderer = new WebGLRenderer();
 		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
-		this.renderer.setClearColor( new Color( 'rgb( 20, 20, 20 )' ), 1.0 );
+		this.renderer.setClearColor( new Color( 'rgb( 50, 50, 50 )' ), 1.0 );
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = PCFSoftShadowMap;
+
+		this.fboHelper = new FBOHelper( this.renderer );
+		this.fboHelper.setSize( window.innerWidth, window.innerHeight );
 
 
 		document.body.appendChild( this.renderer.domElement );
@@ -69,11 +75,7 @@ export default class App {
 		//this.camera.lookAt( new Vector3( 0, 2, 0 ) );
 
 		this.controls.update();
-
-
-		// Post processing
-
-		this.postProcess = new PostProcess( this.renderer );
+		
 
 		window.addEventListener( 'mousemove', ( e ) => {
 
@@ -96,7 +98,7 @@ export default class App {
 
 		this.setupScene();
 		requestAnimationFrame( this.render.bind( this ) );
-		this.onWindowResize();
+		
 
 		// Init GPGPU
 
@@ -105,16 +107,17 @@ export default class App {
 		this.gpgpu = new GPGPU( {
 
 			numParticles,
-			renderer: this.renderer
+			renderer: this.renderer,
+			fboHelper: this.fboHelper
 
 		} );
 
-		this.particles = new Particles( { particleCount: numParticles } );
+		this.particles = new Particles( { particleCount: numParticles, fboHelper: this.fboHelper } );
 		this.particles.position.set( 0, 2, 0 );
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
-		//this.particles.setMaterialDistanceUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
-		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap5.png' ) );
+		this.particles.setMaterialDistanceUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
+		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcapHD.png' ) );
 
 		this.scene.add( this.particles );
 
@@ -134,6 +137,16 @@ export default class App {
 		//this.sphereMesh.frustumCulled = false;
 
 		this.scene.add( this.sphereMesh );
+
+
+		// Post processing
+
+		this.postProcess = new PostProcess( this.renderer, this.particles, this.fboHelper );
+
+		this.onWindowResize();
+
+		this.motionRT = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+        this.motionRT.texture.generateMipmaps = false;    
 
 
 
@@ -227,11 +240,11 @@ export default class App {
 
 		this.controls.update();
 
+		this.particles.update();
+
 		this.postProcess.render( this.scene, this.camera );
 
-		this.gpgpu.compute( dt, time );
-
-		
+		this.gpgpu.compute( dt, time );				
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
 		this.particles.setMaterialUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );

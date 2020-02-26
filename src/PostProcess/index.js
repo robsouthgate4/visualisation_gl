@@ -16,11 +16,13 @@ import fxaaFragment from './shaders/fxaaFragment.glsl';
 
 export default class PostProcess {
 
-    constructor( renderer, fboHelper ) {       
+    constructor( renderer, particles, fboHelper ) {       
 
         this.renderer = renderer;
-       
-        //this.fboHelper = new FBOHelper( this.renderer );
+
+        this.fboHelper = fboHelper;
+
+        this.particles = particles;       
 
         this.scene =  new Scene();
 
@@ -29,9 +31,8 @@ export default class PostProcess {
         this.geometry = new Triangle();
 
         this.resolution = new Vector2();
-        this.renderer.getDrawingBufferSize( this.resolution );
 
-       //this.fboHelper.setSize( window.innerWidth, window.innerHeight );
+        this.renderer.getDrawingBufferSize( this.resolution );
 
         this.material = new ShaderMaterial( {
 
@@ -86,31 +87,35 @@ export default class PostProcess {
 
         this.scene.add( this.mesh );
 
-        this.rtPost0 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
-        this.rtPost0.texture.generateMipmaps = false;
+        this.baseSceneRT = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+        this.baseSceneRT.texture.generateMipmaps = false;
 
-        this.rtPost1 = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
-        this.rtPost1.texture.generateMipmaps = false;
+        this.fxaaRT = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+        this.fxaaRT.texture.generateMipmaps = false;        
 
-        this.rtPost2 = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
-        this.rtPost2.texture.generateMipmaps = false;
+        this.hBlurRT = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
+        this.hBlurRT.texture.generateMipmaps = false;
 
-        this.rtPost3 = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
-        this.rtPost3.texture.generateMipmaps = false;
+        this.vBlurRT = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
+        this.vBlurRT.texture.generateMipmaps = false;
 
-        // this.fboHelper.attach( this.rtPost1, 'Scene' );
-        // this.fboHelper.attach( this.rtPost2, 'H blur' );
-        // this.fboHelper.attach( this.rtPost3, 'V blur' );
-        // this.fboHelper.attach( this.rtPost0, 'fxaa' );
+        this.motionRT = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+        this.motionRT.texture.generateMipmaps = false;        
+
+        this.fboHelper.attach( this.baseSceneRT, 'Scene' );
+        this.fboHelper.attach( this.hBlurRT, 'H blur' );
+        this.fboHelper.attach( this.vBlurRT, 'V blur' );
+        this.fboHelper.attach( this.fxaaRT, 'fxaa' );
+        this.fboHelper.attach( this.motionRT, 'motion' );
 
     }
 
     resize() {
 
-        this.rtPost0.setSize( window.innerWidth, window.innerHeight );
-        this.rtPost1.setSize( window.innerWidth, window.innerHeight );
-        this.rtPost2.setSize( window.innerWidth / 8, window.innerHeight / 8 );
-        this.rtPost3.setSize( window.innerWidth / 8, window.innerHeight / 8 );
+        this.fxaaRT.setSize( window.innerWidth, window.innerHeight );
+        this.baseSceneRT.setSize( window.innerWidth, window.innerHeight );
+        this.hBlurRT.setSize( window.innerWidth / 8, window.innerHeight / 8 );
+        this.vBlurRT.setSize( window.innerWidth / 8, window.innerHeight / 8 );
 
         this.renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -120,27 +125,34 @@ export default class PostProcess {
         
         // Render initial scene
 
-        this.renderer.setRenderTarget( this.rtPost1 );
+        this.renderer.setRenderTarget( this.baseSceneRT );
         this.renderer.render( scene, camera );
         this.renderer.setRenderTarget( null );
 
-        this.fxaaMaterial.uniforms.uTexture.value = this.rtPost1.texture;
+        this.fxaaMaterial.uniforms.uTexture.value = this.baseSceneRT.texture;
         
         this.mesh.material = this.fxaaMaterial;
 
         // Render FXAA
 
-        this.renderer.setRenderTarget( this.rtPost0 );
+        this.renderer.setRenderTarget( this.fxaaRT );
         this.renderer.render( this.scene, this.dummyCamera );
         this.renderer.setRenderTarget( null );
 
-        this.brightnessMaterial.uniforms.uTexture.value = this.rtPost0.texture;
+        // this.particles.material = this.particles.motionMaterial;
+
+        // this.renderer.setRenderTarget( this.motionRT );
+        // this.renderer.render( this.scene, this.dummyCamera );
+        // this.renderer.setRenderTarget( null );
+
+
+        this.brightnessMaterial.uniforms.uTexture.value = this.fxaaRT.texture;
         
         this.mesh.material = this.brightnessMaterial;
 
         // Render brightness
 
-        this.renderer.setRenderTarget( this.rtPost2 );
+        this.renderer.setRenderTarget( this.hBlurRT );
         this.renderer.render( this.scene, this.dummyCamera );
         this.renderer.setRenderTarget( null );        
         
@@ -149,23 +161,23 @@ export default class PostProcess {
 
             // Horizontal blur
 
-            this.blurMaterial.uniforms.uTexture.value = this.rtPost2.texture;
-            this.blurMaterial.uniforms.uDelta.value = new Vector2( 1 / this.rtPost2.width, 0 );
+            this.blurMaterial.uniforms.uTexture.value = this.hBlurRT.texture;
+            this.blurMaterial.uniforms.uDelta.value = new Vector2( 1 / this.hBlurRT.width, 0 );
 
             this.mesh.material = this.blurMaterial;
 
-            this.renderer.setRenderTarget( this.rtPost3 )
+            this.renderer.setRenderTarget( this.vBlurRT )
             this.renderer.render( this.scene, this.dummyCamera);
             this.renderer.setRenderTarget( null );
 
             // Verical blur
 
-            this.blurMaterial.uniforms.uTexture.value = this.rtPost3.texture;
-            this.blurMaterial.uniforms.uDelta.value = new Vector2( 0, 1 / this.rtPost2.height );
+            this.blurMaterial.uniforms.uTexture.value = this.vBlurRT.texture;
+            this.blurMaterial.uniforms.uDelta.value = new Vector2( 0, 1 / this.hBlurRT.height );
 
             this.mesh.material = this.blurMaterial;
 
-            this.renderer.setRenderTarget( this.rtPost2 );
+            this.renderer.setRenderTarget( this.hBlurRT );
             this.renderer.render( this.scene, this.dummyCamera);
             this.renderer.setRenderTarget( null );           
 
@@ -173,14 +185,12 @@ export default class PostProcess {
 
         // Composite
 
-        this.compositeMaterial.uniforms.uTexture1.value = this.rtPost0.texture; // fxaa
-        this.compositeMaterial.uniforms.uTexture2.value = this.rtPost2.texture; // combined blur
+        this.compositeMaterial.uniforms.uTexture1.value = this.fxaaRT.texture; // fxaa
+        this.compositeMaterial.uniforms.uTexture2.value = this.hBlurRT.texture; // combined blur
 
         this.mesh.material = this.compositeMaterial;
 
-        this.renderer.render( this.scene, this.dummyCamera );        
-
-        //this.fboHelper.update();
+        this.renderer.render( this.scene, this.dummyCamera );
 
     }
 

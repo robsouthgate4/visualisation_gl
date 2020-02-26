@@ -41,7 +41,7 @@ void main() {
 
     vec4 mvPosition = viewMatrix * worldPosition;
 
-    gl_PointSize = 0.2 * ( 150.0 / -mvPosition.z );
+    gl_PointSize = 0.4 * ( 150.0 / -mvPosition.z );
 
     vWorldPosition = worldPosition;   
     

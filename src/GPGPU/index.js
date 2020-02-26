@@ -21,8 +21,7 @@ export default class GPGPU {
 
         this.renderer = renderer;
 
-        this.fboHelper = new FBOHelper( this.renderer );
-        this.fboHelper.setSize( window.innerWidth, window.innerHeight );
+        this.fboHelper = fboHelper;
 
         this.gpuCompute = new GPUComputationRenderer( Math.sqrt( numParticles ), Math.sqrt( numParticles ), this.renderer );
 
@@ -91,8 +90,8 @@ export default class GPGPU {
 
         }
 
-        // this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'position' );
-        // this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ), 'velocity' );
+        this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'position' );
+        this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ), 'velocity' );
 
     }
 

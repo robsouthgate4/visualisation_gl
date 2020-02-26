@@ -1,4 +1,4 @@
-import { Points, ShaderMaterial, ShaderLib, NoBlending, BackSide, DoubleSide } from "three";
+import { Points, ShaderMaterial, ShaderLib, NoBlending, BackSide, DoubleSide, WebGLRenderTarget, LinearFilter } from "three";
 
 import Material from './Material';
 import Geometry from './Geometry';
@@ -13,34 +13,36 @@ import MotionMaterial from '../../PostProcess/materials/MotionMaterial';
 
 export default class Particles extends Points {
 
-    constructor( { particleCount } ) {
+    constructor( { particleCount, fboHelper } ) {
 
         const geo = new Geometry( { particleCount } );
-        const mat = new Material();
+        const particleMaterial = new Material();
         const motionMaterial = new MotionMaterial();
 
-        super( geo, motionMaterial );        
+        super( geo, particleMaterial );        
 
-       // this.receiveShadow = true;
-        //this.castShadow = true;
+        this.receiveShadow = true;
+        this.castShadow = true;
+        this.fboHelper = fboHelper;
+
+        this.motionMaterial = motionMaterial;
+        this.motionMaterial.name = "motionMaterial"
+
+        this.particleMaterial = particleMaterial;
+        this.particleMaterial.name = "particleMaterial";
 
 
+        this.customDistanceMaterial = new ShaderMaterial( {
 
+            vertexShader: particleDistanceVertex, 
+            fragmentShader: particleDistanceFragment,
+            uniforms: particleMaterial.uniforms,
+            depthTest: true,
+            depthWrite: true,
+            blending: NoBlending,
+            side: BackSide
 
-
-        // this.customDistanceMaterial = new ShaderMaterial( {
-
-        //     vertexShader: particleDistanceVertex, 
-        //     fragmentShader: particleDistanceFragment,
-        //     uniforms: mat.uniforms,
-        //     depthTest: true,
-        //     depthWrite: true,
-        //     blending: NoBlending,
-        //     side: BackSide
-
-        // });
-
-        
+        });        
 
     }
 
@@ -58,13 +60,12 @@ export default class Particles extends Points {
     
     setMaterialDistanceUniforms( uniformName, value ) {
 
-       //this.customDistanceMaterial.uniforms[ uniformName ].value = value;
+       this.customDistanceMaterial.uniforms[ uniformName ].value = value;
         //this.customDepthMaterial.uniforms[ uniformName ].value = value;
 
 	}
 
     update( time, dt ) {
-
 
     }
 

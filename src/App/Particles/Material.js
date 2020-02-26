@@ -1,4 +1,4 @@
-import { ShaderMaterial, DoubleSide, NormalBlending, TextureLoa, NormalBlendingder, BackSide, FrontSide } from "three";
+import { ShaderMaterial, DoubleSide, NormalBlending, TextureLoa, NormalBlendingder, BackSide, FrontSide, Matrix4 } from "three";
 
 
 
@@ -22,6 +22,9 @@ export default class Material extends ShaderMaterial {
                 uRandom: { value: 1.0 },
                 uDepth: { value: 2.0 },
                 uSize: { value: 0.0 },
+                uPrevProjectionMatrix: { value: new Matrix4() },
+                uPrevModelViewMatrix: { value: new Matrix4() },
+                uTexturePrevPosition: { value: null },
                 uTexturePosition: { value: null },
                 uTextureVelocity: { value: null },
                 uTextureParticle: { value: null },
