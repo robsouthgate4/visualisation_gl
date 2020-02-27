@@ -1,6 +1,6 @@
 
 import Triangle from '../Triangle'
-import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter, ShadowMaterial, Color } from 'three';
+import { WebGLRenderTarget, Vector2, ShaderMaterial, Mesh, Camera, OrthographicCamera, Scene, RGBFormat, LinearFilter, ShadowMaterial, Color, MeshBasicMaterial } from 'three';
 
 import triangleVertex from './shaders/screenTriangle/triangleVert.glsl';
 import triangleFragment from './shaders/screenTriangle/triangleFrag.glsl';
@@ -16,9 +16,15 @@ import fxaaFragment from './shaders/fxaaFragment.glsl';
 
 export default class PostProcess {
 
-    constructor( renderer, particles, fboHelper ) {       
+    constructor( renderer, particles, fboHelper, meshes ) {       
 
         this.renderer = renderer;
+
+        this.floorMesh = meshes.floorMesh;
+
+        this.shadowMesh = meshes.shadowMesh;
+
+        this.sphereMesh = meshes.sphereMesh;
 
         this.fboHelper = fboHelper;
 
@@ -146,24 +152,8 @@ export default class PostProcess {
         this.renderer.render( this.scene, this.dummyCamera );
         this.renderer.setRenderTarget( null );
 
-        this.particles.material.needsUpdate = true;
-
-        this.particles.material = this.particles.motionMaterial;
-        
-
-        this.oldClearColor.copy( this.renderer.getClearColor() );
-        var oldClearAlpha = this.renderer.getClearAlpha();
-		var oldAutoClear = this.renderer.autoClear;
-        
-        this.renderer.setClearColor( 0xffffff );
-        
-
-        this.renderer.setRenderTarget( this.motionRT );
-        this.renderer.render( scene, camera );
-        this.renderer.setRenderTarget( null );
 
         
-        this.particles.material = this.particles.particleMaterial;   
 
 
         this.brightnessMaterial.uniforms.uTexture.value = this.fxaaRT.texture;
@@ -203,12 +193,28 @@ export default class PostProcess {
 
         }
 
-        // // Composite
+        // Composite
 
         this.compositeMaterial.uniforms.uTexture1.value = this.fxaaRT.texture; // fxaa
         this.compositeMaterial.uniforms.uTexture2.value = this.hBlurRT.texture; // combined blur
 
         this.mesh.material = this.compositeMaterial;
+
+        this.particles.material = this.particles.motionMaterial;
+
+        this.oldClearColor.copy( this.renderer.getClearColor() );
+        this.renderer.setClearColor( 0xffffff );
+        this.floorMesh.visible = false;
+        this.shadowMesh.visible = false;
+
+        this.renderer.setRenderTarget( this.motionRT );
+        this.renderer.render( scene, camera );
+        this.renderer.setRenderTarget( null );
+        
+        this.particles.material = this.particles.particleMaterial;  
+        
+        this.floorMesh.visible = false;
+        this.shadowMesh.visible = false;
 
         this.renderer.setClearColor( this.oldClearColor );
 

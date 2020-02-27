@@ -25,8 +25,6 @@ export default class Particles extends Points {
         this.castShadow = true;
         this.fboHelper = fboHelper;
 
-        this.material.needsUpdate = true;
-
         this.motionMaterial = motionMaterial;
         this.motionMaterial.name = "motionMaterial"
 
@@ -43,7 +41,8 @@ export default class Particles extends Points {
             blending: NoBlending,
             side: BackSide
 
-        });        
+        });
+    
 
     }
 

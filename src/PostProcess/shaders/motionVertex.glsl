@@ -1,8 +1,3 @@
-#include <common>
-
-#include <fog_pars_vertex>
-
-#include <shadowmap_pars_vertex>
 
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTexturePrevPosition;
@@ -26,10 +21,7 @@ uniform mat4 uPrevProjectionMatrix;
 uniform mat4 uPrevModelViewMatrix;
 
 
-
-void main() {
-
-    
+void main() {    
 
     vec4 tPosition = texture2D( uTexturePosition, position.xy );
     vec4 tPrevPosition = texture2D( uTexturePrevPosition, position.xy );
@@ -58,8 +50,7 @@ void main() {
 
     vPrevPosition = projectionMatrix * uPrevModelViewMatrix * vec4( tPrevPosition.xyz, 1.0 );
 
-    vPosition = projectionMatrix * modelViewMatrix * vec4( tPosition.xyz, 1.0 );
-    
+    vPosition = projectionMatrix * modelViewMatrix * vec4( tPosition.xyz, 1.0 );    
 
     vColor = aColor;
 

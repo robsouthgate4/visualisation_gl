@@ -141,7 +141,11 @@ export default class App {
 
 		// Post processing
 
-		this.postProcess = new PostProcess( this.renderer, this.particles, this.fboHelper );
+		this.postProcess = new PostProcess( this.renderer, this.particles, this.fboHelper, {
+			floorMesh: this.floorMesh,
+			shadowMesh: this.shadowPlaneMesh,
+			sphereMesh: this.sphereMesh
+		} );
 
 		this.onWindowResize();
 
@@ -242,23 +246,25 @@ export default class App {
 
 		this.particles.update();
 
+		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
+		this.particles.setMaterialUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );
+
+
 		this.postProcess.render( this.scene, this.camera );
 
 		this.gpgpu.compute( dt, time );				
 
-		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
-		this.particles.setMaterialUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );
-
+		
 		this.particles.setMaterialDistanceUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
 		this.particles.setMaterialDistanceUniforms( 'uTextureVelocity', this.gpgpu.getRenderTexture( this.gpgpu.velocityVariable ) );
 
 		this.particles.material.uniforms.uTexturePrevPosition.value = this.gpgpu.gpuCompute.getAlternateRenderTarget( this.gpgpu.positionVariable );
 		
-		this.particles.material.uniforms.uPrevModelViewMatrix.value.multiplyMatrices( this.camera.matrixWorldInverse, this.particles.matrixWorld );
-		this.particles.material.uniforms.uPrevProjectionMatrix.value.copy( this.camera.projectionMatrix );
+		this.particles.motionMaterial.uniforms.uPrevModelViewMatrix.value.multiplyMatrices( this.camera.matrixWorldInverse, this.particles.matrixWorld );
+		this.particles.motionMaterial.uniforms.uPrevProjectionMatrix.value.copy( this.camera.projectionMatrix );
 
-		// this.particles.motionMaterial.uniforms.uTexturePrevPosition = this.gpgpu.gpuCompute.getAlternateRenderTarget( this.gpgpu.positionVariable );
-		// this.particles.motionMaterial.uniforms.uTexturePosition = this.gpgpu.getRenderTexture(this.gpgpu.positionVariable);
+		this.particles.motionMaterial.uniforms.uTexturePrevPosition.value = this.gpgpu.gpuCompute.getAlternateRenderTarget( this.gpgpu.positionVariable );
+		this.particles.motionMaterial.uniforms.uTexturePosition.value = this.gpgpu.getRenderTexture(this.gpgpu.positionVariable);
 
 		requestAnimationFrame( this.render.bind( this ) );
 

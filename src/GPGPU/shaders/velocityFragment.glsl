@@ -205,6 +205,8 @@ void main() {
 
    }
 
+   //totalVelocity
+
 
     // // Repulsion from mouse
     // vec2 toMouse = position.xy - uMouse;
