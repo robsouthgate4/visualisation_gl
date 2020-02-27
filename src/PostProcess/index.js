@@ -206,6 +206,7 @@ export default class PostProcess {
         this.renderer.setClearColor( 0xffffff );
         this.floorMesh.visible = false;
         this.shadowMesh.visible = false;
+        this.sphereMesh.visible = false;
 
         this.renderer.setRenderTarget( this.motionRT );
         this.renderer.render( scene, camera );
@@ -213,8 +214,9 @@ export default class PostProcess {
         
         this.particles.material = this.particles.particleMaterial;  
         
-        this.floorMesh.visible = false;
-        this.shadowMesh.visible = false;
+        this.floorMesh.visible = true;
+        this.shadowMesh.visible = true;
+        this.sphereMesh.visible = true;
 
         this.renderer.setClearColor( this.oldClearColor );
 
