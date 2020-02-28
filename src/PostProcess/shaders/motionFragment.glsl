@@ -16,7 +16,7 @@ void main( void ) {
 
     vel = ( vPosition.xyz / vPosition.w ) - ( vPrevPosition.xyz / vPrevPosition.w );
 
-    vel *= 5.0;
+    vel *= 3.0;
 
     gl_FragColor = vec4( vel, 1.0);
 

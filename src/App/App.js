@@ -40,7 +40,7 @@ export default class App {
 		this.renderer = new WebGLRenderer();
 		this.renderer.setPixelRatio( 1 );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
-		this.renderer.setClearColor( new Color( 'rgb( 50, 50, 50 )' ), 1.0 );
+		this.renderer.setClearColor( new Color( 'rgb( 80, 80, 80 )' ), 1.0 );
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = PCFSoftShadowMap;
 
@@ -61,18 +61,21 @@ export default class App {
 		this.canvas = document.getElementById( 'canvas' );
 		this.camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.01, 10000 );
 
-
-
+		this.camera.lookAt( new Vector3( 0, 10, - 0.5 ) );
+		this.camera.position.set( 0, 2, 3 );
+		
 
 		// Controls
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		this.controls.enableDamping = true;
+		this.controls.enablePan = false;
 		this.controls.dampingFactor = 0.1;
+		this.controls.target = new Vector3( 0, 2, - 0.5 );
 		this.mouse = new Vector2();
 
-		this.camera.position.set( 3.914, 7.810, 0.078 );
-		//this.camera.lookAt( new Vector3( 0, 2, 0 ) );
+		
+		//
 
 		this.controls.update();
 		
@@ -117,7 +120,7 @@ export default class App {
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 		this.particles.setMaterialDistanceUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
-		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap2.jpg' ) );
+		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap7.jpg' ) );
 
 		this.scene.add( this.particles );
 
@@ -241,9 +244,6 @@ export default class App {
 		this.gpgpu.velocityUniforms[ "uSpherePosition" ].value = this.sphereMesh.position;
 
 		// Display
-
-		this.controls.update();
-
 		this.particles.update();
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
@@ -265,6 +265,8 @@ export default class App {
 
 		this.particles.motionMaterial.uniforms.uTexturePrevPosition.value = this.gpgpu.gpuCompute.getAlternateRenderTarget( this.gpgpu.positionVariable );
 		this.particles.motionMaterial.uniforms.uTexturePosition.value = this.gpgpu.getRenderTexture(this.gpgpu.positionVariable);
+
+		this.controls.update();
 
 		requestAnimationFrame( this.render.bind( this ) );
 
