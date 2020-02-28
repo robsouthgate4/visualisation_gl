@@ -1,7 +1,7 @@
 varying vec4 vPosition;
 varying vec4 vPrevPosition;
 
-void main(void) {
+void main( void ) {
 
     vec3 N;
 
