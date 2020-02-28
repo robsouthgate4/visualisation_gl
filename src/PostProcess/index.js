@@ -195,13 +195,15 @@ export default class PostProcess {
 
          // Motion blur end
 
-         this.renderer.setClearColor( this.oldClearColor );
+         
 
          this.mesh.material = this.motionMaterial;
 
          this.renderer.setRenderTarget( this.motionBlurRT );
          this.renderer.render( this.scene, this.dummyCamera );
          this.renderer.setRenderTarget( null );
+
+         this.renderer.setClearColor( this.oldClearColor );
 
         // this.brightnessMaterial.uniforms.uTexture.value = this.motionRT.texture;
         

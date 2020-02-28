@@ -35,16 +35,16 @@ void main() {
 
     vec4 mvPosition = viewMatrix * worldPosition;
 
-    gl_PointSize = 0.2 * ( 150.0 / -mvPosition.z );
+    gl_PointSize = 0.4 * ( 150.0 / -mvPosition.z );
 
     vWorldPosition = worldPosition;   
     
     
     vNormal = normal;
 
-    e = normalize( vec3( modelViewMatrix * vec4( tPosition.xyz, 1.0 ) ) );
+    //e = normalize( vec3( modelViewMatrix * vec4( tPosition.xyz, 1.0 ) ) );
 
-    n = normalize( normalMatrix * normal );
+    //n = normalize( normalMatrix * normal );
 
     // For motion blur
 

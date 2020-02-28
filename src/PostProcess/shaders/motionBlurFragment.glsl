@@ -19,7 +19,7 @@ void main( void ) {
     float speed = length( velocity / texelSize );
 
 
-    const int nSamples = 5;
+    const int nSamples = 20;
 
     vec4 result = texture2D( uTexture, screenTexCoords);
 
