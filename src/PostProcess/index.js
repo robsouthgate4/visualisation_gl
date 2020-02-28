@@ -193,9 +193,7 @@ export default class PostProcess {
         this.shadowMesh.visible = true;
         this.sphereMesh.visible = true;
 
-         // Motion blur end
-
-         
+         // Motion blur end         
 
          this.mesh.material = this.motionMaterial;
 

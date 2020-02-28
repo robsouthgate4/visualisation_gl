@@ -117,7 +117,7 @@ export default class App {
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 		this.particles.setMaterialDistanceUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
-		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcapHD.png' ) );
+		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap2.jpg' ) );
 
 		this.scene.add( this.particles );
 

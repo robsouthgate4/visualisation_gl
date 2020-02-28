@@ -199,47 +199,9 @@ void main() {
 
    if ( sdf <= 0.01 ) {
 
-      //totalVelocity = vec3(0.0);
-
       totalVelocity.xyz *= normalize( position.xyz ) * 2.0;
 
    }
-
-   //totalVelocity
-
-
-    // // Repulsion from mouse
-    // vec2 toMouse = position.xy - uMouse;
-    // float strength = smoothstep(0.3, 0.0, length(toMouse));
-    // velocity.xy += strength * normalize(toMouse) * 0.5;
-
-    // // Friction
-
-    //velocity.xyz += curlNoise( position.xyz + uTime ) * 0.0011;
-
-
-
-    //velocity.xyz *= 0.98;
-
-    // vec2 dir = normalize( position.xz );
-    
-    // dir = rotate( dir, PI * 0.3 );
-
-    //acc.xz += dir * (1.0 - length( position ));
-
-    //acc -= length( position.xyz ) * uDelta;
-
-    //elocity.xyz += acc * 0.01;
-
-    // float dist = length( position.xyz );
-    // float radius = 2.0;
-
-    // if(dist > radius) {
-    //   float f = 0.01;
-    //   velocity.xyz -= normalize( position.xyz ) * f;
-    // }
-    
-    //totalVelocity = vec3( 0.0 );
 
     gl_FragColor = vec4( totalVelocity * 1.0, 1.0 );
 
