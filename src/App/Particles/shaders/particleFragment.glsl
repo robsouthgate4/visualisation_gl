@@ -13,6 +13,7 @@ const vec3 lightPosition = vec3( 0., -10., 0. );
 uniform sampler2D uTexturePosition;
 uniform sampler2D uTextureVelocity;
 uniform sampler2D uTextureMatCap;
+uniform sampler2D uTextureMatCap2;
 
 uniform mat3 normalMatrix;
 uniform mat4 modelViewMatrix;
@@ -27,6 +28,8 @@ varying vec3 e;
 varying vec3 n;
 
 varying vec3 vVelocity;
+
+uniform float uMaterialBlend;
 
 uniform vec3 shadowColor; // ms({ value: '#ff0000' })
 
@@ -58,12 +61,15 @@ void main() {
     vec2 vN = ref.xy / m + .5;
 
     vec3 envColor = texture2D( uTextureMatCap, vN ).rgb;
+    vec3 envColor2 = texture2D( uTextureMatCap2, vN ).rgb;
 
     // envColor.r += 0.1;
 
     // envColor *= 0.7;
+
+    vec3 finalEnvColor = mix( envColor, envColor2, uMaterialBlend );
   
-    vec3 finalColor = mix( envColor, envColor * 0.8, length( vVelocity ) );//rgb( 25.0, 13.0, 0.0);
+    vec3 finalColor = mix( finalEnvColor, finalEnvColor * 0.8, length( vVelocity ) );//rgb( 25.0, 13.0, 0.0);
 
     // // it just mixes the shadow color with the frag color
 

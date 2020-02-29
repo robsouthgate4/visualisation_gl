@@ -29,6 +29,8 @@ export default class Material extends ShaderMaterial {
                 uTextureVelocity: { value: null },
                 uTextureParticle: { value: null },
                 uTextureMatCap: { value: null },
+                uTextureMatCap2: { value: null },
+                uMaterialBlend: { value: null },
                 uResolution: { value: null }
             }
 

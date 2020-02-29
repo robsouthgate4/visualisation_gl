@@ -1,5 +1,6 @@
 varying vec4 vPosition;
 varying vec4 vPrevPosition;
+uniform float uMotionBlurAmount;
 
 void main( void ) {
 
@@ -16,7 +17,7 @@ void main( void ) {
 
     vel = ( vPosition.xyz / vPosition.w ) - ( vPrevPosition.xyz / vPrevPosition.w );
 
-    vel *= 3.0;
+    vel *= uMotionBlurAmount;
 
     gl_FragColor = vec4( vel, 1.0);
 

@@ -8,6 +8,8 @@ import { GeometryUtils } from 'three/examples/jsm/utils/GeometryUtils';
 
 import FBOHelper from '../libs/THREE.FBOHelper';
 
+import Gui from '../Engine/Gui'
+
 
 export default class GPGPU {
 

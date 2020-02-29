@@ -19,7 +19,8 @@ export default class Material extends ShaderMaterial {
             uTextureVelocity: { value: null },
             uTextureParticle: { value: null },
             uTextureMatCap: { value: null },
-            uResolution: { value: null }
+            uResolution: { value: null },
+            uMotionBlurAmount: { value: null }
         };
 
 		super( { 

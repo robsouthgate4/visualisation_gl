@@ -14,10 +14,11 @@ import mixFragment from './shaders/mixFragment.glsl';
 import fxaaFragment from './shaders/fxaaFragment.glsl';
 import motionBlurFragment from './shaders/motionBlurFragment.glsl';
 
+import Gui from '../Engine/Gui'
 
 export default class PostProcess {
 
-    constructor( renderer, particles, fboHelper, meshes ) {       
+    constructor( renderer, particles, fboHelper, meshes ) {
 
         this.renderer = renderer;
 

@@ -32,10 +32,24 @@ import PostProcess from '../PostProcess';
 import GPGPU from '../GPGPU';
 import Particles from "./Particles/Particles";
 import FBOHelper from "../libs/THREE.FBOHelper";
+import Gui from "../Engine/Gui";
+
+
 
 export default class App {
 
 	constructor() {
+
+		this.ppSettings = {
+
+			motionBlurAmount: 3,
+			materialBlend: 0
+
+        }
+
+		//this.controller = Gui.gui;
+		this.controller1 = Gui.gui.add(  this.ppSettings, 'motionBlurAmount', 0, 10);
+		this.controller2 = Gui.gui.add(  this.ppSettings, 'materialBlend', 0, 1);
 
 		this.renderer = new WebGLRenderer();
 		this.renderer.setPixelRatio( 1 );
@@ -75,8 +89,6 @@ export default class App {
 		this.mouse = new Vector2();
 
 		
-		//
-
 		this.controls.update();
 		
 
@@ -121,6 +133,23 @@ export default class App {
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 		this.particles.setMaterialDistanceUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap7.jpg' ) );
+		this.particles.setMaterialUniforms( 'uTextureMatCap2', new TextureLoader().load( 'assets/images/matcapHD.png' ) );
+
+		this.particles.motionMaterial.uniforms.uMotionBlurAmount.value = this.ppSettings.motionBlurAmount;
+
+		this.controller1.onChange((value) => {
+
+			// Fires on every change, drag, keypress, etc.
+			this.particles.motionMaterial.uniforms.uMotionBlurAmount.value = this.ppSettings.motionBlurAmount;
+
+		});
+
+		this.controller2.onChange((value) => {
+
+			// Fires on every change, drag, keypress, etc.
+			this.particles.particleMaterial.uniforms.uMaterialBlend.value = this.ppSettings.materialBlend;
+
+		});
 
 		this.scene.add( this.particles );
 

@@ -1,13 +1,14 @@
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
 
-export default class Gui {
+class Gui {
 
-	constructor( { animations, mixer, actions } ) {
+	constructor( ) {
 
-		this.animations = animations;
 		this.gui = new GUI();
 
 	}
 
 }
+
+export default new Gui();
 
