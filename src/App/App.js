@@ -37,12 +37,15 @@ export default class App {
 		this.camera = new PerspectiveCamera( ( 70, window.innerWidth / window.innerHeight, 0.01, 50 ) );
 		this.camera.near = 0.01;
 		this.camera.far = 10;		
+		
 
 		// Controls
 
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 		this.controls.enableDamping = true;
 		this.controls.dampingFactor = 0.1;
+		this.controls.enablePan = false;
+		this.controls.enableZoom = false;
 		this.mouse = new Vector2();
 
 		// Create Sphere geo
@@ -96,7 +99,7 @@ export default class App {
 
 	setupScene() {
 
-		this.camera.position.set( 0, 0, 4 );
+		this.camera.position.set( 0, 0, 3 );
 
 	}
 

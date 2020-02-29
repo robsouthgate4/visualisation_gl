@@ -67,6 +67,8 @@ void main() {
 
     envColor *= length(n);
 
+    envColor *= vec3(1.0, .5, 0.5);
+
     vec3 color = mix( envColor, vec3(1.0), pow(length(n) * 0.6, 10.0));
 
     color += mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r);
