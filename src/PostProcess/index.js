@@ -130,11 +130,11 @@ export default class PostProcess {
         this.motionBlurRT.texture.generateMipmaps = false;
         this.motionBlurRT.flipY = true;
 
-        this.fboHelper.attach( this.baseSceneRT, 'Scene' );
-        this.fboHelper.attach( this.hBlurRT, 'H blur' );
-        this.fboHelper.attach( this.vBlurRT, 'V blur' );
-        this.fboHelper.attach( this.fxaaRT, 'fxaa' );
-        this.fboHelper.attach( this.motionRT, 'motion' );
+        // this.fboHelper.attach( this.baseSceneRT, 'Scene' );
+        // this.fboHelper.attach( this.hBlurRT, 'H blur' );
+        // this.fboHelper.attach( this.vBlurRT, 'V blur' );
+        // this.fboHelper.attach( this.fxaaRT, 'fxaa' );
+        // this.fboHelper.attach( this.motionRT, 'motion' );
 
         this.oldClearColor  = new Color();
 
