@@ -2,6 +2,8 @@
 
 precision highp float;
 
+#pragma glslify: grain = require(glsl-film-grain)
+
 uniform float time;
 uniform vec2 uResolution;
 
@@ -60,10 +62,18 @@ float fbm (in vec2 st) {
 }
 
 void main() {
+
+   
     
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
+     float grainSize = 0.5;
+
+    float g = grain( uv, uResolution / grainSize );
+
     vec3 finalColor =  mix( uColor1, uColor2, fbm( uv * 4.0 ));
+
+    finalColor += vec3(1.0) * (g * 0.3);
 
     //color += vDist;
 
