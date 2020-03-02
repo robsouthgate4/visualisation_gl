@@ -156,16 +156,17 @@ void main() {
     vec4 position = texture2D(uTexturePosition, uv);
     vec4 velocity = texture2D(uTextureVelocity, uv);
 
-    float noiseTime = uTime * 0.6;
-    float noiseScale = 0.5;
-    float scale = 0.001;
-    float persistence = 2.0;
+    float noiseTime = uTime * 100.0;
+    float noiseScale = 30.0;
+    float scale = 10.0;
+    float persistence = 0.1;
 
     vec4 xNoisePotentialDerivatives = vec4(0.0);
     vec4 yNoisePotentialDerivatives = vec4(0.0);
     vec4 zNoisePotentialDerivatives = vec4(0.0);
 
     vec3 noisePosition = position.xyz;
+    
 
     for (int i = 0; i < OCTAVES; ++i) {
 
@@ -191,20 +192,22 @@ void main() {
             yNoisePotentialDerivatives[0] - xNoisePotentialDerivatives[1]
     ) * noiseScale;
 
-    vec3 newVelocity = vec3( 0., 0.0, -1.0 );
-    vec3 totalVelocity = newVelocity + noiseVelocity;
+   vec3 newVelocity = vec3( 0.0, 0.0, 0.0 );
 
 
-   float sdf = sdSphere( position.xyz - vec3( uSpherePosition.x, 0.0, uSpherePosition.z ) ,  0.2 );
 
-   if ( sdf <= 0.01 ) {
+   vec3 totalVelocity = newVelocity + noiseVelocity;
 
-      totalVelocity.xyz *= normalize( position.xyz ) * 2.0;
 
-   }
+   // float sdf = sdSphere( position.xyz - vec3( uSpherePosition.x, 0.0, uSpherePosition.z ) ,  0.2 );
 
-   totalVelocity =  vec3( 0.0 );
+   // if ( sdf <= 0.01 ) {
 
-    gl_FragColor = vec4( totalVelocity * 1.0, 1.0 );
+   //    totalVelocity.xyz *= normalize( position.xyz ) * 2.0;
+
+   // }
+
+
+    gl_FragColor = vec4( totalVelocity, 1.0 );
 
 }

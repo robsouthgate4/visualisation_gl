@@ -5,6 +5,8 @@ uniform float uDieSpeed;
 
 uniform sampler2D uTexturePositionOrigin;
 
+const float PI = 3.14159;
+
 void main() {
 
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -16,17 +18,24 @@ void main() {
 
     float life = positionBuffer.w - uDieSpeed;
 
-    if ( life < 0.0 ) {
+    // if ( life < 0.0 ) {
 
-        positionBuffer = texture2D( uTexturePositionOrigin, uv );
-        position = positionBuffer.xyz;
-        life = positionBuffer.w;
+    //     //positionBuffer = texture2D( uTexturePositionOrigin, uv );
+    //     //position = positionBuffer.xyz;
+    //     //life = positionBuffer.w;
 
-    } else {
+    // } else {
 
-        position.xyz += velocity.xyz * uDelta;
+        
 
-    }
+    //     //position.xyz += velocity.xyz * uDelta;
+        
+
+    // }
+
+    position.x = cos( velocity.z ) * cos( velocity.y ) * 2.0;
+    position.y = cos( velocity.z ) * sin( velocity.y ) * 2.0;
+    position.z = sin( velocity.z ) * 2.0;
 
     // position.xy += velocity.xy * 0.01;
                     
