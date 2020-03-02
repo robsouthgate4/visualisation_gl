@@ -26,8 +26,6 @@ export default class PostProcess {
 
         this.shadowMesh = meshes.shadowMesh;
 
-        this.sphereMesh = meshes.sphereMesh;
-
         this.fboHelper = fboHelper;
 
         this.particles = particles;       
@@ -177,8 +175,7 @@ export default class PostProcess {
         this.renderer.setClearColor( 0x000000 );
 
         this.floorMesh.visible = false;
-        this.shadowMesh.visible = false;
-        this.sphereMesh.visible = false;        
+        this.shadowMesh.visible = false;     
 
         this.renderer.setRenderTarget( this.motionRT );
         this.renderer.render( scene, camera );
@@ -192,7 +189,6 @@ export default class PostProcess {
         
         this.floorMesh.visible = true;
         this.shadowMesh.visible = true;
-        this.sphereMesh.visible = true;
 
          // Motion blur end         
 
@@ -246,9 +242,7 @@ export default class PostProcess {
         this.compositeMaterial.uniforms.uTexture1.value = this.fxaaRT.texture; // fxaa
         this.compositeMaterial.uniforms.uTexture2.value = this.motionBlurRT.texture; // combined blur
 
-        this.mesh.material = this.compositeMaterial;
-
-        
+        this.mesh.material = this.compositeMaterial;        
 
         this.renderer.render( this.scene, this.dummyCamera );
         

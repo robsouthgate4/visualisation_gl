@@ -31,8 +31,6 @@ varying vec3 vVelocity;
 
 uniform float uMaterialBlend;
 
-uniform vec3 shadowColor; // ms({ value: '#ff0000' })
-
 vec3 rgb( float r, float g, float b ) {
 
     return vec3( r / 255., g / 255., b / 255. );
@@ -54,6 +52,8 @@ void main() {
     float shadowPower = 0.2;
     float specularStrength = 1.0;
 
+    vec3 shadowColor = vec3( 0.5 );
+
     vec3 lightColor = vec3( 1.0 );
 
     vec3 ref = reflect( e, N );
@@ -67,9 +67,9 @@ void main() {
 
     // envColor *= 0.7;
 
-    vec3 finalEnvColor = mix( envColor, envColor2, uMaterialBlend );
+    vec3 finalEnvColor = envColor;
   
-    vec3 finalColor = mix( finalEnvColor, finalEnvColor * 0.8, length( vVelocity ) );//rgb( 25.0, 13.0, 0.0);
+    vec3 finalColor = finalEnvColor;
 
     // // it just mixes the shadow color with the frag color
 

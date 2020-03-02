@@ -48,7 +48,7 @@ export default class Material extends ShaderMaterial {
             fog: true,
             lights: true,
             dithering: false,
-            blending: NormalBlending,
+            //blending: NormalBlending,
             depthWrite: true
         } );
 

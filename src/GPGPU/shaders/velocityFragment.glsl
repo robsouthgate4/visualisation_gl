@@ -203,6 +203,8 @@ void main() {
 
    }
 
+   totalVelocity =  vec3( 0.0 );
+
     gl_FragColor = vec4( totalVelocity * 1.0, 1.0 );
 
 }

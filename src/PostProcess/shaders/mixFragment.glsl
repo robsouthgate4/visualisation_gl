@@ -20,9 +20,11 @@ void main() {
     vec3 color1 = texture2D( uTexture1, vUv ).xyz;
     vec3 color2 = texture2D( uTexture2, vUv ).xyz;
 
-    vec3 sceneColor = color2;
+    vec3 sceneColor = color1;
 
-    sceneColor.rgb = mix(sceneColor.rgb, sceneColor.rgb * vignette, 0.5);
+    // sceneColor.rgb = mix(sceneColor.rgb, sceneColor.rgb * vignette, 0.5);
+
+    // sceneColor.rgb = mix(sceneColor.rgb, sceneColor.rgb, 0.5);
 
     gl_FragColor = vec4( sceneColor, 1.0 );
 }

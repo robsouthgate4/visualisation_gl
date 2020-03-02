@@ -33,6 +33,7 @@ import GPGPU from '../GPGPU';
 import Particles from "./Particles/Particles";
 import FBOHelper from "../libs/THREE.FBOHelper";
 import Gui from "../Engine/Gui";
+import ProceduralBackground from "./ProceduralBackground";
 
 
 
@@ -132,7 +133,7 @@ export default class App {
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
 		this.particles.setMaterialDistanceUniforms( 'uTexturePosition', this.gpgpu.positionVariable );
-		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcap7.jpg' ) );
+		this.particles.setMaterialUniforms( 'uTextureMatCap', new TextureLoader().load( 'assets/images/matcapWhite.jpg' ) );
 		this.particles.setMaterialUniforms( 'uTextureMatCap2', new TextureLoader().load( 'assets/images/matcapHD.png' ) );
 
 		this.particles.motionMaterial.uniforms.uMotionBlurAmount.value = this.ppSettings.motionBlurAmount;
@@ -151,25 +152,13 @@ export default class App {
 
 		});
 
+
+		this.background = new ProceduralBackground();
+		this.background.setUniforms( 'uResolution', new Vector2( window.innerWidth, window.innerHeight ) );
+		this.background.position.set( 0, 0, 0 );
+		this.scene.add( this.background );
+
 		this.scene.add( this.particles );
-
-
-		const sphereGeo = new SphereGeometry( 0.2, 24, 24 );
-
-		const mat = new MeshStandardMaterial( {
-			color: new Color( 'rgb( 10, 10, 10 )' )
-		} );
-
-		this.sphereMesh = new Mesh( sphereGeo, mat );
-
-		this.sphereMesh.position.set( 0, 2, - 0.5 );
-		this.sphereMesh.castShadow = true;
-		this.sphereMesh.receiveShadow = true;
-
-		//this.sphereMesh.frustumCulled = false;
-
-		this.scene.add( this.sphereMesh );
-
 
 		// Post processing
 
@@ -269,10 +258,8 @@ export default class App {
 		const dt = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
-		this.sphereMesh.position.set( Math.sin( time * 0.5 ) * 0.5, this.sphereMesh.position.y, Math.cos( time * 0.5 ) + - Math.abs( Math.cos( time * 0.2 ) ) * 2 );
-		this.gpgpu.velocityUniforms[ "uSpherePosition" ].value = this.sphereMesh.position;
-
 		// Display
+
 		this.particles.update();
 
 		this.particles.setMaterialUniforms( 'uTexturePosition', this.gpgpu.getRenderTexture( this.gpgpu.positionVariable ) );
