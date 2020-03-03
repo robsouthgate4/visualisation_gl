@@ -99,8 +99,6 @@ export default class PostProcess {
         this.rtPost3 = new WebGLRenderTarget( window.innerWidth / 8, window.innerHeight / 8, { minFilter: LinearFilter } );
         this.rtPost3.texture.generateMipmaps = false;
 
-
-
         // this.fboHelper.attach( this.rtPost1, 'Scene' );
         // this.fboHelper.attach( this.rtPost2, 'H blur' );
         // this.fboHelper.attach( this.rtPost3, 'V blur' );
