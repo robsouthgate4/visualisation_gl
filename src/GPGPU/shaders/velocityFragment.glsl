@@ -1,8 +1,11 @@
 precision highp float;
+
 uniform float uTime;
 uniform float uDelta;
 uniform vec2 uMouse;
 uniform vec3 uSpherePosition;
+uniform float uVelocity;
+uniform float uNoiseScale;
 
 #pragma glslify: snoise3 = require(glsl-noise/simplex/3d)
 
@@ -157,7 +160,7 @@ void main() {
     vec4 velocity = texture2D(uTextureVelocity, uv);
 
     float noiseTime = uTime * 0.6;
-    float noiseScale = 0.5;
+    float noiseScale = mix(0.5, 0.75, uNoiseScale);
     float scale = 0.001;
     float persistence = 2.0;
 
@@ -191,7 +194,7 @@ void main() {
             yNoisePotentialDerivatives[0] - xNoisePotentialDerivatives[1]
     ) * noiseScale;
 
-    vec3 newVelocity = vec3( 0., 0.0, -1.0 );
+    vec3 newVelocity = vec3( 0.1, 0.1, -1.0 );
     vec3 totalVelocity = newVelocity + noiseVelocity;
 
 
@@ -202,6 +205,8 @@ void main() {
       totalVelocity.xyz *= normalize( position.xyz ) * 2.0;
 
    }
+
+   totalVelocity *= uVelocity;
 
     gl_FragColor = vec4( totalVelocity * 1.0, 1.0 );
 

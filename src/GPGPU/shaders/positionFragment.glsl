@@ -20,6 +20,7 @@ void main() {
 
         positionBuffer = texture2D( uTexturePositionOrigin, uv );
         position = positionBuffer.xyz;
+        velocity.xyz = vec3(0.0);
         life = positionBuffer.w;
 
     } else {

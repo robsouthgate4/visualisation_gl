@@ -16,6 +16,8 @@ void main( void ) {
 
     velocity *= 1.0;
 
+    //velocity.rg = clamp( velocity.rg, vec2(0.0), vec2(1.0) );
+
     float speed = length( velocity / texelSize );
 
 

@@ -42,14 +42,14 @@ export default class App {
 
 		this.ppSettings = {
 
-			motionBlurAmount: 3,
-			materialBlend: 0
-
+			motionBlurAmount: 1.9,
+			materialBlend: 0,
+			velocity: 1
         }
 
 		//this.controller = Gui.gui;
-		this.controller1 = Gui.gui.add(  this.ppSettings, 'motionBlurAmount', 0, 10);
-		this.controller2 = Gui.gui.add(  this.ppSettings, 'materialBlend', 0, 1);
+		this.controller1 = Gui.gui.add(  this.ppSettings, 'motionBlurAmount', 0, 3);
+		this.controller2 = Gui.gui.add(  this.ppSettings, 'materialBlend', 0, 1);		
 
 		this.renderer = new WebGLRenderer();
 		this.renderer.setPixelRatio( 1 );
@@ -76,7 +76,8 @@ export default class App {
 		this.camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.01, 10000 );
 
 		this.camera.lookAt( new Vector3( 0, 10, - 0.5 ) );
-		this.camera.position.set( 0, 2, 3 );
+		this.camera.position.set( 2, 2.5, 2 );
+		this.camera.rotateY( Math3.degToRad( 90 ) );
 		
 
 		// Controls

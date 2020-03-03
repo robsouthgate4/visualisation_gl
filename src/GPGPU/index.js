@@ -17,7 +17,9 @@ export default class GPGPU {
 
         this.settings = {
 
-            uDieSpeed: 0.002
+            uDieSpeed: 0.002,
+            velocity: 1,
+            noiseScale: 0
 
         }
 
@@ -26,6 +28,9 @@ export default class GPGPU {
         this.fboHelper = fboHelper;
 
         this.gpuCompute = new GPUComputationRenderer( Math.sqrt( numParticles ), Math.sqrt( numParticles ), this.renderer );
+
+        this.controller3 = Gui.gui.add(  this.settings, 'velocity', 0, 1);
+        this.controller4 = Gui.gui.add(  this.settings, 'noiseScale', 0, 1);
 
         this.dtPosition = this.gpuCompute.createTexture();
 		const posArray = this.dtPosition.image.data;
@@ -77,6 +82,8 @@ export default class GPGPU {
         this.velocityUniforms[ "uTime" ] = { value: 0.0 };
         this.velocityUniforms[ "uDelta" ] = { value: 0.0 };
         this.velocityUniforms[ "uSpherePosition" ] = { value: new Vector3() };
+        this.velocityUniforms[ "uVelocity" ] = { value: this.settings.velocity };
+        this.velocityUniforms[ "uNoiseScale" ] = { value: this.settings.noiseScale };
 
         this.velocityVariable.wrapS = ClampToEdgeWrapping;
         this.velocityVariable.wrapT = ClampToEdgeWrapping;
@@ -95,6 +102,18 @@ export default class GPGPU {
         // this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.positionVariable ), 'position' );
         // this.fboHelper.attach( this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ), 'velocity' );
 
+        this.controller3.onChange((newValue) => {
+
+			this.velocityUniforms["uVelocity"].value = newValue;
+
+        });
+        
+        this.controller4.onChange((newValue) => {
+
+			this.velocityUniforms["uNoiseScale"].value = newValue;
+
+		});
+
     }
 
     getRenderTexture( variableName ) {
@@ -110,7 +129,9 @@ export default class GPGPU {
         this.velocityUniforms[ "uDelta" ].value = dt;        
         
                 
-        this.gpuCompute.compute();       
+        this.gpuCompute.compute();
+
+        
         
 
     }

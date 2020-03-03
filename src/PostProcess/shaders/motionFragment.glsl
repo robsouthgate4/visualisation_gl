@@ -17,7 +17,10 @@ void main( void ) {
 
     vel = ( vPosition.xyz / vPosition.w ) - ( vPrevPosition.xyz / vPrevPosition.w );
 
+    vel = clamp(vel, vec3(0.0), vec3(0.1));
+
     vel *= uMotionBlurAmount;
+    
 
     gl_FragColor = vec4( vel, 1.0);
 
