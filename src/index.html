@@ -29,7 +29,7 @@
                 top: 50%;
                 transform: translate(-50%, -50%);
                 transform-origin: left bottom;
-                width: 200px;
+                width: 0;
                 height: 3px;
                 background: #fff;
                 box-shadow: 0px 0px 15px rgba(255, 255, 255, 1);
@@ -56,9 +56,9 @@
 
             perfData = window.performance.timing, // The PerformanceTiming interface
 
-            EstimatedTime = -(perfData.loadEventEnd - perfData.navigationStart), // Calculated Estimated Time of Page Load which returns negative value.
+            EstimatedTime = -( perfData.loadEventEnd - perfData.navigationStart ), // Calculated Estimated Time of Page Load which returns negative value.
 
-            time = parseInt((EstimatedTime/1000)%60)*100; //Converting EstimatedTime from miliseconds to seconds.
+            time = parseInt( ( EstimatedTime / 1000 ) % 60) * 100; //Converting EstimatedTime from miliseconds to seconds.
 
             let start = 0,
             end = 100,
@@ -68,24 +68,24 @@
             let range = end - start,
             current = start,
             increment = end > start ? 1 : -1,
-            stepTime = Math.abs( Math.floor( duration / range)),
-            obj = document.getElementById('bar');
+            stepTime = Math.abs( Math.floor( duration / range )),
+            obj = document.getElementById( 'bar' );
 
-            const timer = setInterval(() => {
+            const timer = setInterval( () => {
 
                 current += increment;
 
                 obj.style.width = current * scale;
 
-                if (current == end) {                   
+                if ( current == end ) {                   
 
                     clearInterval( timer );
 
-                    document.getElementById('loading').classList.add('fadeOut');
+                    document.getElementById( 'loading' ).classList.add( 'fadeOut' );
 
                 }
 
-            }, stepTime )
+            }, stepTime );
 
 
         </script>
