@@ -254,6 +254,8 @@ export default class App {
 		this.pointLight.shadow.camera.top = d;
 		this.pointLight.shadow.camera.bottom = - d;
 
+		//this.pointLight.shadow.camera.fov = 130;
+
 		//this.pointLight.shadow.bias = 0.0001;
 		this.pointLight.shadow.radius = 4;
 
