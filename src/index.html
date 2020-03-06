@@ -4,7 +4,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Document</title>
+        <title>WebGL Bubble</title>
+        <link href="https://fonts.googleapis.com/css?family=Caladea&display=swap" rel="stylesheet">
         <style>
             body, html {
                 margin: 0;
@@ -14,82 +15,131 @@
                 width: 100%;
                 height: 100%;
             }
-
-        #loading {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 100;
-        }
-        #loading #bar {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            transform-origin: left bottom;
-            width: 0;
-            height: 3px;
-            background: #fff;
-            box-shadow: 0px 0px 15px rgba(255, 255, 255, 1);
-            -webkit-box-shadow: 0px 0px 15px rgba(255, 255, 255, 1);                
-        }
-        #loading.fadeOut {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.6s ease-out;
-        }
+            #loading, #desktopOnly {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                z-index: 100;
+            }
+            #loading #bar {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                transform-origin: left bottom;
+                width: 0;
+                height: 3px;
+                background: #fff;
+                box-shadow: 0px 0px 15px rgba(255, 255, 255, 1);
+                -webkit-box-shadow: 0px 0px 15px rgba(255, 255, 255, 1);                
+            }
+            #loading.fadeOut {
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.6s ease-out;
+            }
+            #desktopOnly {
+                opacity: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            #desktopOnly p{
+                color: #fff;
+                font-family: 'Caladea', serif;
+                font-size: 16px;
+            }
         </style>
     </head>
 
     <body>
 
-<div id="loading">
-        <div id="bar"></div>
-    </div>
+        <div id="desktopOnly">
+
+            <p> Sorry, this is a desktop only experience for now </p>
+
+        </div>
+
+        <div id="loading">
+            <div id="bar"></div>
+        </div>
 
 
-    <script>
+        <script>
 
-        var width = 100, // width of a progress bar in percentage
+            const isMobileDevice = () => {
 
-        perfData = window.performance.timing, // The PerformanceTiming interface
+                if(  navigator.userAgent.match(/Android/i)
+                    || navigator.userAgent.match(/webOS/i)
+                    || navigator.userAgent.match(/iPhone/i)
+                    || navigator.userAgent.match(/iPad/i)
+                    || navigator.userAgent.match(/iPod/i)
+                    || navigator.userAgent.match(/BlackBerry/i)
+                    || navigator.userAgent.match(/Windows Phone/i) ) {
 
-        EstimatedTime = -(perfData.loadEventEnd - perfData.navigationStart), // Calculated Estimated Time of Page Load which returns negative value.
+                        return true;
+                
+                    } else {
 
-        time = parseInt((EstimatedTime/1000)%60)*100; //Converting EstimatedTime from miliseconds to seconds.
-
-        let start = 0,
-        end = 100,
-        duration = time;
-
-        const scale = 2;
-        let range = end - start,
-        current = start,
-        increment = end > start ? 1 : -1,
-        stepTime = Math.abs( Math.floor( duration / range)),
-        obj = document.getElementById('bar');
-
-        const timer = setInterval(() => {
-
-            current += increment;
-
-            obj.style.width = current * scale;
-
-            if (current == end) {                   
-
-                clearInterval( timer );
-
-                document.getElementById('loading').classList.add('fadeOut');
+                        return false;
+                    }
 
             }
 
-        }, stepTime )
+
+            if ( isMobileDevice() ) {
+
+                const desktopOnly = document.getElementById( 'desktopOnly' );
+                desktopOnly.style.opacity = 1;
+                document.getElementById( 'loading' ).style.opacity = 0;
+
+            }
+
+            var width = 100, // width of a progress bar in percentage
+
+            perfData = window.performance.timing, // The PerformanceTiming interface
+
+            EstimatedTime = -( perfData.loadEventEnd - perfData.navigationStart ), // Calculated Estimated Time of Page Load which returns negative value.
+
+            time = parseInt( ( EstimatedTime / 1000 ) % 60 ) * 100; //Converting EstimatedTime from miliseconds to seconds.
+
+            let start = 0,
+            end = 100,
+            duration = time;
+
+            const scale = 2;
+            let range = end - start,
+            current = start,
+            increment = end > start ? 1 : -1,
+            stepTime = Math.abs( Math.floor( duration / range)),
+            obj = document.getElementById( 'bar' );
+
+            if ( ! isMobileDevice() ) {
+
+                const timer = setInterval( () => {
+
+                    current += increment;
+
+                    obj.style.width = current * scale;
+
+                    if (current == end) {                   
+
+                        clearInterval( timer );
+
+                        document.getElementById( 'loading' ).classList.add( 'fadeOut' );
+
+                    }
+
+                    }, stepTime );
+
+            }            
 
 
-    </script>
+        </script>
+
 
     </body>
 
