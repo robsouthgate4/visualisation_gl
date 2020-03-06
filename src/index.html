@@ -4,7 +4,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Document</title>
+        <title>Motion Particles</title>
+        <link href="https://fonts.googleapis.com/css?family=Caladea&display=swap" rel="stylesheet">
         <style>
             body, html {
                 margin: 0;
@@ -14,7 +15,7 @@
                 width: 100%;
                 height: 100%;
             }
-            #loading {
+            #loading, #desktopOnly {
                 position: fixed;
                 left: 0;
                 top: 0;
@@ -22,6 +23,7 @@
                 height: 100%;
                 background: #000;
                 z-index: 100;
+                pointer-events: none;
             }
             #loading #bar {
                 position: absolute;
@@ -40,10 +42,27 @@
                 pointer-events: none;
                 transition: opacity 0.6s ease-out;
             }
+            #desktopOnly {
+                opacity: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            #desktopOnly p{
+                color: #fff;
+                font-family: 'Caladea', serif;
+                font-size: 16px;
+            }
         </style>
     </head>
 
     <body>
+
+        <div id="desktopOnly">
+
+            <p> Sorry, this is a desktop only experience for now </p>
+
+        </div>
 
         <div id="loading">
             <div id="bar"></div>
@@ -52,13 +71,41 @@
 
         <script>
 
+            const isMobileDevice = () => {
+
+                if(  navigator.userAgent.match(/Android/i)
+                    || navigator.userAgent.match(/webOS/i)
+                    || navigator.userAgent.match(/iPhone/i)
+                    || navigator.userAgent.match(/iPad/i)
+                    || navigator.userAgent.match(/iPod/i)
+                    || navigator.userAgent.match(/BlackBerry/i)
+                    || navigator.userAgent.match(/Windows Phone/i) ) {
+
+                        return true;
+                
+                    } else {
+
+                        return false;
+                    }
+
+            }
+
+
+            if ( isMobileDevice() ) {
+
+                const desktopOnly = document.getElementById( 'desktopOnly' );
+                desktopOnly.style.opacity = 1;
+                document.getElementById( 'loading' ).style.opacity = 0;
+
+            }
+
             var width = 100, // width of a progress bar in percentage
 
             perfData = window.performance.timing, // The PerformanceTiming interface
 
             EstimatedTime = -( perfData.loadEventEnd - perfData.navigationStart ), // Calculated Estimated Time of Page Load which returns negative value.
 
-            time = parseInt( ( EstimatedTime / 1000 ) % 60) * 100; //Converting EstimatedTime from miliseconds to seconds.
+            time = parseInt( ( EstimatedTime / 1000 ) % 60 ) * 100; //Converting EstimatedTime from miliseconds to seconds.
 
             let start = 0,
             end = 100,
@@ -68,24 +115,28 @@
             let range = end - start,
             current = start,
             increment = end > start ? 1 : -1,
-            stepTime = Math.abs( Math.floor( duration / range )),
+            stepTime = Math.abs( Math.floor( duration / range)),
             obj = document.getElementById( 'bar' );
 
-            const timer = setInterval( () => {
+            if ( ! isMobileDevice() ) {
 
-                current += increment;
+                const timer = setInterval( () => {
 
-                obj.style.width = current * scale;
+                    current += increment;
 
-                if ( current == end ) {                   
+                    obj.style.width = current * scale;
 
-                    clearInterval( timer );
+                    if (current == end) {                   
 
-                    document.getElementById( 'loading' ).classList.add( 'fadeOut' );
+                        clearInterval( timer );
 
-                }
+                        document.getElementById( 'loading' ).classList.add( 'fadeOut' );
 
-            }, stepTime );
+                    }
+
+                    }, stepTime );
+
+            }            
 
 
         </script>
