@@ -158,7 +158,7 @@ export default class App {
 		this.background.position.set( 0, 0, 0 );
 		this.scene.add( this.background );
 
-		this.scene.add( this.particles );
+		//this.scene.add( this.particles );
 
 		// Post processing
 

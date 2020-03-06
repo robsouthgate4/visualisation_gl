@@ -12,8 +12,8 @@ export default class Material extends ShaderMaterial {
 			uTime: { value: 0.01 },
 			uRandom: { value: 1.0 },
 			uResolution: { value: null },
-			uColor1: { value: new Color( 'rgb( 223,	195, 225 )' ) },
-			uColor2: { value: new Color( 'rgb( 149,	196, 254 )' ) }
+			uColor1: { value: new Color( 'rgb( 25,	7, 50 )' ) },
+			uColor2: { value: new Color( 'rgb( 19, 5, 23 )' ) }
 		};
 
 		super( { 

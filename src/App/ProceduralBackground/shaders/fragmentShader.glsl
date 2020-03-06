@@ -67,13 +67,13 @@ void main() {
     
     vec2 uv = gl_FragCoord.xy / uResolution.xy;
 
-     float grainSize = 0.5;
+     float grainSize = 0.1;
 
     float g = grain( uv, uResolution / grainSize );
 
     vec3 finalColor =  mix( uColor1, uColor2, fbm( uv * 4.0 ));
 
-    finalColor += vec3(1.0) * (g * 0.3);
+    finalColor = mix( finalColor, vec3(0.0), g );
 
     //color += vDist;
 
