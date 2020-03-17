@@ -122,7 +122,9 @@ void main() {
 
     //pos = pos + normal * sin( angle ) * amp;    
 
-    pos = pos + normal * vNoise;
+    //pos = pos + normal * vNoise;
+
+    pos = pos;
 
     // vNoiseWave = pos + normal * sin( angle ) * amp;
 

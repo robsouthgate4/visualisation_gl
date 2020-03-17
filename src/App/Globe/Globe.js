@@ -2,11 +2,11 @@
 import Geometry from './Geometry';
 import Material from './Material';
 import { Mesh, Raycaster, Vector2 } from 'three';
-import { Vector3 } from 'three/build/three.module';
+import { Vector3, CubeCamera, LinearMipMapLinearFilter } from 'three/build/three.module';
 
 export default class Globe extends Mesh {
 
-	constructor( { particleCount = 100, settings, camera, scene } ) {
+	constructor( { particleCount = 100, settings, camera, scene, renderer } ) {
 
 		const geo = new Geometry( particleCount, settings );
 		const mat = new Material( particleCount );
@@ -14,6 +14,7 @@ export default class Globe extends Mesh {
 		super( geo, mat );
 
 		this.scene = scene;
+		this.renderer = renderer;
 		this.camera = camera;
 		this.raycaster = new Raycaster();
 		this.mouse = new Vector2();
@@ -53,6 +54,25 @@ export default class Globe extends Mesh {
 			
 		} );
 
+
+		this.setupCubeCamera();
+
+		
+
+	}
+
+	setupCubeCamera() {
+
+		this.cubeCamera = new CubeCamera( 0.1, 1000, 512 );
+		this.cubeCamera.renderTarget.texture.generateMipmaps = true;
+		this.cubeCamera.renderTarget.texture.minFilter = LinearMipMapLinearFilter;
+		this.cubeCamera.position.copy( this.position );
+
+		this.visible = false;
+
+		this.scene.add( this.cubeCamera );
+
+		this.cubeCamera.update( this.renderer, this.scene );
 		
 
 	}
@@ -64,6 +84,10 @@ export default class Globe extends Mesh {
 	}
 
 	update( dt ) {
+
+		this.visible = false;
+
+		this.cubeCamera.update( this.renderer, this.scene );
 		
 		if ( this.triggerWaveTime ) {
 
@@ -93,6 +117,7 @@ export default class Globe extends Mesh {
 
 		 this.setUniforms( 'uAmp', this.amplitude );
 		 this.setUniforms( 'uWaveTime', this.waveTime );
+		 this.setUniforms( 'uEnvMap', this.cubeCamera.renderTarget.texture  );
 		
 
 	}

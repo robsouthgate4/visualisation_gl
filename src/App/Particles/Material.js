@@ -11,15 +11,10 @@ export default class Material extends RawShaderMaterial {
 			uTime: { value: 0.01 },
 			uRandom: { value: 1.0 },
 			uDepth: { value: 2.0 },
-			uSize: { value: 0.0 },
-			uTexturePosition: { value: null },
-			uTextureVelocity: { value: null },
+			uSize: { value: 1.0 },
 			uTextureMatCap: { value: new TextureLoader().load( 'assets/images/matcapHD.png' ) },
 			uResolution: { value: null },
 			uPoint: { value: new Vector3(1,1,1) },
-			uEnvMap: { value: null },
-			uAmp: { value: 0.01 },
-			uWaveTime: { value: 0.01 }
 		};
 
 		super( { uniforms, vertexShader, fragmentShader, depthTest: true, depthFunc: true, transparent: true, side: FrontSide } );

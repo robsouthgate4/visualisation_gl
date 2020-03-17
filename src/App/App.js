@@ -11,6 +11,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 import Globe from './Globe/Globe';
+import Particle from './Particles/Particle';
 import PostProcess from '../PostProcess';
 import FXAA from '../PostProcess/FXAA';
 
@@ -50,8 +51,13 @@ export default class App {
 
 		// Create Sphere geo
 
-		this.globe = new Globe( { camera: this.camera, scene: this.scene } );
+		this.globe = new Globe( { camera: this.camera, scene: this.scene, renderer: this.renderer } );
 		this.scene.add( this.globe );
+
+		this.particle = new Particle({ camera: this.camera, scene: this.scene });
+		this.particle.position.set( 0, 0, -3 );
+		this.particle.scale.setScalar( 0.5 );
+		this.scene.add( this.particle );
 
 
 		// Post processing
@@ -76,7 +82,13 @@ export default class App {
 	init() {
 
 		this.setupScene();
-		requestAnimationFrame( this.render.bind( this ) );
+
+		requestAnimationFrame( 
+
+			this.draw.bind( this ) 
+
+		);
+
 		this.onWindowResize();
 
 	}
@@ -103,27 +115,39 @@ export default class App {
 
 	}
 
-	render( now ) {
+	draw() {
 
 		const dt = this.clock.getDelta();
 		const time = this.clock.getElapsedTime();
 
+		this.update( dt, time );
+
+		this.render( dt, time );
+
+		requestAnimationFrame( this.draw.bind( this ) );
+
+
+	}
+
+	update( dt, time ) {
+
 		this.globe.material.uniforms.uTime.value = time;
-		this.globe.update();
-	
-		
+		this.globe.update();		
 
 		// Display
 
 		this.camera.lookAt( 0, 0, 0 );
-		this.controls.update();
+		this.controls.update();		
 
-		//this.renderer.render( this.scene, this.camera )
+	}
 
-		this.postProcess.render( this.scene, this.camera );
+	render( dt, time ) {		
 
-		
-		requestAnimationFrame( this.render.bind( this ) );
+		this.globe.visible = true;
+
+		// this.renderer.render( this.scene, this.camera )
+
+		this.postProcess.render( this.scene, this.camera );	
 
 
 	}

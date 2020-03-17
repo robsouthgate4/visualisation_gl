@@ -30,9 +30,10 @@ export default class PostProcess {
         this.geometry = new Triangle();
 
         this.resolution = new Vector2();
+        this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.getDrawingBufferSize( this.resolution );
 
-       this.fboHelper.setSize( window.innerWidth, window.innerHeight );
+        this.fboHelper.setSize( window.innerWidth, window.innerHeight );
 
         this.material = new ShaderMaterial( {
 

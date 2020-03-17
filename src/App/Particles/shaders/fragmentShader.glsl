@@ -17,17 +17,12 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 
 uniform vec3 cameraPosition;
-uniform samplerCube uEnvMap;
-
-varying vec3 e;
-varying vec3 n;
 
 varying vec3 vWorldPos;
 varying vec3 vWorldNormal;
-varying vec3 vUpdatedNormal;
-varying float vNoise;
-varying vec3 vNoiseWave;
-varying float vDist;
+
+varying vec3 e;
+varying vec3 n;
 
 #define PI 3.14159265359
 #define TwoPI 6.28
@@ -54,35 +49,11 @@ void main() {
     float m = 2. * sqrt( pow( ref.x, 2. ) + pow( ref.y, 2. ) + pow( ref.z + 1., 2. ) );
     vec2 vN = ref.xy / m + .5;
 
-    vec2 uv = gl_FragCoord.xy / uResolution.xy;    
 
-    vec3 I = normalize(vWorldPos - cameraPosition.xyz);
-	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 8.0);
-
-    vec3 worldNormal = normalize( vWorldNormal );
-    vec3 eyeToSurfaceDir = normalize( vWorldPos - cameraPosition );
-    vec3 reflectDirection = reflect( eyeToSurfaceDir, worldNormal );
-    vec3 refractDirection = refract( eyeToSurfaceDir, worldNormal, 0.3 / 1.33 );
-
-    // vec4 cubeEnvColor = textureCube( uEnvMap, refractDirection );
-
-
-    //vec3 envColor = texture2D( uTextureMatCap, envMapEquirect( vWorldNormal ) ).rgb;
-
-    //vN += vNormal.xy * 0.05;
-
-    vec3 envColor = textureCube( uEnvMap, refractDirection ).rgb;
-
-    //envColor *= vec3(1.0, .5, 0.5);
-
-    // vec3 color = mix( envColor, vec3(1.0), pow(length(n) * 0.6, 10.0));
-
-    // color += mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r);
+    vec3 color = texture2D( uTextureMatCap, vN ).rgb;
 
     //color += vDist;
 
-    vec3 color = vec3( 0.5 );
-
-    gl_FragColor = vec4( envColor , 1.0);
+    gl_FragColor = vec4( color, 1.0);
 
 }
