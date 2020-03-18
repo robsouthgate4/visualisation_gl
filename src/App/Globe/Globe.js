@@ -1,15 +1,26 @@
 
 import Geometry from './Geometry';
 import Material from './Material';
-import { Mesh, Raycaster, Vector2 } from 'three';
-import { Vector3, CubeCamera, LinearMipMapLinearFilter } from 'three/build/three.module';
+import { Mesh, Raycaster, Vector2, CubeRefractionMapping, Vector3, CubeCamera, LinearMipMapLinearFilter, CubeTextureLoader  } from 'three';
 
 export default class Globe extends Mesh {
 
 	constructor( { particleCount = 100, settings, camera, scene, renderer } ) {
 
+		const cubeMapTexture = new CubeTextureLoader()
+										.setPath( 'assets/images/env/city/' )
+										.load( [
+											'px.png',
+											'nx.png',
+											'py.png',
+											'ny.png',
+											'pz.png',
+											'nz.png'
+										] );
+
+
 		const geo = new Geometry( particleCount, settings );
-		const mat = new Material( particleCount );
+		const mat = new Material( particleCount, cubeMapTexture );
 
 		super( geo, mat );
 
@@ -19,9 +30,14 @@ export default class Globe extends Mesh {
 		this.raycaster = new Raycaster();
 		this.mouse = new Vector2();
 
+		this.scene.background = cubeMapTexture;
+		this.scene.background.generateMipmaps = true;
+
 		this.amplitude = 0;
 		this.waveTime = 0;
 		this.triggerWaveTime = true;
+
+		this.renderOrder = 1;
 
 
 		window.addEventListener( 'mousedown', ( e ) => {
@@ -63,10 +79,11 @@ export default class Globe extends Mesh {
 
 	setupCubeCamera() {
 
-		this.cubeCamera = new CubeCamera( 0.1, 1000, 512 );
+		this.cubeCamera = new CubeCamera( 1, 100, 1024 );
 		this.cubeCamera.renderTarget.texture.generateMipmaps = true;
 		this.cubeCamera.renderTarget.texture.minFilter = LinearMipMapLinearFilter;
-		this.cubeCamera.position.copy( this.position );
+		this.cubeCamera.renderTarget.texture.mapping = CubeRefractionMapping;
+		this.cubeCamera.position.set( 0, 0, 3 );
 
 		this.visible = false;
 

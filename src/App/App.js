@@ -47,6 +47,7 @@ export default class App {
 		this.controls.dampingFactor = 0.1;
 		this.controls.enablePan = false;
 		this.controls.enableZoom = false;
+		this.controls.enableRotate = false;
 		this.mouse = new Vector2();
 
 		// Create Sphere geo
@@ -55,7 +56,7 @@ export default class App {
 		this.scene.add( this.globe );
 
 		this.particle = new Particle({ camera: this.camera, scene: this.scene });
-		this.particle.position.set( 0, 0, -3 );
+		this.particle.position.set( 0, 0, -0.1 );
 		this.particle.scale.setScalar( 0.5 );
 		this.scene.add( this.particle );
 
@@ -132,7 +133,10 @@ export default class App {
 	update( dt, time ) {
 
 		this.globe.material.uniforms.uTime.value = time;
-		this.globe.update();		
+		this.globe.update();
+
+
+		this.particle.update( dt, time );
 
 		// Display
 
@@ -144,6 +148,8 @@ export default class App {
 	render( dt, time ) {		
 
 		this.globe.visible = true;
+
+		this.camera.updateProjectionMatrix();
 
 		// this.renderer.render( this.scene, this.camera )
 

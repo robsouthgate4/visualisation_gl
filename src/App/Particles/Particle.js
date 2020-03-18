@@ -4,6 +4,9 @@ import Material from './Material';
 import { Mesh, Raycaster, Vector2 } from 'three';
 import { Vector3 } from 'three/build/three.module';
 
+import Gui from "../../Engine/Gui";
+
+
 export default class Particles extends Mesh {
 
 	constructor( { particleCount = 10, settings, camera, scene } ) {
@@ -15,7 +18,6 @@ export default class Particles extends Mesh {
 
 		this.scene = scene;
 		this.camera = camera;
-
 
 		window.addEventListener( 'mousedown', ( e ) => {
 
@@ -52,10 +54,10 @@ export default class Particles extends Mesh {
 
 	}
 
-	update( dt ) {
+	update( dt, time ) {		
 		
-		
-		
+		this.position.y = Math.sin( time * 0.9 ) * 0.5;
+		this.position.x = Math.sin( time * 0.3 ) * 0.4;
 
 	}
 

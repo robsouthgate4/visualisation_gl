@@ -18,6 +18,8 @@ uniform mat4 modelMatrix;
 
 uniform vec3 cameraPosition;
 uniform samplerCube uEnvMap;
+uniform samplerCube uReflectEnvMap;
+uniform float uRefractAmount;
 
 varying vec3 e;
 varying vec3 n;
@@ -62,7 +64,7 @@ void main() {
     vec3 worldNormal = normalize( vWorldNormal );
     vec3 eyeToSurfaceDir = normalize( vWorldPos - cameraPosition );
     vec3 reflectDirection = reflect( eyeToSurfaceDir, worldNormal );
-    vec3 refractDirection = refract( eyeToSurfaceDir, worldNormal, 0.3 / 1.33 );
+    vec3 refractDirection = refract( eyeToSurfaceDir, worldNormal, uRefractAmount / 1.33 );
 
     // vec4 cubeEnvColor = textureCube( uEnvMap, refractDirection );
 
@@ -71,11 +73,12 @@ void main() {
 
     //vN += vNormal.xy * 0.05;
 
-    vec3 envColor = textureCube( uEnvMap, refractDirection ).rgb;
+    vec3 envColorRefract = textureCube( uEnvMap, refractDirection ).rgb;
+    vec3 envColorReflect = textureCube( uReflectEnvMap, reflectDirection ).rgb;
 
-    //envColor *= vec3(1.0, .5, 0.5);
+    //envColorRefract *= vec3(1.0, .5, 0.5);
 
-    // vec3 color = mix( envColor, vec3(1.0), pow(length(n) * 0.6, 10.0));
+    // vec3 color = mix( envColorRefract, vec3(1.0), pow(length(n) * 0.6, 10.0));
 
     // color += mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r);
 
@@ -83,6 +86,6 @@ void main() {
 
     vec3 color = vec3( 0.5 );
 
-    gl_FragColor = vec4( envColor , 1.0);
+    gl_FragColor = vec4( mix( envColorReflect, envColorRefract, 0.7), 1.0);
 
 }
