@@ -18,6 +18,7 @@ uniform mat4 modelMatrix;
 
 uniform vec3 cameraPosition;
 uniform sampler2D uEnvMap;
+uniform sampler2D uEnvMapMask;
 uniform samplerCube uReflectEnvMap;
 uniform float uRefractAmount;
 
@@ -53,7 +54,7 @@ vec2 envMapEquirect(vec3 wcNormal) {
 
 float fresnel( vec3 eyeToSurfaceDir, vec3 worldNormal ) {
 
-    return pow( 1.0 + dot( eyeToSurfaceDir, worldNormal ), 3.0 );
+    return pow( 1.0 + dot( eyeToSurfaceDir, worldNormal ), 1.0 );
 
 }
 
@@ -82,7 +83,7 @@ void main() {
 
     float rimDist = fresnel( eyeToSurfaceDir, worldNormal );
 
-    refractTexCoords += ( worldNormal.xy * rimDist ) * 0.1;
+    refractTexCoords -= ( worldNormal.xy * rimDist ) * 0.1;
 
     vec3 envColorRefract = texture2D( uEnvMap, refractTexCoords ).rgb;
 
@@ -93,10 +94,14 @@ void main() {
 
     vec3 bgColor = envColorRefractBg;
 
-    bgColor += envColorRefract;
+    vec4 maskColor = texture2D( uEnvMapMask, refractTexCoords);
 
-    vec3 finalComp = mix( bgColor, envColorReflect, 0.3 );
+    //bgColor -= (envColorReflect * texture2D( uEnvMapMask, refractTexCoords).r);
 
-    gl_FragColor = vec4( finalComp, 1.0);
+    bgColor = mix( bgColor, envColorRefract, maskColor.r );
+
+    bgColor += (envColorReflect * 0.3);
+
+    gl_FragColor = vec4( bgColor, 1.0);
 
 }

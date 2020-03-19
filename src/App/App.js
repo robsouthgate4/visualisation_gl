@@ -63,7 +63,7 @@ export default class App {
 		this.scene.add( this.particle );
 
 		this.particle2 = new Particle({ camera: this.camera, scene: this.scene });
-		this.particle2.position.set( -0.9, 0, -0.1 );
+		this.particle2.position.set( -0.8, 0, -0.1 );
 		this.particle2.scale.setScalar( 0.2 );
 		this.scene.add( this.particle2 );
 
@@ -142,11 +142,11 @@ export default class App {
 	update( dt, time ) {		
 
 
-		// this.particle.position.x = -Math.sin( time * 0.6 ) * 0.4;
-		// this.particle.position.y = -Math.sin( time * 0.6 ) * 0.7;
+		this.particle.position.x = -Math.sin( time * 0.6 ) * 0.5;
+		this.particle.position.y = -Math.sin( time * 0.6 ) * 0.6;
 
-		// this.particle2.position.x = -Math.sin( time * 0.6 ) * 0.7;
-		// this.particle2.position.y = Math.cos( time * 0.6 ) * 0.7;
+		this.particle2.position.x = -Math.sin( time * 0.6 ) * 0.6;
+		this.particle2.position.y = Math.cos( time * 0.6 ) * 0.65;
 
 		// Display
 

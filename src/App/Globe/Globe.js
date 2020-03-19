@@ -2,6 +2,7 @@
 import Geometry from './Geometry';
 import Material from './Material';
 import { Mesh, Raycaster, Vector2, CubeRefractionMapping, Vector3, CubeCamera, LinearMipMapLinearFilter, CubeTextureLoader, WebGLRenderTarget, LinearFilter  } from 'three';
+import { MeshBasicMaterial } from 'three/build/three.module';
 
 export default class Globe extends Mesh {
 
@@ -46,8 +47,15 @@ export default class Globe extends Mesh {
 		this.refractionBuffer = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
 		this.refractionBuffer.texture.generateMipmaps = false;
 		this.refractionBuffer.flipY = true;
+
+		this.refractionMaskBuffer = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+		this.refractionMaskBuffer.texture.generateMipmaps = false;
+		this.refractionMaskBuffer.flipY = true;
+
+
 		
 		this.fboHelper.attach( this.refractionBuffer, 'Refraction Buffer' );
+		this.fboHelper.attach( this.refractionMaskBuffer, 'Refraction mask Buffer' );
 
 
 		window.addEventListener( 'mousedown', ( e ) => {
@@ -112,7 +120,17 @@ export default class Globe extends Mesh {
 		this.renderer.render( this.scene, this.camera );
 		this.renderer.setRenderTarget( null );
 
+		this.scene.overrideMaterial = new MeshBasicMaterial( { color: 0xffffff } );
+
+		this.renderer.setRenderTarget( this.refractionMaskBuffer );
+		this.renderer.render( this.scene, this.camera );
+		this.renderer.setRenderTarget( null );
+
+
+		this.scene.overrideMaterial = null;
+
 		this.visible = true;
+		
 		this.scene.background = this.cubeMapTexture;
 
 		
@@ -146,6 +164,7 @@ export default class Globe extends Mesh {
 		//  this.setUniforms( 'uWaveTime', this.waveTime );
 		
 		this.setUniforms( 'uEnvMap', this.refractionBuffer.texture );
+		this.setUniforms( 'uEnvMapMask', this.refractionMaskBuffer.texture );
 
 	}
 
