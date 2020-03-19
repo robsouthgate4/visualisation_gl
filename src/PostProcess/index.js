@@ -17,11 +17,11 @@ import fxaaFragment from '../shaders/fxaaFragment.glsl'
 
 export default class PostProcess {
 
-    constructor( renderer ) {       
+    constructor( renderer, fboHelper ) {       
 
-        this.renderer = renderer;
-       
-        this.fboHelper = new FBOHelper( this.renderer );
+        this.renderer = renderer;     
+        
+        this.fboHelper = fboHelper;        
 
         this.scene =  new Scene();
 

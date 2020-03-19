@@ -24,7 +24,7 @@ export default class Material extends RawShaderMaterial {
 			uWaveTime: { value: 0.01 }
 		};
 
-		super( { uniforms, vertexShader, fragmentShader, depthTest: false, depthFunc: true, transparent: true, side: FrontSide } );
+		super( { uniforms, vertexShader, fragmentShader, depthTest: true, depthFunc: true, transparent: true, side:DoubleSide } );
 
 	}
 

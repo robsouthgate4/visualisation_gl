@@ -1,11 +1,11 @@
 
 import Geometry from './Geometry';
 import Material from './Material';
-import { Mesh, Raycaster, Vector2, CubeRefractionMapping, Vector3, CubeCamera, LinearMipMapLinearFilter, CubeTextureLoader  } from 'three';
+import { Mesh, Raycaster, Vector2, CubeRefractionMapping, Vector3, CubeCamera, LinearMipMapLinearFilter, CubeTextureLoader, WebGLRenderTarget, LinearFilter  } from 'three';
 
 export default class Globe extends Mesh {
 
-	constructor( { particleCount = 100, settings, camera, scene, renderer } ) {
+	constructor( { particleCount = 100, settings, camera, scene, renderer, fboHelper } ) {
 
 		const cubeMapTexture = new CubeTextureLoader()
 										.setPath( 'assets/images/env/city/' )
@@ -24,20 +24,30 @@ export default class Globe extends Mesh {
 
 		super( geo, mat );
 
+		this.fboHelper = fboHelper;
+
 		this.scene = scene;
 		this.renderer = renderer;
 		this.camera = camera;
 		this.raycaster = new Raycaster();
 		this.mouse = new Vector2();
 
+		this.cubeMapTexture = cubeMapTexture;
+
 		this.scene.background = cubeMapTexture;
 		this.scene.background.generateMipmaps = true;
 
-		this.amplitude = 0;
-		this.waveTime = 0;
+		this.amplitude = 0.01;
+		this.waveTime = 0.01;
 		this.triggerWaveTime = true;
 
 		this.renderOrder = 1;
+
+		this.refractionBuffer = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
+		this.refractionBuffer.texture.generateMipmaps = false;
+		this.refractionBuffer.flipY = true;
+		
+		this.fboHelper.attach( this.refractionBuffer, 'Refraction Buffer' );
 
 
 		window.addEventListener( 'mousedown', ( e ) => {
@@ -79,17 +89,7 @@ export default class Globe extends Mesh {
 
 	setupCubeCamera() {
 
-		this.cubeCamera = new CubeCamera( 1, 100, 1024 );
-		this.cubeCamera.renderTarget.texture.generateMipmaps = true;
-		this.cubeCamera.renderTarget.texture.minFilter = LinearMipMapLinearFilter;
-		this.cubeCamera.renderTarget.texture.mapping = CubeRefractionMapping;
-		this.cubeCamera.position.set( 0, 0, 3 );
-
 		this.visible = false;
-
-		this.scene.add( this.cubeCamera );
-
-		this.cubeCamera.update( this.renderer, this.scene );
 		
 
 	}
@@ -104,38 +104,48 @@ export default class Globe extends Mesh {
 
 		this.visible = false;
 
-		this.cubeCamera.update( this.renderer, this.scene );
+		this.scene.background = null;
+
+		// Render the non refracted object into a buffer
+
+		this.renderer.setRenderTarget( this.refractionBuffer );
+		this.renderer.render( this.scene, this.camera );
+		this.renderer.setRenderTarget( null );
+
+		this.visible = true;
+		this.scene.background = this.cubeMapTexture;
+
 		
-		if ( this.triggerWaveTime ) {
+		// if ( this.triggerWaveTime ) {
 
-			this.waveTime += 0.003;
+		// 	this.waveTime += 0.003;
 
-		}
+		// }
 
-		if ( this.waveTime >= 6.0 ) {
+		// if ( this.waveTime >= 6.0 ) {
 
-			this.waveTime = 0.0;
+		// 	this.waveTime = 0.0;
 
-			this.triggerWaveTime = false;
+		// 	this.triggerWaveTime = false;
 
-		}
+		// }
 
-		if ( this.amplitude > 0.03 ) {
+		// if ( this.amplitude > 0.03 ) {
 
-			this.amplitude *= 0.99;
+		// 	this.amplitude *= 0.99;
 
-		 }
+		//  }
 
-		 if ( this.waveTime > 0.01 ) {
+		//  if ( this.waveTime > 0.01 ) {
 
-			//this.waveTime *= 0.8;
+		// 	//this.waveTime *= 0.8;
 
-		 }
+		//  }
 
-		 this.setUniforms( 'uAmp', this.amplitude );
-		 this.setUniforms( 'uWaveTime', this.waveTime );
-		 this.setUniforms( 'uEnvMap', this.cubeCamera.renderTarget.texture  );
+		//  this.setUniforms( 'uAmp', this.amplitude );
+		//  this.setUniforms( 'uWaveTime', this.waveTime );
 		
+		this.setUniforms( 'uEnvMap', this.refractionBuffer.texture );
 
 	}
 

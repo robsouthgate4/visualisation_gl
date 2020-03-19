@@ -14,6 +14,7 @@ import Globe from './Globe/Globe';
 import Particle from './Particles/Particle';
 import PostProcess from '../PostProcess';
 import FXAA from '../PostProcess/FXAA';
+import FBOHelper from "../libs/THREE.FBOHelper";
 
 
 export default class App {
@@ -28,6 +29,8 @@ export default class App {
 
 		this.resolution = new Vector2();
 		this.renderer.getDrawingBufferSize( this.resolution );
+
+		this.fboHelper = new FBOHelper( this.renderer );
 
 		// Scene
 
@@ -47,12 +50,11 @@ export default class App {
 		this.controls.dampingFactor = 0.1;
 		this.controls.enablePan = false;
 		this.controls.enableZoom = false;
-		this.controls.enableRotate = false;
 		this.mouse = new Vector2();
 
 		// Create Sphere geo
 
-		this.globe = new Globe( { camera: this.camera, scene: this.scene, renderer: this.renderer } );
+		this.globe = new Globe( { camera: this.camera, scene: this.scene, renderer: this.renderer, fboHelper: this.fboHelper } );
 		this.scene.add( this.globe );
 
 		this.particle = new Particle({ camera: this.camera, scene: this.scene });
@@ -60,10 +62,15 @@ export default class App {
 		this.particle.scale.setScalar( 0.5 );
 		this.scene.add( this.particle );
 
+		this.particle2 = new Particle({ camera: this.camera, scene: this.scene });
+		this.particle2.position.set( -0.9, 0, -0.1 );
+		this.particle2.scale.setScalar( 0.2 );
+		this.scene.add( this.particle2 );
+
 
 		// Post processing
 		
-		this.postProcess = new PostProcess( this.renderer );
+		this.postProcess = new PostProcess( this.renderer, this.fboHelper );
 
 		window.addEventListener( 'mousemove', ( e ) => {
 
@@ -77,6 +84,8 @@ export default class App {
 		this.clock = new Clock();		
 
 		this.init();
+
+		
 
 	}
 
@@ -130,30 +139,32 @@ export default class App {
 
 	}
 
-	update( dt, time ) {
-
-		this.globe.material.uniforms.uTime.value = time;
-		this.globe.update();
+	update( dt, time ) {		
 
 
-		this.particle.update( dt, time );
+		// this.particle.position.x = -Math.sin( time * 0.6 ) * 0.4;
+		// this.particle.position.y = -Math.sin( time * 0.6 ) * 0.7;
+
+		// this.particle2.position.x = -Math.sin( time * 0.6 ) * 0.7;
+		// this.particle2.position.y = Math.cos( time * 0.6 ) * 0.7;
 
 		// Display
 
 		this.camera.lookAt( 0, 0, 0 );
-		this.controls.update();		
+		this.controls.update();	
+		
+		this.globe.material.uniforms.uTime.value = time;
+		this.globe.update();
 
 	}
 
-	render( dt, time ) {		
-
-		this.globe.visible = true;
+	render( dt, time ) {
 
 		this.camera.updateProjectionMatrix();
 
-		// this.renderer.render( this.scene, this.camera )
+		this.renderer.render( this.scene, this.camera )
 
-		this.postProcess.render( this.scene, this.camera );	
+		this.postProcess.render( this.scene, this.camera );
 
 
 	}

@@ -17,7 +17,7 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 
 uniform vec3 cameraPosition;
-uniform samplerCube uEnvMap;
+uniform sampler2D uEnvMap;
 uniform samplerCube uReflectEnvMap;
 uniform float uRefractAmount;
 
@@ -30,6 +30,9 @@ varying vec3 vUpdatedNormal;
 varying float vNoise;
 varying vec3 vNoiseWave;
 varying float vDist;
+
+
+varying vec4 clipSpace;
 
 #define PI 3.14159265359
 #define TwoPI 6.28
@@ -48,9 +51,17 @@ vec2 envMapEquirect(vec3 wcNormal) {
 }
 
 
+float fresnel( vec3 eyeToSurfaceDir, vec3 worldNormal ) {
 
+    return pow( 1.0 + dot( eyeToSurfaceDir, worldNormal ), 3.0 );
+
+}
 
 void main() {
+
+    vec2 ndc = ( clipSpace.xy / clipSpace.w ) / 2.0 + 0.5;
+
+    vec2 refractTexCoords = vec2( ndc.x, ndc.y );
 
     vec3 ref = reflect( e, n );
     float m = 2. * sqrt( pow( ref.x, 2. ) + pow( ref.y, 2. ) + pow( ref.z + 1., 2. ) );
@@ -66,26 +77,26 @@ void main() {
     vec3 reflectDirection = reflect( eyeToSurfaceDir, worldNormal );
     vec3 refractDirection = refract( eyeToSurfaceDir, worldNormal, uRefractAmount / 1.33 );
 
-    // vec4 cubeEnvColor = textureCube( uEnvMap, refractDirection );
 
+    vec3 refracted = refract( eyeToSurfaceDir, worldNormal, uRefractAmount / 1.33  );
 
-    //vec3 envColor = texture2D( uTextureMatCap, envMapEquirect( vWorldNormal ) ).rgb;
+    float rimDist = fresnel( eyeToSurfaceDir, worldNormal );
 
-    //vN += vNormal.xy * 0.05;
+    refractTexCoords += ( worldNormal.xy * rimDist ) * 0.1;
 
-    vec3 envColorRefract = textureCube( uEnvMap, refractDirection ).rgb;
+    vec3 envColorRefract = texture2D( uEnvMap, refractTexCoords ).rgb;
+
+    vec3 envColorRefractBg = textureCube( uReflectEnvMap, refractDirection ).rgb;
     vec3 envColorReflect = textureCube( uReflectEnvMap, reflectDirection ).rgb;
-
-    //envColorRefract *= vec3(1.0, .5, 0.5);
-
-    // vec3 color = mix( envColorRefract, vec3(1.0), pow(length(n) * 0.6, 10.0));
-
-    // color += mix(vec3(0.0), vec3(0.45, 0.7, 1.0), r);
-
-    //color += vDist;
 
     vec3 color = vec3( 0.5 );
 
-    gl_FragColor = vec4( mix( envColorReflect, envColorRefract, 0.7), 1.0);
+    vec3 bgColor = envColorRefractBg;
+
+    bgColor += envColorRefract;
+
+    vec3 finalComp = mix( bgColor, envColorReflect, 0.3 );
+
+    gl_FragColor = vec4( finalComp, 1.0);
 
 }

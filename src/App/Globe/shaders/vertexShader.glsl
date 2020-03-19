@@ -10,6 +10,7 @@ attribute float aScale;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform mat3 normalMatrix;
 
@@ -44,6 +45,7 @@ varying float vNoise;
 varying vec3 vNoiseWave;
 
 varying float vDist;
+varying vec4 clipSpace;
 
 vec3 getPosition( vec3 values ) {
 
@@ -81,7 +83,7 @@ vec3 getWaveHeight(vec3 pos, vec3 rCenter, float wH, float wF, float wL) {
 
 void main() {
 
-   
+    
 
     vUv = uv;
 
@@ -100,6 +102,8 @@ void main() {
 
     vWorldPos = mat3( modelMatrix ) * position;
 
+    vec4 refractWorldPos = modelMatrix * vec4( pos, 1.0 );
+
     // Sawtooth function to pulse from centre.
 
     float offset = (( uTime - floor( uTime ) ) / uTime) * 3.0;
@@ -116,13 +120,13 @@ void main() {
 
     float freq = 4.0 / ( uWaveTime * 0.3 ) * 0.1;
 
-    float amp = uAmp * vDist;
+    float amp = max(uAmp * vDist, 0.1);
 
     float angle = ( ( currentTIme * 0.1 ) - vDist ) * freq;
 
     //pos = pos + normal * sin( angle ) * amp;    
 
-    pos = pos + normal * vNoise;
+    //pos = pos + normal * vNoise;
 
     pos = pos;
 
@@ -130,7 +134,7 @@ void main() {
 
     vNoiseWave = pos + normal * sin( angle ) * amp;
 
-    vWorldPos = mat3( modelMatrix ) * pos + normal * sin( angle ) * amp;
+    vWorldPos = mat3( modelMatrix ) * pos;
 
     e = normalize( vec3( modelViewMatrix * vec4( pos, 1.0 ) ) );
     
@@ -148,6 +152,9 @@ void main() {
    
 
 	gl_Position = projectionMatrix * mvPos;
+
+
+    clipSpace = projectionMatrix * viewMatrix * refractWorldPos;
 
     
     

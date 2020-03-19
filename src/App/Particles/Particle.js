@@ -55,9 +55,6 @@ export default class Particles extends Mesh {
 	}
 
 	update( dt, time ) {		
-		
-		this.position.y = Math.sin( time * 0.9 ) * 0.5;
-		this.position.x = Math.sin( time * 0.3 ) * 0.4;
 
 	}
 
