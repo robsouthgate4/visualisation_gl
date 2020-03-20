@@ -7,7 +7,7 @@ import { Vector3 } from 'three/build/three.module';
 import Gui from "../../Engine/Gui";
 
 
-export default class Particles extends Mesh {
+export default class Particle extends Mesh {
 
 	constructor( { particleCount = 10, settings, camera, scene } ) {
 
@@ -19,11 +19,13 @@ export default class Particles extends Mesh {
 		this.scene = scene;
 		this.camera = camera;
 
+		this.mouse = new Vector2();
+		this.raycaster = new Raycaster();
+
 		window.addEventListener( 'mousedown', ( e ) => {
 
 			this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
 			this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-
 
 			this.raycaster.setFromCamera( this.mouse, this.camera );
 
@@ -39,9 +41,7 @@ export default class Particles extends Mesh {
 
 				this.setUniforms( 'uPoint', point );
 
-			}
-
-			
+			}			
 			
 		} );
 		

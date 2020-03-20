@@ -68,7 +68,7 @@ void main() {
     float m = 2. * sqrt( pow( ref.x, 2. ) + pow( ref.y, 2. ) + pow( ref.z + 1., 2. ) );
     vec2 vN = ref.xy / m + .5;
 
-    vec2 uv = gl_FragCoord.xy / uResolution.xy;    
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;             
 
     vec3 I = normalize(vWorldPos - cameraPosition.xyz);
 	float r = 0.01 + 3.0 * pow(1.0 + dot(I, vWorldNormal), 8.0);
@@ -83,7 +83,7 @@ void main() {
 
     float rimDist = fresnel( eyeToSurfaceDir, worldNormal );
 
-    refractTexCoords -= ( worldNormal.xy * rimDist ) * 0.1;
+    refractTexCoords -= ( worldNormal.xy  * rimDist ) * 0.05;
 
     vec3 envColorRefract = texture2D( uEnvMap, refractTexCoords ).rgb;
 

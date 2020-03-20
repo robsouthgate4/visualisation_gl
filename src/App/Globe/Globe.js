@@ -35,8 +35,8 @@ export default class Globe extends Mesh {
 
 		this.cubeMapTexture = cubeMapTexture;
 
-		this.scene.background = cubeMapTexture;
-		this.scene.background.generateMipmaps = true;
+		// this.scene.background = cubeMapTexture;
+		// this.scene.background.generateMipmaps = true;
 
 		this.amplitude = 0.01;
 		this.waveTime = 0.01;
@@ -134,34 +134,34 @@ export default class Globe extends Mesh {
 		this.scene.background = this.cubeMapTexture;
 
 		
-		// if ( this.triggerWaveTime ) {
+		if ( this.triggerWaveTime ) {
 
-		// 	this.waveTime += 0.003;
+			this.waveTime += 0.003;
 
-		// }
+		}
 
-		// if ( this.waveTime >= 6.0 ) {
+		if ( this.waveTime >= 6.0 ) {
 
-		// 	this.waveTime = 0.0;
+			this.waveTime = 0.0;
 
-		// 	this.triggerWaveTime = false;
+			this.triggerWaveTime = false;
 
-		// }
+		}
 
-		// if ( this.amplitude > 0.03 ) {
+		if ( this.amplitude > 0.03 ) {
 
-		// 	this.amplitude *= 0.99;
+			this.amplitude *= 0.99;
 
-		//  }
+		 }
 
-		//  if ( this.waveTime > 0.01 ) {
+		 if ( this.waveTime > 0.01 ) {
 
-		// 	//this.waveTime *= 0.8;
+			//this.waveTime *= 0.8;
 
-		//  }
+		 }
 
-		//  this.setUniforms( 'uAmp', this.amplitude );
-		//  this.setUniforms( 'uWaveTime', this.waveTime );
+		 this.setUniforms( 'uAmp', this.amplitude );
+		 this.setUniforms( 'uWaveTime', this.waveTime );
 		
 		this.setUniforms( 'uEnvMap', this.refractionBuffer.texture );
 		this.setUniforms( 'uEnvMapMask', this.refractionMaskBuffer.texture );

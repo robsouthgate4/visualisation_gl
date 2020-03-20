@@ -6,7 +6,7 @@ import {
 	WebGLRenderer,
 	Vector2,
 	Clock,
-	Color} from 'three';
+	Color, MathUtils, Spherical, Vector3, Group} from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -20,6 +20,9 @@ import FBOHelper from "../libs/THREE.FBOHelper";
 export default class App {
 
 	constructor() {
+
+		this.numberOfParticles = 20;
+		this.particles = [];
 
 		this.renderer = new WebGLRenderer( );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
@@ -49,7 +52,7 @@ export default class App {
 		this.controls.enableDamping = true;
 		this.controls.dampingFactor = 0.1;
 		this.controls.enablePan = false;
-		this.controls.enableZoom = false;
+		//this.controls.enableZoom = false;
 		this.mouse = new Vector2();
 
 		// Create Sphere geo
@@ -57,15 +60,6 @@ export default class App {
 		this.globe = new Globe( { camera: this.camera, scene: this.scene, renderer: this.renderer, fboHelper: this.fboHelper } );
 		this.scene.add( this.globe );
 
-		this.particle = new Particle({ camera: this.camera, scene: this.scene });
-		this.particle.position.set( 0, 0, -0.1 );
-		this.particle.scale.setScalar( 0.5 );
-		this.scene.add( this.particle );
-
-		this.particle2 = new Particle({ camera: this.camera, scene: this.scene });
-		this.particle2.position.set( -0.8, 0, -0.1 );
-		this.particle2.scale.setScalar( 0.2 );
-		this.scene.add( this.particle2 );
 
 
 		// Post processing
@@ -85,7 +79,51 @@ export default class App {
 
 		this.init();
 
+		this.particleGroup = new Group();
+		this.createParticles();
+
+	}
+
+	createParticles() {
+
 		
+
+		for (let i = 0; i < this.numberOfParticles; i++) {
+
+			const particle = new Particle({ camera: this.camera, scene: this.scene });
+
+			const lon = MathUtils.randFloat( -90, 90 )
+			const lat = MathUtils.randFloat( -180, 180 );
+
+			console.log( lon ) 
+
+			const radius = MathUtils.randFloat( 0.5, 0.8);
+
+			//const particlePos = this.polarToCartesian( lon, lat, radius );
+
+			const RAD2DEG = 180 / Math.PI;
+			const DEG2RAD = Math.PI / 180;
+
+			const phi = ( 90 - lat ) * DEG2RAD;
+			const theta = ( lon + 180 ) * DEG2RAD;
+
+			const particlePos = new Vector3().setFromSphericalCoords( radius, phi, theta  );
+
+			particle.position.set( particlePos.x, particlePos.y, particlePos.z );
+			particle.lat = lat;
+			particle.lon = lon;
+			particle.radius = radius;
+
+			particle.scale.setScalar( 0.4 );
+
+			this.particles.push( particle );
+
+			this.particleGroup.add( particle );
+			
+			
+		}
+
+		this.scene.add( this.particleGroup );
 
 	}
 
@@ -141,13 +179,30 @@ export default class App {
 
 	update( dt, time ) {		
 
+		this.particles.forEach( ( particle ) => {
+			
+			const RAD2DEG = 180 / Math.PI;
+			const DEG2RAD = Math.PI / 180;
+			
+			//const lat += 0.1;
 
-		this.particle.position.x = -Math.sin( time * 0.6 ) * 0.5;
-		this.particle.position.y = -Math.sin( time * 0.6 ) * 0.6;
+			let lat = particle.lat + 10 * dt;
+			let lon = particle.lon + 10 * dt;
+			let radius = particle.radius
 
-		this.particle2.position.x = -Math.sin( time * 0.6 ) * 0.6;
-		this.particle2.position.y = Math.cos( time * 0.6 ) * 0.65;
+			particle.lat = lat;
+			particle.lon = lon;
 
+			const phi = ( 90 - lat ) * DEG2RAD;
+			const theta = ( lon + 180 ) * DEG2RAD;
+
+			const particlePos = new Vector3().setFromSphericalCoords( radius, phi, theta  );
+
+			particle.position.set( particlePos.x, particlePos.y, particlePos.z );
+			
+
+		} );
+		
 		// Display
 
 		this.camera.lookAt( 0, 0, 0 );
@@ -161,8 +216,6 @@ export default class App {
 	render( dt, time ) {
 
 		this.camera.updateProjectionMatrix();
-
-		this.renderer.render( this.scene, this.camera )
 
 		this.postProcess.render( this.scene, this.camera );
 
