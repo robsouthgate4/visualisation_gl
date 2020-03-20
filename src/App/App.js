@@ -114,6 +114,9 @@ export default class App {
 			particle.lon = lon;
 			particle.radius = radius;
 
+			const dir = [ -1, 1 ];
+			particle.direction = dir[ Math.round( MathUtils.randFloat( 0, 1 ) ) ]
+
 			particle.scale.setScalar( 0.4 );
 
 			this.particles.push( particle );
@@ -186,8 +189,8 @@ export default class App {
 			
 			//const lat += 0.1;
 
-			let lat = particle.lat + 10 * dt;
-			let lon = particle.lon + 10 * dt;
+			let lat = particle.lat + ( 10 * particle.direction  ) * dt;
+			let lon = particle.lon + ( 10 * particle.direction  ) * dt;
 			let radius = particle.radius
 
 			particle.lat = lat;
@@ -216,6 +219,8 @@ export default class App {
 	render( dt, time ) {
 
 		this.camera.updateProjectionMatrix();
+
+		//this.renderer.render( this.scene, this.camera );
 
 		this.postProcess.render( this.scene, this.camera );
 

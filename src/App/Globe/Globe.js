@@ -4,9 +4,13 @@ import Material from './Material';
 import { Mesh, Raycaster, Vector2, CubeRefractionMapping, Vector3, CubeCamera, LinearMipMapLinearFilter, CubeTextureLoader, WebGLRenderTarget, LinearFilter  } from 'three';
 import { MeshBasicMaterial } from 'three/build/three.module';
 
+import Gui from "../../Engine/Gui";
+
 export default class Globe extends Mesh {
 
 	constructor( { particleCount = 100, settings, camera, scene, renderer, fboHelper } ) {
+
+	
 
 		const cubeMapTexture = new CubeTextureLoader()
 										.setPath( 'assets/images/env/city/' )
@@ -24,6 +28,14 @@ export default class Globe extends Mesh {
 		const mat = new Material( particleCount, cubeMapTexture );
 
 		super( geo, mat );
+
+		this.settings = {
+
+			distortionAmount: 0
+
+		};
+
+		
 
 		this.fboHelper = fboHelper;
 
@@ -51,53 +63,43 @@ export default class Globe extends Mesh {
 		this.refractionMaskBuffer = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter } );
 		this.refractionMaskBuffer.texture.generateMipmaps = false;
 		this.refractionMaskBuffer.flipY = true;
-
-
 		
-		this.fboHelper.attach( this.refractionBuffer, 'Refraction Buffer' );
-		this.fboHelper.attach( this.refractionMaskBuffer, 'Refraction mask Buffer' );
+		// this.fboHelper.attach( this.refractionBuffer, 'Refraction Buffer' );
+		// this.fboHelper.attach( this.refractionMaskBuffer, 'Refraction mask Buffer' );
 
 
-		window.addEventListener( 'mousedown', ( e ) => {
+		// window.addEventListener( 'mousedown', ( e ) => {
 
-			this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-			this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+		// 	this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+		// 	this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
 
-			this.raycaster.setFromCamera( this.mouse, this.camera );
+		// 	this.raycaster.setFromCamera( this.mouse, this.camera );
 
-			const intersects = this.raycaster.intersectObjects( this.scene.children );
+		// 	const intersects = this.raycaster.intersectObjects( this.scene.children );
 
-			const mesh = intersects[ 0 ];
+		// 	const mesh = intersects[ 0 ];
 
-			if ( mesh ) {
+		// 	if ( mesh ) {
 
-				const face = mesh.face;
+		// 		const face = mesh.face;
 
-				const point = mesh.point;
+		// 		const point = mesh.point;
 
-				this.setUniforms( 'uPoint', point );
+		// 		this.setUniforms( 'uPoint', point );
 				
-				this.amplitude = 0.6;
-				this.waveTime = 0;
-				this.triggerWaveTime = true;
+		// 		this.amplitude = 0.6;
+		// 		this.waveTime = 0;
+		// 		this.triggerWaveTime = true;
 
-			}
+		// 	}
 
 			
 			
-		} );
+		// } );
 
+		this.visible = false;	
 
-		this.setupCubeCamera();
-
-		
-
-	}
-
-	setupCubeCamera() {
-
-		this.visible = false;
 		
 
 	}
@@ -105,6 +107,7 @@ export default class Globe extends Mesh {
 	setUniforms( uniformName, value ) {
 
 		this.material.uniforms[ uniformName ].value = value;
+
 
 	}
 
@@ -131,7 +134,7 @@ export default class Globe extends Mesh {
 
 		this.visible = true;
 		
-		this.scene.background = this.cubeMapTexture;
+		//this.scene.background = this.cubeMapTexture;
 
 		
 		if ( this.triggerWaveTime ) {
@@ -160,8 +163,9 @@ export default class Globe extends Mesh {
 
 		 }
 
-		 this.setUniforms( 'uAmp', this.amplitude );
-		 this.setUniforms( 'uWaveTime', this.waveTime );
+		this.setUniforms( 'uAmp', this.amplitude );
+		this.setUniforms( 'uWaveTime', this.waveTime );
+		this.setUniforms( 'distortionAmount', this.settings.distortionAmount );
 		
 		this.setUniforms( 'uEnvMap', this.refractionBuffer.texture );
 		this.setUniforms( 'uEnvMapMask', this.refractionMaskBuffer.texture );

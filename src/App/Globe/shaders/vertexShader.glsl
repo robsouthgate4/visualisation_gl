@@ -154,6 +154,8 @@ varying vec3 vNoiseWave;
 varying float vDist;
 varying vec4 clipSpace;
 
+uniform float distortionAmount;
+
 vec3 getPosition( vec3 values ) {
 
     float rx = values.y / numSeg * PI - PI;
@@ -231,7 +233,7 @@ void main() {
 
     //pos = pos + normal * sin( angle ) * amp;    
 
-    //pos = pos + normal * vNoise;
+    pos = pos + normal * ( vNoise * distortionAmount );
 
     pos = pos;
 

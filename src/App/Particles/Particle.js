@@ -22,28 +22,28 @@ export default class Particle extends Mesh {
 		this.mouse = new Vector2();
 		this.raycaster = new Raycaster();
 
-		window.addEventListener( 'mousedown', ( e ) => {
+		// window.addEventListener( 'mousedown', ( e ) => {
 
-			this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-			this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+		// 	this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+		// 	this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
-			this.raycaster.setFromCamera( this.mouse, this.camera );
+		// 	this.raycaster.setFromCamera( this.mouse, this.camera );
 
-			const intersects = this.raycaster.intersectObjects( this.scene.children );
+		// 	const intersects = this.raycaster.intersectObjects( this.scene.children );
 
-			const mesh = intersects[ 0 ];
+		// 	const mesh = intersects[ 0 ];
 
-			if ( mesh ) {
+		// 	if ( mesh ) {
 
-				const face = mesh.face;
+		// 		const face = mesh.face;
 
-				const point = mesh.point;
+		// 		const point = mesh.point;
 
-				this.setUniforms( 'uPoint', point );
+		// 		this.setUniforms( 'uPoint', point );
 
-			}			
+		// 	}			
 			
-		} );
+		// } );
 		
 
 	}
