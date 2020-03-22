@@ -8,12 +8,10 @@ import Gui from "../../Engine/Gui";
 
 export default class Globe extends Mesh {
 
-	constructor( { particleCount = 100, settings, camera, scene, renderer, fboHelper } ) {
+	constructor( { particleCount = 100, settings, camera, scene, renderer, fboHelper } ) {	
 
-	
-
-		const cubeMapTexture = new CubeTextureLoader()
-										.setPath( 'assets/images/env/city/' )
+		const cubeMapTextureRefract = new CubeTextureLoader()
+										.setPath( 'assets/images/studio1/' )
 										.load( [
 											'px.png',
 											'nx.png',
@@ -23,9 +21,20 @@ export default class Globe extends Mesh {
 											'nz.png'
 										] );
 
+		const cubeMapTextureReflect = new CubeTextureLoader()
+		.setPath( 'assets/images/env/city/' )
+		.load( [
+			'px.png',
+			'nx.png',
+			'py.png',
+			'ny.png',
+			'pz.png',
+			'nz.png'
+		] );
+
 
 		const geo = new Geometry( particleCount, settings );
-		const mat = new Material( particleCount, cubeMapTexture );
+		const mat = new Material( particleCount, cubeMapTextureRefract, cubeMapTextureReflect );
 
 		super( geo, mat );
 
@@ -45,10 +54,10 @@ export default class Globe extends Mesh {
 		this.raycaster = new Raycaster();
 		this.mouse = new Vector2();
 
-		this.cubeMapTexture = cubeMapTexture;
+		this.cubeMapTexture = cubeMapTextureRefract;
 
-		// this.scene.background = cubeMapTexture;
-		// this.scene.background.generateMipmaps = true;
+		this.scene.background = cubeMapTextureRefract;
+		this.scene.background.generateMipmaps = true;
 
 		this.amplitude = 0.01;
 		this.waveTime = 0.01;
@@ -66,37 +75,6 @@ export default class Globe extends Mesh {
 		
 		// this.fboHelper.attach( this.refractionBuffer, 'Refraction Buffer' );
 		// this.fboHelper.attach( this.refractionMaskBuffer, 'Refraction mask Buffer' );
-
-
-		// window.addEventListener( 'mousedown', ( e ) => {
-
-		// 	this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-		// 	this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-
-
-		// 	this.raycaster.setFromCamera( this.mouse, this.camera );
-
-		// 	const intersects = this.raycaster.intersectObjects( this.scene.children );
-
-		// 	const mesh = intersects[ 0 ];
-
-		// 	if ( mesh ) {
-
-		// 		const face = mesh.face;
-
-		// 		const point = mesh.point;
-
-		// 		this.setUniforms( 'uPoint', point );
-				
-		// 		this.amplitude = 0.6;
-		// 		this.waveTime = 0;
-		// 		this.triggerWaveTime = true;
-
-		// 	}
-
-			
-			
-		// } );
 
 		this.visible = false;	
 

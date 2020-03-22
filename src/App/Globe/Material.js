@@ -6,7 +6,7 @@ import { Vector2 } from "three/build/three.module";
 
 export default class Material extends RawShaderMaterial {
 
-	constructor( particleCount, cubeMapTexture ) {		
+	constructor( particleCount, cubeMapTextureRefract, cubeMapTextureReflect ) {		
 
 		const uniforms = {
 			uTime: { value: 0.01 },
@@ -20,7 +20,8 @@ export default class Material extends RawShaderMaterial {
 			uPoint: { value: new Vector3(1,1,1) },
 			uEnvMap: { value: null },
 			uEnvMapMask: { value: null },
-			uReflectEnvMap: { value: cubeMapTexture },
+			uReflectEnvMap: { value: cubeMapTextureReflect },
+			uRefractEnvMap: { value: cubeMapTextureRefract },
 			uRefractAmount: { value: 1.3 },
 			uAmp: { value: 0.01 },
 			uWaveTime: { value: 0.01 },

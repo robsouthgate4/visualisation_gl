@@ -180,7 +180,9 @@ export default class App {
 
 	}
 
-	update( dt, time ) {		
+	update( dt, time ) {
+		
+		this.particleGroup.rotation.y += 0.5 * dt;
 
 		this.particles.forEach( ( particle ) => {
 			

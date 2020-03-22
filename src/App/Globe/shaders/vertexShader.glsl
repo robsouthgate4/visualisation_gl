@@ -255,9 +255,7 @@ void main() {
 
     vec4 mvPos = modelViewMatrix * vec4( pos , 1.0);
 
-   
-
-	gl_Position = projectionMatrix * mvPos;
+  	gl_Position = projectionMatrix * mvPos;
 
     clipSpace = projectionMatrix * viewMatrix * refractWorldPos;
 

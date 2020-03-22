@@ -35,6 +35,7 @@ uniform vec3 cameraPosition;
 uniform sampler2D uEnvMap;
 uniform sampler2D uEnvMapMask;
 uniform samplerCube uReflectEnvMap;
+uniform samplerCube uRefractEnvMap;
 uniform float uRefractAmount;
 
 varying vec3 e;
@@ -97,12 +98,14 @@ void main() {
     vec3 refracted = refract( eyeToSurfaceDir, worldNormal, uRefractAmount / 1.33  );
 
     float rimDist = fresnel( eyeToSurfaceDir, worldNormal, 1.0 );
+    float reflectionMask = fresnel( eyeToSurfaceDir, worldNormal, 1.0 );
 
-    refractTexCoords -= ( worldNormal.xy  * rimDist ) * 0.08;
+    refractTexCoords -= ( vNormal.xy  * rimDist ) * 0.08;
 
     vec3 envColorRefract = texture2D( uEnvMap, refractTexCoords ).rgb;
 
-    vec3 envColorRefractBg = textureCube( uReflectEnvMap, refractDirection ).rgb;
+    vec3 envColorRefractBg = textureCube( uReflectEnvMap, refractDirection ).rgb * reflectionMask;
+
     vec3 envColorReflect = textureCube( uReflectEnvMap, reflectDirection ).rgb;
 
     vec3 color = vec3( 0.5 );
@@ -115,11 +118,11 @@ void main() {
 
     envColorReflect.b += 0.3;
 
-    bgColor += (envColorReflect * 0.3);
+    bgColor += (envColorReflect * 0.3) * reflectionMask;
 
-    float blueRimDist = fresnel( eyeToSurfaceDir, worldNormal, 6.0 );
+    float colorRimLight = fresnel( eyeToSurfaceDir, worldNormal, 5.0 );
 
-    bgColor += (vec3( 0.5, 0.5, 1.0 ) * blueRimDist) * 0.9;
+    bgColor += (vec3( 1.4, 0.7, 1.2 ) * colorRimLight) * 1.4;
 
     gl_FragColor = vec4( bgColor, 1.0);
 

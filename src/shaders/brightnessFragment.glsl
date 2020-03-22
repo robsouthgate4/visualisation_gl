@@ -9,7 +9,7 @@ void main() {
 
     vec4 brightColor = vec4(0.0);
 
-    if(brightness > 0.8)
+    if( brightness > 0.7 )
         brightColor = vec4(color.rgb, 1.0);
     else
         brightColor = vec4(0.0, 0.0, 0.0, 1.0);

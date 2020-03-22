@@ -6,7 +6,7 @@ export default class Geometry extends BufferGeometry {
 
 		super();
 
-		const sphereBufferGeo = new SphereBufferGeometry(1, 256, 256);
+		const sphereBufferGeo = new SphereBufferGeometry(1, 128, 128);
 
 		Object.keys(sphereBufferGeo.attributes).forEach( attributeName => {
 			
